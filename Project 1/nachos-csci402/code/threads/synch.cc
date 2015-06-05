@@ -159,4 +159,10 @@ void Condition::Signal(Lock* conditionLock)
     if (waitList->IsEmpty()) { waitLock = NULL; }
     interrupt->SetLevel(old);
 }
-void Condition::Broadcast(Lock* conditionLock) { while (! waitList->IsEmpty()) { Signal(); } }
+void Condition::Broadcast(Lock* conditionLock)
+{
+    while (! waitList->IsEmpty())
+    {
+        Signal(conditionLock);
+    }
+}
