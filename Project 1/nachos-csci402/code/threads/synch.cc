@@ -105,8 +105,58 @@ Lock::~Lock() {}
 void Lock::Acquire() {}
 void Lock::Release() {}
 
-Condition::Condition(char* debugName) { }
-Condition::~Condition() { }
-void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
+Condition::Condition(char* debugName)
+{
+    name = debugName;
+    waitLock = NULL;
+    waitList = new List();
+}
+Condition::~Condition()
+{
+    waitLock = NULL;
+    delete waitList;
+}
+void Condition::Wait(Lock* conditionLock)
+{
+    IntStatus old = interrupt->SetLevel(IntOff);
+    if (conditionLock == NULL)
+    {
+        // print error message
+        interrupt->SetLevel(old);
+        return;
+    }
+    if (waitLock == NULL)
+    {
+        waitLock = conditionLock;
+    }
+    else if (waitLock != conditionLock )
+    {
+        // print error message
+        interrupt->SetLevel(old);
+        return;
+    }
+    conditionLock->Release();
+    waitList->Append(currentThread);
+    currentThread->Sleep();
+    interrupt->SetLevel(old);
+}
+void Condition::Signal(Lock* conditionLock)
+{
+    IntStatus old = interrupt->SetLevel(IntOff);
+    if (waitList->IsEmpty())
+    {
+        interrupt->SetLevel(old);
+        return;
+    }
+    if (waitLock != conditionLock)
+    {
+        // print error message
+        interrupt->SetLevel(old);
+        return;
+    }
+    Thread* thread = (Thread*)waitList->Remove();
+    scheduler->ReadyToRun(thread);
+    if (waitList->IsEmpty()) { waitLock = NULL; }
+    interrupt->SetLevel(old);
+}
+void Condition::Broadcast(Lock* conditionLock) { while (! waitList->IsEmpty()) { Signal(); } }
