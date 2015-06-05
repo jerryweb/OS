@@ -133,6 +133,5 @@ class Condition {
     char* name;
     Lock* waitLock;
     List* waitList;
-    // plus some other stuff you'll need to define
 };
 #endif // SYNCH_H
