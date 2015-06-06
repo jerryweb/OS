@@ -96,14 +96,86 @@ Semaphore::V()
     value++;
     (void) interrupt->SetLevel(oldLevel);
 }
+//----------------------------------------------------------------------
+// Lock::Lock
+//  Initialize a lock, so that it can be used for mutual exclusion of 
+//  critical sections.
+//
+//  "debugName" is an arbitrary name, useful for debugging
+//----------------------------------------------------------------------
+Lock::Lock(char* debugName) {
+    name = debugName;
+    readyQueue = new List;
+    waitQueue = new List;
+    lockState = FREE;
+    lockOwner = NULL;
+}
 
-// Dummy functions -- so we can compile our later assignments 
-// Note -- without a correct implementation of Condition::Wait(), 
-// the test case in the network assignment won't work!
-Lock::Lock(char* debugName) {}
-Lock::~Lock() {}
-void Lock::Acquire() {}
-void Lock::Release() {}
+//----------------------------------------------------------------------
+// Lock::Lock
+//  De-allocate Lock, when no longer needed.  Assume no one
+//  is still waiting on the Lock
+//----------------------------------------------------------------------
+Lock::~Lock() {
+    delete readyQueue;
+    delete waitQueue;
+}
+
+
+void Lock::Acquire() {
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+        
+        if(isHeldByCurrentThread()){ //currentThread is already the lockOwner of the lock
+            (void) interrupt->SetLevel(oldLevel);
+            return;
+        }
+
+        if(lockState == FREE){ //lock is available 
+            lockState = BUSY;         //set the state of the lock to busy
+            lockOwner = currentThread;      //set the lockOwner of the lock to the current thread
+        }   
+
+        else{ //lock not available 
+            waitQueue->Append((void *)currentThread); //add currentThread to waiting queue
+            currentThread->Sleep();                   //put currentThread to sleep
+        } 
+
+
+        (void) interrupt->SetLevel(oldLevel);  //reenable interrupts 
+}
+
+void Lock::Release() {
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);
+        if(!isHeldByCurrentThread()){           //prints an error message if currentThread 
+                                                //not the lockOwner
+            printf("This thread is not the current lockOwner of lock %c\n", getName());
+            (void) interrupt->SetLevel(oldLevel);
+            return;
+        }
+
+        if(!waitQueue->IsEmpty()){
+            Thread *thread;
+            thread = (Thread *)waitQueue->Remove();
+            
+            if (thread != NULL){    // make thread ready, consuming the V immediately
+                scheduler->ReadyToRun(thread);
+                lockOwner = currentThread;
+            }
+        }
+
+        else{
+            lockState = FREE;    //set the state of he lock to free
+            lockOwner = NULL;       // set lock thread pointer back to null
+        }
+
+        (void) interrupt->SetLevel(oldLevel);
+}
+
+bool Lock::isHeldByCurrentThread(){
+    if(lockOwner == currentThread)
+        return true;
+    else return false;
+}
 
 Condition::Condition(char* debugName)
 {
