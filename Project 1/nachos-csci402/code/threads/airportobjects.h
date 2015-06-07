@@ -7,14 +7,15 @@
 
 
 struct Luggage {
-	int airlineCode;
-	int weight;
+	int airlineCode;		//code for the distinction of airlines 
+	int weight;				//weight of bags in lbs
 }
 
 struct Ticket {
 	int airline;
-	bool executive;
+	bool executive;			//if true, then passenger is in executive class, otherwise passenger is 
+							//economy class
 }
 
 	
-	List* liasionQueues[7];
+	//List* liasionQueues[7];
