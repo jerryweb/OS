@@ -21,13 +21,13 @@ void CheckIn::doStuff()
         Passenger* pass = NULL;
         if (! airport->checkinQueues[airline][0]->IsEmpty()) // executive line
         {
-            pass = (Passenger*)airport->checkinQueues[airline][0]->Remove();
+            pass = (Passenger*)airport->checkinQueues[airline][0]->Remove(); // change: get without removing
         }
         else if (! airport->checkinQueues[airline][id]->IsEmpty()) // economy line
         {
-            pass = (Passenger*)airport->checkinQueues[airline][id]->Remove();
+            pass = (Passenger*)airport->checkinQueues[airline][id]->Remove(); // change: get without removing
         }
-        else currentThread->Sleep(); // ^PRETTY SURE THIS WON'T WORK PROPERLY
+        else currentThread->Sleep(); // PRETTY SURE THIS NEEDS TO GO FIRST
         int passAirline = pass->ticket.airlineCode;
         passengers++;
         for (int i = 0; i < 3; i++)
@@ -37,8 +37,12 @@ void CheckIn::doStuff()
             airport->conveyor->Append(&bag);
             luggage++;
         }
-        pass->seatNumber = seatsAssigned[airline];
-        seatsAssigned[airline]++;
+        pass->seatNumber = airport->airlines[airline]->seatsAssigned;
+        airport->airlines[airline]->seatsAssigned++;
         /*CV wait list*/->Signal();
+        if (airport->airlines[airline]->seatsAssigned == airport->airlines[airline]->ticketsIssued)
+        {
+            // close: use currentThread->Finish()?
+        }
     }
 }

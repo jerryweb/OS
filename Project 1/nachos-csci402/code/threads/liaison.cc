@@ -18,7 +18,7 @@ void Liaison::doStuff()
     while (true) // need to change this
     {
         if (airport->liaisonQueues[id]->IsEmpty()) currentThread->Sleep();
-        Passenger* pass = (Passenger*)liaisonQueues[id]->Remove();
+        Passenger* pass = (Passenger*)liaisonQueues[id]->Remove(); // change: get without removing
         int passAirline = pass->ticket.airlineCode;
         passengers[passAirline]++;
         luggage[passAirline] += 3; // add 2 or 3 depending on how many bags
