@@ -51,6 +51,7 @@ void PassengerFindsShortestLiaisonLine(){
 		myLine = passenger->findShortestLiaisonLine(liasionList);
 		shortCount = liasionList[myLine];
 
+		//Should be the first print statment 
 		printf("Passenger %d chose liaison %d with a line length of %d\n", Passenger.getID(), myLine, shortCount);
 		//this->Wait();
 

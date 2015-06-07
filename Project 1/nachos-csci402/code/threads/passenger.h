@@ -1,4 +1,5 @@
-//This is the passenger class. It holds 
+//This is the passenger class. It holds all of the information and functions for the passenger class
+
 
 #ifndef PASSENGER_H
 #define PASSENGER_H
