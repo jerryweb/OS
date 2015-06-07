@@ -14,6 +14,9 @@ class Liaison : public Thread {
 		~Liaison();
 		void doStuff();
 
+		void takeTicket(Ticket* ticket);
+
+
 	private:
 		int id;
         Airport* airport;
