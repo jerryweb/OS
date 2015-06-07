@@ -18,3 +18,7 @@ struct Ticket {
 
 	
 	List* liasionQueues[7];
+
+	//newly added Kevin
+	List* screenQueues[3];
+	List* securityQueues[3];

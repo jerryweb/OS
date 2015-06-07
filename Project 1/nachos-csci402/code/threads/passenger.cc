@@ -5,6 +5,7 @@ Passenger::Passenger(int id, Luggage* luggage, Ticket ticket)
 	this.id = id;
 	this.luggage = luggage;
 	this.ticket = ticket;
+	this.securityPass = true;
 }
 
 Passenger::~Passenger(){
@@ -26,4 +27,12 @@ void Passenger::doStuff(int* liaisonList[7])
 	}
 
 	printf("Passenger %d chose liaison %d with a line length of %d\n", this.id, liaisonID, minimum);
+}
+
+void Passenger::SetScreenPass(bool pnp) {
+	this.screenPass = pnp;
+}
+
+int Passenger::GetID() {
+	return this.id;
 }

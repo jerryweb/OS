@@ -14,9 +14,17 @@ class Passenger:public Thread {
 		~Passenger();
 		void doStuff();
 
+		//newly added Kevin
+		void SetScreenPass(bool pnp);
+		int GetID();
+
+
 	private:
 		int id;
 		Luggage luggage[3];
-		Ticket ticket;  
+		Ticket ticket;
+
+		//newly added
+		bool securityPass;
 
 }

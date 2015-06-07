@@ -54,10 +54,13 @@ class List {
     bool IsEmpty();		// is the list empty? 
     
     int Size(); // get the size of the list
+    void* First();  //return the ptr of the first element in the list
 
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int64_t sortKey);	// Put item into list
     void *SortedRemove(int64_t *keyPtr); 	  	// Remove first item from list
+
+
 
   private:
     ListElement *first;  	// Head of the list, NULL if list is empty
