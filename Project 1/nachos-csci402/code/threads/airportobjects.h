@@ -16,5 +16,16 @@ struct Ticket {
 	bool executive;
 }
 
-	
-	List* liasionQueues[7];
+struct BoardingPass {
+	int gate;
+	int seatNum;
+}
+
+class Airport {
+    public:
+        List* liaisonQueues[7];
+        List* checkinQueues[3][5];
+        List* conveyor;
+        int seatsAssigned[3];
+        // add other lists/variables here
+}
