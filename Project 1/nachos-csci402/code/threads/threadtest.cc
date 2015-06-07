@@ -26,7 +26,7 @@ SimpleThread(int which)
 {
     int num;
     
-    for (num = 0; num < 5; num++) {
+    for (num = 0; num < 2; num++) {
 	printf("*** thread %d looped %d times\n", which, num);
         currentThread->Yield();
     }

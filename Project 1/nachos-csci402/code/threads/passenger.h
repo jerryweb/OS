@@ -1,4 +1,5 @@
-//This is the passenger class 
+//This is the passenger class. It holds all of the information and functions for the passenger class
+
 
 #ifndef PASSENGER_H
 #define PASSENGER_H
@@ -12,7 +13,15 @@ class Passenger:public Thread {
 	public:
 		Passenger(int id, Luggage* luggage, Ticket ticket);
 		~Passenger();
-		void doStuff();
+		int getID(){ return id;}
+		/*this function iterates through a given array and returns the location
+		of the smallest value and the value itself*/
+		void findShortestLine(int* list, int *location, int *minValue);
+		/*This is the first version of the function for the passenger to find 
+		the shortest liaison line in the Airport.*/
+		void findShortestLiaisonLine(int* liaisonList);
+		/*This finds the shortest line at the check in counter*/
+		void findShortestCheckinLine(int* CheckinList[);
 
 		//newly added Kevin
 		void SetScreenPass(bool pnp);
@@ -20,11 +29,12 @@ class Passenger:public Thread {
 
 
 	private:
-		int id;
-		Luggage luggage[3];
-		Ticket ticket;
+
+		int id;					//This is the ID of the passenger
+		Luggage luggage[3];		//This is the array of bags the passenger has
+		Ticket ticket;  		//This is the ticket of the passenger
 
 		//newly added
-		bool securityPass;
+			bool securityPass;
 
 }
