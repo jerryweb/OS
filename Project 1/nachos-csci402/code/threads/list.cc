@@ -168,14 +168,15 @@ List::IsEmpty()
 int
 List::Size()
 { 
-    int size = 0;
     ListElement* ptr = first;
     if (ptr == NULL)
-        return size;
-    do {
+        return 0;
+    int size = 1;
+    while (ptr->next != NULL)
+    {
         size++;
         ptr = ptr->next;
-    } while (ptr->next != NULL);
+    }
     return size;
 }
 
