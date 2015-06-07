@@ -48,6 +48,7 @@ void CheckIn::doStuff()
             bag.airlineCode = passAirline;
             airport->conveyor->Append(&bag);
             luggage++;
+            weight += bag.weight;
         }
         printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system", id, airline);
         /*CV wait list*/->Signal();

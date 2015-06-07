@@ -26,6 +26,7 @@ class Airport {
     public:
         // numbers currently hard-coded
         Airline* airlines[3];
+        List* aircraft[3];
         List* liaisonQueues[7];
         List* checkinQueues[3][5];
         List* conveyor;
