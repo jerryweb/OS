@@ -175,7 +175,7 @@ List::Size()
     do {
         size++;
         ptr = ptr->next;
-    } while (ptr->next != NULL)
+    } while (ptr->next != NULL);
     return size;
 }
 
