@@ -14,7 +14,7 @@ Passenger::~Passenger(){
 
 }
 
-/*this function interates through a given array and returns the location
+/*this function iterates through a given array and returns the location
 	of the smallest value and the value itself*/
 void Passenger::findShortestLine(int* list, int *location, int *minValue){
 	location = 0;				//this is the size 

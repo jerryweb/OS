@@ -14,7 +14,7 @@ class Passenger:public Thread {
 		Passenger(int id, Luggage* luggage, Ticket ticket);
 		~Passenger();
 		int getID(){ return id;}
-		/*this function interates through a given array and returns the location
+		/*this function iterates through a given array and returns the location
 		of the smallest value and the value itself*/
 		void findShortestLine(int* list, int *location, int *minValue);
 		/*This is the first version of the function for the passenger to find 

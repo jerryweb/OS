@@ -23,8 +23,7 @@ void Liaison::doStuff()
         passengers[passAirline]++;
         luggage[passAirline] += 3; // add 2 or 3 depending on how many bags
         pass->airlineCode = passAirline;
-        printf("Airport Liaison %d directed passenger %d of airline %d",
-                id, pass->id, passAirline);
+        printf("Airport Liaison %d directed passenger %d of airline %d", id, pass->id, passAirline);
         /*CV wait list*/->Signal();
     }
 }

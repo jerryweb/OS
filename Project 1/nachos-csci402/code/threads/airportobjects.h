@@ -17,7 +17,6 @@ struct Ticket {
 							//economy class
 }
 
-
 struct BoardingPass {
 	int gate;
 	int seatNum;
