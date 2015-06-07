@@ -8,6 +8,7 @@ Passenger::Passenger(int id, Luggage* luggage, Ticket ticket){
 	this.id = id;
 	this.luggage = luggage;
 	this.ticket = ticket;
+	this.securityPass = true;
 }
 
 Passenger::~Passenger(){
@@ -50,8 +51,16 @@ int Passenger::findShortestLiaisonLine(int liaisonList[7]){
 	//liaisonList[liaisonID]->append((void *)this);
 	
 	return liaisonID;
+
 }
 
+void Passenger::SetScreenPass(bool pnp) {
+	this.screenPass = pnp;
+}
+
+int Passenger::GetID() {
+	return this.id;
+}
 
 void Passenger::findShortestCheckinLine(int CheckinList[5]){
 	int min = 0;					//this is the size 
@@ -65,3 +74,4 @@ void Passenger::findShortestCheckinLine(int CheckinList[5]){
 		this.findShortestLine(CheckinList, CheckinID, min);
 	}
 }
+

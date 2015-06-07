@@ -31,6 +31,9 @@ class Airport {
         List* checkinQueues[3][5];
         List* conveyor;
         // add other lists/variables here
+        //newly added Kevin
+        	List* screenQueues[3];
+        	List* securityQueues[3];
 }
 
 class Airline {
@@ -39,3 +42,4 @@ class Airline {
         int seatsAssigned;
         int ticketsIssued;
 }
+

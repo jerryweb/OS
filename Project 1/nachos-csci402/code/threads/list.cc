@@ -180,6 +180,24 @@ List::Size()
     return size;
 }
 
+//-----------------------------------------------------------------------
+// List::First
+//     Returns the pointer of the first element in the list
+//-----------------------------------------------------------------------
+
+void *
+List::First()
+{
+    if (IsEmpty())
+	return NULL;
+
+    ListElement *element = first;
+    void *thing;
+    thing = first->item;
+
+    return thing;
+}
+
 //----------------------------------------------------------------------
 // List::SortedInsert
 //      Insert an "item" into a list, so that the list elements are

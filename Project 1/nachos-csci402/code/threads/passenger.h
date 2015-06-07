@@ -23,9 +23,18 @@ class Passenger:public Thread {
 		/*This finds the shortest line at the check in counter*/
 		void findShortestCheckinLine(int* CheckinList[);
 
+		//newly added Kevin
+		void SetScreenPass(bool pnp);
+		int GetID();
+
+
 	private:
+
 		int id;					//This is the ID of the passenger
 		Luggage luggage[3];		//This is the array of bags the passenger has
 		Ticket ticket;  		//This is the ticket of the passenger
+
+		//newly added
+			bool securityPass;
 
 }
