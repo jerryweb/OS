@@ -20,4 +20,5 @@ class CheckIn : public Thread {
         Airport* airport;
         int passengers;
         int luggage;
+        int weight;
 }
