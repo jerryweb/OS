@@ -53,6 +53,7 @@ class List {
 					// on the list
     bool IsEmpty();		// is the list empty? 
     
+    int Size(); // get the size of the list
 
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int64_t sortKey);	// Put item into list

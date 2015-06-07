@@ -161,6 +161,25 @@ List::IsEmpty()
 }
 
 //----------------------------------------------------------------------
+// List::Size
+//      Returns the number of elements in the list.
+//----------------------------------------------------------------------
+
+int
+List::Size()
+{ 
+    int size = 0;
+    ListElement* ptr = first;
+    if (ptr == NULL)
+        return size;
+    do {
+        size++;
+        ptr = ptr->next;
+    } while (ptr->next != NULL)
+    return size;
+}
+
+//----------------------------------------------------------------------
 // List::SortedInsert
 //      Insert an "item" into a list, so that the list elements are
 //	sorted in increasing order by "sortKey".
