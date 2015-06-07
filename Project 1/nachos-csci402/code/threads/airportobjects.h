@@ -17,5 +17,25 @@ struct Ticket {
 							//economy class
 }
 
-	
-	//List* liasionQueues[7];
+
+struct BoardingPass {
+	int gate;
+	int seatNum;
+}
+
+class Airport {
+    public:
+        // numbers currently hard-coded
+        Airline* airlines[3];
+        List* liaisonQueues[7];
+        List* checkinQueues[3][5];
+        List* conveyor;
+        // add other lists/variables here
+}
+
+class Airline {
+    public:
+        // id = index in airport list
+        int seatsAssigned;
+        int ticketsIssued;
+}
