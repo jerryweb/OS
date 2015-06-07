@@ -12,7 +12,8 @@ class Passenger:public Thread {
 	public:
 		Passenger(int id, Luggage* luggage, Ticket ticket);
 		~Passenger();
-		void doStuff();
+		void findShortestLine();
+		
 
 	private:
 		int id;
