@@ -11,6 +11,10 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "passenger.h"
+#include "liaison.h"
+#include "cargo.h"
+#include "airportobjects.h"
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -49,3 +53,5 @@ ThreadTest()
     SimpleThread(0);
 }
 
+/*
+*/
