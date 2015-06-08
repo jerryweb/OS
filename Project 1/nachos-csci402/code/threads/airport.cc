@@ -54,7 +54,6 @@ void PassengerFindsShortestLiaisonLine(){
 
 		//Should be the first print statment 
 		printf("Passenger %d chose liaison %d with a line length of %d\n", Passenger.getID(), myLine, lineSize);
-		//this->Wait();
 
 		if(lineSize > 0)
 			lineCV[myLine]->Wait(LineLock);

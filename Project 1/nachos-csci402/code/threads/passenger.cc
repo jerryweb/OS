@@ -1,5 +1,5 @@
-// This is where all of the functions for the passenger class are defined 
-
+/*This is where all of the functions for the passenger class are defined 
+*/
 #include "passenger.h"
 //#include "system.h"
 
@@ -9,14 +9,16 @@ Passenger::Passenger(int id, Luggage* luggage, Ticket ticket){
 	this.luggage = luggage;
 	this.ticket = ticket;
 	this.securityPass = true;
+	this.boardingPass = NULL;
 }
 
 Passenger::~Passenger(){
 
 }
 
-/*this function iterates through a given array and returns the location
-	of the smallest value and the value itself*/
+/*This function iterates through a given array and sets the location
+	of the smallest value and the value itself to the location and 
+	minValue variables that are passed in*/
 void Passenger::findShortestLine(int* list, int *location, int *minValue){
 	location = 0;				//this is the size 
 								//of the smallest line 
@@ -34,16 +36,18 @@ void Passenger::findShortestLine(int* list, int *location, int *minValue){
 
 /*This is the first version of the function for the passenger to find 
 	the shortest liaison line in the Airport. An array of liaison line 
-	sizes is passed to the passenger and iterated to find the min length*/
+	sizes is passed to the passenger and iterated to find the min length
+	If the passenger has an executive class ticket, he/she should enter
+	line 0, which is the executive line.*/
 int Passenger::findShortestLiaisonLine(int liaisonList[7]){
-	int minimum = 0;				//this is the size 
-									//of the smallest line 
+	int minimum = 0;				//this is the size of the smallest line 
 	int liaisonID = 0;				//This is the id of the liaison
-	if(this.ticket.executive){
+		
+	if(this.ticket.executive){		//checks for executive class ticket
 		minimum = liaisonList[0];
 	}	
 
-	else {
+	else {							//If not executive class, then passenger will find shortest line
 		this.findShortestLine(liaisonList, liaisonID, minimum);
 	}
 	// printf("Passenger %d chose liaison %d with a line length of %d\n", this.id, liaisonID, minimum);
@@ -58,9 +62,6 @@ void Passenger::SetScreenPass(bool pnp) {
 	this.screenPass = pnp;
 }
 
-int Passenger::GetID() {
-	return this.id;
-}
 
 void Passenger::findShortestCheckinLine(int CheckinList[5]){
 	int min = 0;					//this is the size 
