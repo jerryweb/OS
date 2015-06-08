@@ -12,7 +12,7 @@ class Securityinspector:public Thread {
 	public:
 		Securityinspector(int id);
 		~Securityinspector();
-		void doStuff();
+		void SecurityCheck();
 
 		int GetID();
 

@@ -24,12 +24,19 @@ class Passenger:public Thread {
 		void findShortestCheckinLine(int* CheckinList);
 
 		//newly added Kevin
+
 		void SetScreenPass(bool pnp);
 		
 		//these are the get fucntion for the passenger's ticket
 		Ticket GetTicket() { return ticket; }
 		//returns the id of the passenger
 		int GetID(){ return id; }
+
+
+		void SetSecurityPass(bool pnp);
+		bool GetSecurityPass();
+		void Questioning();    //yield random cycles
+		int GetID();
 
 
 		BoardingPass GetBoardingPass() { return boardingPass; }
