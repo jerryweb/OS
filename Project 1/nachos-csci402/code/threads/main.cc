@@ -81,22 +81,21 @@ main(int argc, char **argv)
 {
     int argCount;			// the number of arguments 
 					// for a particular command
+	
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
-    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-
+    argCount = 1;
+	for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
     
 #ifdef THREADS
     if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
+		printf("hey it worked\n");
 		TestSuite();
-    	//cout << "works" << endl;
-    	//printf("hey it worked\n");
 	} 
 
 #endif
 
-	argCount = 1;
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
 #ifdef USER_PROGRAM
