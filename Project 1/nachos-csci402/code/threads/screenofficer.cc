@@ -43,6 +43,7 @@ void Screenofficer::Screen(int* liaisonList[7]) {
 		int shortest = 0; //shortest line's id
 		int minimumSize = -1;  //for comparsion in the following loop
 
+		//find the shortest line
 		for (int i = 0; i < 3; i++) {
 			if (minimumSize < 0 || minimumSize > screenQueues[i].Size()) {
 				minimumSize = screenQueues[i].Size();

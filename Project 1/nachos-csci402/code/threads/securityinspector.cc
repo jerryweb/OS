@@ -11,11 +11,12 @@ Securityinspector::~Securityinspector() {
 
 }
 
-void Securityinspector::doStuff(int* liaisonList[7]) {
+void Securityinspector::SecurityCheck(int* liaisonList[7]) {
 	while (true) {
 		//starting C.S.
 
 		Passenger* currentPassenger;
+
 		//handle return line first
 		if (returnLine.Size() != 0) {
 			currentPassenger = (Passenger*) returnLine.First();
@@ -30,7 +31,8 @@ void Securityinspector::doStuff(int* liaisonList[7]) {
 		} else if (securityLine.Size() != 0) {
 			currentPassenger = (Passenger*) securityLine.First();
 
-			bool passFlag = currentPassenger->GetSecurityPass();  //local flag
+			//this flag use locally in this function
+			bool passFlag = currentPassenger->GetSecurityPass();
 
 			//if it's orginally clean from screening do wand-hand test
 			if (passFlag) {
@@ -43,6 +45,7 @@ void Securityinspector::doStuff(int* liaisonList[7]) {
 				}
 			}
 
+			//make decision based on the result above
 			if (!passFlag) {
 				securityLine.Remove();
 				returnLine.Append(currentPassenger);
