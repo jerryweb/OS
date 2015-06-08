@@ -15,10 +15,10 @@ class CheckIn : public Thread {
 		void doStuff();
 
 	private:
-        int airline;
-		int id;
-        Airport* airport;
-        int passengers;
-        int luggage;
-        int weight;
+        int airline;        // Airline that the staff belongs to.
+		int id;             // ID of the check-in staff. Only unique within airlines.
+        Airport* airport;   // "Airport"" construct, containing all public data.
+        int passengers;     // Records how many passengers this individual staff has processed.
+        int luggage;        // Records how many bags this individual staff has processed.
+        int weight;         // Records the total weight of bags this individual staff has processed.
 }

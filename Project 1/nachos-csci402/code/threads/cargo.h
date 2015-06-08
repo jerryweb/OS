@@ -14,9 +14,9 @@ class Cargo : public Thread {
 		~Cargo();
 		void doStuff();
 
-	private:
-		int id;
-        Airport* airport;
-        int luggage[3];
-        int weight[3];
+	private: // TODO: change from hard-coded numbers.
+		int id;             // ID of the cargo handler. Unique.
+        Airport* airport;   // "Airport"" construct, containing all public data.
+        int luggage[3];     // Records how many bags this individual staff has processed, split by airline.
+        int weight[3];      // Records the total weight of bags this individual staff has processed, split by airline.
 }

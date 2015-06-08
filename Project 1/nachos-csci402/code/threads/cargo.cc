@@ -12,16 +12,18 @@ Cargo::~Cargo()
     airport = NULL;
 }
 
-void Cargo::doStuff()
+void Cargo::doStuff() // TODO: ADD SYNCHRONIZATION.
 {
-    while (true) // need to change this
+    while (true) // TODO: change this to avoid busy waiting.
     {
+        // Check if the conveyor is empty. If yes, go on break (sleep).
         if(airport->conveyor->IsEmpty())
         {
             printf("Cargo Handler %d is going for a break", id);
             currentThread->Sleep();
         }
-        // manager wakes it up
+        // TODO: have manager wake it up.
+        // Process bag and load onto airplane.
         Luggage* bag = (Luggage*)airport->conveyor->Remove();
         printf("Cargo Handler %d picked bag of airline %d with weighing %d lbs", id, bag->airlineCode, bag->weight);
         airport->airplanes[bag->airlineCode]->Append(bag);

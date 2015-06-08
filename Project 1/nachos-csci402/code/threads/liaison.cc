@@ -13,25 +13,21 @@ Liaison::~Liaison()
     airport = NULL;
 }
 
-void Liaison::doStuff()
+void Liaison::doStuff() // TODO: ADD SYNCHRONIZATION.
 {
-    while (true) // need to change this
+    while (true) // TODO: change this to avoid busy waiting.
     {
+        // Check line for passengers.
         if (airport->liaisonQueues[id]->IsEmpty()) currentThread->Sleep();
-        Passenger* pass = (Passenger*)liaisonQueues[id]->Remove(); // change: get without removing
+        Passenger* pass = (Passenger*)liaisonQueues[id]->Remove(); // TODO: get first, remove later.
+        // Process passenger's ticket and direct them to proper check-in line.
         int passAirline = pass->ticket.airlineCode;
-        
         passengers[passAirline]++;
-        luggage[passAirline] += 3; // add 2 or 3 depending on how many bags
+        luggage[passAirline] += 3; // TODO: change to add 2 or 3 depending on how many bags.
         pass->airlineCode = passAirline;
- 
-       
-
         printf("Airport Liaison %d directed passenger %d of airline %d",
                 id, pass->id, passAirline);
-
-        printf("Airport Liaison %d directed passenger %d of airline %d", id, pass->id, passAirline);
-        /*CV wait list*/->Signal();
+        /* TODO: use CV wait list. */->Signal();
     }
 }
 

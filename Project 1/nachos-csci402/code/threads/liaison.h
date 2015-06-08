@@ -17,9 +17,9 @@ class Liaison : public Thread {
 		void takeTicket(Ticket* ticket);
 
 
-	private:
-		int id;
-        Airport* airport;
-        int passengers[3]; // assumes 3 airlines
-        int luggage[3];
+	private: // TODO: change from hard-coded numbers.
+		int id;             // ID of the liaison. Unique.
+        Airport* airport;   // "Airport"" construct, containing all public data.
+        int passengers[3];  // Records how many passengers this individual staff has processed, split by airline.
+        int luggage[3];     // Records how many bags this individual staff has processed, split by airline.
 }
