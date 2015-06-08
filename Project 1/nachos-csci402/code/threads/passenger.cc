@@ -52,8 +52,16 @@ int Passenger::findShortestLiaisonLine(int liaisonList[7]){
 
 }
 
-void Passenger::SetScreenPass(bool pnp) {
+void Passenger::SetSecurityPass(bool pnp) {
 	this.screenPass = pnp;
+}
+
+bool Passenger::GetSecurityPass() {
+	return this.SecurityPass;
+}
+
+void Passenger::Questioning() {
+
 }
 
 int Passenger::GetID() {

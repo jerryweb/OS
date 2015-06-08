@@ -22,7 +22,7 @@ void Screenofficer::Screen(int* liaisonList[7]) {
 			srand(time(NULL));
 			int randNum = rand() % 100 + 1;
 			if (randNum > 0 && randNum < 11) {
-				currentPassenger->SetScreenPass(false);
+				currentPassenger->SetSecurityPass(false);
 				printf(
 						"Screening officer %d is suspicious of the hand luggage of passenger %d\n",
 						this.id, currentPassenger->GetID());
@@ -33,7 +33,7 @@ void Screenofficer::Screen(int* liaisonList[7]) {
 			}
 
 			//remove the Passenger in current line
-			screenLine.remove();
+			screenLine.Remove();
 		}
 
 		//ending C.S. for screening

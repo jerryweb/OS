@@ -24,7 +24,9 @@ class Passenger:public Thread {
 		void findShortestCheckinLine(int* CheckinList[);
 
 		//newly added Kevin
-		void SetScreenPass(bool pnp);
+		void SetSecurityPass(bool pnp);
+		bool GetSecurityPass();
+		void Questioning();    //yield random cycles
 		int GetID();
 
 
