@@ -1,27 +1,40 @@
 // This is the main file where all of the components to the airport can be tested
 
 #include "passenger.h"
+#include "liaison.h"
+#include "check.h"
+#include "cargo.h"
 #include "airportobjects.h"
 
+List* PassengerList[3];// = new List;
 
+void CreatePassenger(int numOfPassengers){
+	//int passengerID = 0;
 
-/*void CreatePassenger(int* liasionList){
+	for(int i = 0; i < numOfPassengers; i++){
+		Ticket ticket;
+		ticket.airline = i;
+		ticket.executive = false;
 
-	Luggage luggage[3];
-
-	for(int i =0; i <3; i++){
-		luggage[i].airlineCode = 1;
-		luggage[i].weight = 45 + i;
+		Luggage luggage[3];
+		for(int j =0; j <3; j++){
+			luggage[j].airljneCode = i;				//This is currently set to be the same as the passenger ID
+			luggage[j].weight = 30 + j*i;			//This generates a finite range of luggage weights
+		}										//starting from 30lbs
+		
+		Passenger *passenger = new Passenger(i, luggage, ticket);
+		//(Passenger *)PassengerList->append();
 	}
 
-	Ticket ticket;
-	ticket.airline = 1;
-	ticket.executive = false;
-	int passengerID = 0;
+	printf("Total number of passengers = %d.", numOfPassengers);
+	// for(int i = 0; i < numOfPassengers; i++){
+	// 	printf("Passenger %d belongs to Airline %d.", )
 
-	Passenger *passenger = new Passenger(0, luggage, ticket);
-}*/
+}
 
+// This is the test to show that the passenger chooses the correct line. If the ticket is 
+// economy class, then the passenger will pick line 0, otherwise, he will pick the shortest
+// of the other 6 lines. The values below are hard coded and can be changed here
 void PassengerFindsShortestLiaisonLine(){
 	//This is the initialization of a passenger with the following secifications
 	Lock *LineLock = new Lock("line lock");
