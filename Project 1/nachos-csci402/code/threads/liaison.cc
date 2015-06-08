@@ -20,10 +20,24 @@ void Liaison::doStuff()
         if (airport->liaisonQueues[id]->IsEmpty()) currentThread->Sleep();
         Passenger* pass = (Passenger*)liaisonQueues[id]->Remove(); // change: get without removing
         int passAirline = pass->ticket.airlineCode;
+        
         passengers[passAirline]++;
         luggage[passAirline] += 3; // add 2 or 3 depending on how many bags
         pass->airlineCode = passAirline;
+ 
+       
+
+        printf("Airport Liaison %d directed passenger %d of airline %d",
+                id, pass->id, passAirline);
+
         printf("Airport Liaison %d directed passenger %d of airline %d", id, pass->id, passAirline);
         /*CV wait list*/->Signal();
     }
+}
+
+//This isn't complete and needs a LOT more work
+int  takeTicket(Ticket* ticket){
+
+
+    return ticket.airline;
 }

@@ -78,11 +78,11 @@ class Lock {
 					// Condition variable ops below.
 
   private:
-    char* name;				// for debugging
-    Thread* lockOwner;
-    List* waitQueue;
-    List* readyQueue;
-    enum State {FREE, BUSY};
+    char* name;				        // for debugging
+    Thread* lockOwner;              // the current thread that holds the lock
+    List* waitQueue;                // list of threads waiting to wake up (not available to the scheduler)
+    List* readyQueue;               // threads that are ready to be used by the scheduler 
+    enum State {FREE, BUSY};        // the two states that the lock can take 
     State lockState;
     
 };

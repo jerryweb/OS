@@ -25,7 +25,8 @@
 void PassengerFindsShortestLiaisonLine(){
 	//This is the initialization of a passenger with the following secifications
 	Lock *LineLock = new Lock("line lock");
-	
+	Condition* lineCV[7];
+
 	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport
 															//liasions including 
 															//executive
@@ -43,20 +44,24 @@ void PassengerFindsShortestLiaisonLine(){
 
 	Passenger *passenger = new Passenger(0, luggage, ticket);
 
-	//Beginning of shortest line test 
+	//Beginning of shortest line test and start of critical section for finding shortest line
 	LineLock->Aquire();
 		
-		int myLine, shortCount = 0;
-		// int shortCount =0// = LineCount[0];
-		myLine = passenger->findShortestLiaisonLine(liasionList);
-		shortCount = liasionList[myLine];
+		int myLine, lineSize = 0; 				//These are the line and its size that the passenger enters
+		// int lineSize =0// = LineCount[0];
+		myLine = passenger->findShortestLiaisonLine(liasionList);		//function to find shortest line
+		lineSize = liasionList[myLine];
 
 		//Should be the first print statment 
-		printf("Passenger %d chose liaison %d with a line length of %d\n", Passenger.getID(), myLine, shortCount);
+		printf("Passenger %d chose liaison %d with a line length of %d\n", Passenger.getID(), myLine, lineSize);
 		//this->Wait();
 
-	LineLock->Release();
+		if(lineSize > 0)
+			lineCV[myLine]->Wait(LineLock);
+		
 
+	LineLock->Release();
+	//end of passenger crtitical section 
 
 	//CreatePassenger(liasionList);
 

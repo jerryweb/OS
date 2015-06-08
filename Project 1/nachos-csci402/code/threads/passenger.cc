@@ -1,7 +1,7 @@
 // This is where all of the functions for the passenger class are defined 
 
 #include "passenger.h"
-#include "system.h"
+//#include "system.h"
 
 // Main constructor for the passenger. 
 Passenger::Passenger(int id, Luggage* luggage, Ticket ticket){
@@ -27,6 +27,8 @@ void Passenger::findShortestLine(int* list, int *location, int *minValue){
 			location = i;
 		}
 	}
+	//Found a line
+
 }
 
 

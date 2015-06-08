@@ -191,11 +191,7 @@ List::First()
     if (IsEmpty())
 	return NULL;
 
-    ListElement *element = first;
-    void *thing;
-    thing = first->item;
-
-    return thing;
+    return first->item;
 }
 
 //----------------------------------------------------------------------
