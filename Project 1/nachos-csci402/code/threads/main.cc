@@ -88,13 +88,13 @@ main(int argc, char **argv)
     argCount = 1;
 	for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
     
-#ifdef THREADS
+//#ifdef THREADS
     if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
-		printf("hey it worked\n");
+		// printf("hey it worked\n");
 		TestSuite();
 	} 
 
-#endif
+//#endif
 
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
