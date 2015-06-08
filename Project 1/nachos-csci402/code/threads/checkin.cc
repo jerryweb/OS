@@ -19,6 +19,7 @@ void CheckIn::doStuff() // TODO: ADD SYNCHRONIZATION.
     Passenger* pass = NULL;
     bool exec;
     while (true) // TODO: change this to avoid busy waiting.
+    {
         // Check the lines, sleep if both empty.
         if (! airport->checkinQueues[airline][0]->IsEmpty()) // executive line
         {
