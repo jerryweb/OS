@@ -58,7 +58,7 @@ void PassengerFindsShortestLiaisonLine(){
 	Passenger *passenger = new Passenger(0, luggage, ticket);
 
 	//Beginning of shortest line test and start of critical section for finding shortest line
-	LineLock->Aquire();
+	//LineLock->Aquire();
 		
 		int myLine, lineSize = 0; 				//These are the line and its size that the passenger enters
 		// int lineSize =0// = LineCount[0];
@@ -72,7 +72,7 @@ void PassengerFindsShortestLiaisonLine(){
 			lineCV[myLine]->Wait(LineLock);
 		
 
-	LineLock->Release();
+	//LineLock->Release();
 	//end of passenger crtitical section 
 
 	//CreatePassenger(liasionList);

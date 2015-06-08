@@ -60,7 +60,7 @@ extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
-//extern void TestSuite(void);
+extern void TestSuite();
 
 //----------------------------------------------------------------------
 // main
@@ -84,12 +84,18 @@ main(int argc, char **argv)
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
+    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
+
     
 #ifdef THREADS
-    ThreadTest();
+    if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
+		TestSuite();
+    	//cout << "works" << endl;
+    	//printf("hey it worked\n");
+	} 
+
 #endif
 
-    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
@@ -130,7 +136,7 @@ main(int argc, char **argv)
             fileSystem->Print();
 	} else if (!strcmp(*argv, "-t")) {	// performance test
             PerformanceTest();
-	}
+	} 
 #endif // FILESYS
 #ifdef NETWORK
         if (!strcmp(*argv, "-o")) {

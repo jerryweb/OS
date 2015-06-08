@@ -52,6 +52,7 @@ THREAD_H =../threads/copyright.h\
 
 THREAD_C =../threads/main.cc\
 	../threads/list.cc\
+	../threads/lockTest.cc\
 	../threads/scheduler.cc\
 	../threads/synch.cc \
 	../threads/synchlist.cc\
