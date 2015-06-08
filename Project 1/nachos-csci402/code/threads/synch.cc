@@ -199,7 +199,7 @@ void Condition::Wait(Lock* conditionLock)
     IntStatus old = interrupt->SetLevel(IntOff);
     if (conditionLock == NULL) // make sure that the parameter is a valid lock
     {
-        printf("Condition::Wait: parameter conditionLock is not a valid Lock*");
+        printf("Condition::Wait: parameter conditionLock is not a valid Lock*\n");
         interrupt->SetLevel(old);
         return;
     }
@@ -209,7 +209,7 @@ void Condition::Wait(Lock* conditionLock)
     }
     else if (waitLock != conditionLock ) // make sure that the caller is trying to access the right lock
     {
-        printf("Condition::Wait: parameter conditionLock is not the same as the waitLock");
+        printf("Condition::Wait: parameter conditionLock is not the same as the waitLock\n");
         interrupt->SetLevel(old);
         return;
     }
@@ -228,7 +228,7 @@ void Condition::Signal(Lock* conditionLock)
     }
     if (waitLock != conditionLock) // make sure that the caller is trying to access the right lock
     {
-        printf("Condition::Signal: parameter conditionLock is not the same as the waitLock");
+        printf("Condition::Signal: parameter conditionLock is not the same as the waitLock\n");
         interrupt->SetLevel(old);
         return;
     }
