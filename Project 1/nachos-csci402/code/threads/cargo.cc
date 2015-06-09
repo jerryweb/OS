@@ -1,10 +1,10 @@
 #include "cargo.h"
 
-Cargo::Cargo(int id, Airport* airport)
+Cargo::Cargo(int id_, Airport* airport_)
 {
-	this.id = id;
-    this.airport = airport;
-    this.luggage = {0};
+	id = id_;
+    airport = airport_;
+    luggage = {0};
 }
 
 Cargo::~Cargo()
@@ -12,22 +12,26 @@ Cargo::~Cargo()
     airport = NULL;
 }
 
-void Cargo::doStuff() // TODO: ADD SYNCHRONIZATION.
+void Cargo::Run()
 {
-    while (true) // TODO: change this to avoid busy waiting.
+    while (true)
     {
-        // Check if the conveyor is empty. If yes, go on break (sleep).
+        airport->conveyorLock->Acquire();
         if(airport->conveyor->IsEmpty())
-        {
+        {   // Conveyor is empty, go on break (sleep).
             printf("Cargo Handler %d is going for a break", id);
-            currentThread->Sleep();
+            airport->conveyorLock->Release();
+            airport->cargoCV->Wait(/*lock*/);
         }
-        // TODO: have manager wake it up.
-        // Process bag and load onto airplane.
-        Luggage* bag = (Luggage*)airport->conveyor->Remove();
-        printf("Cargo Handler %d picked bag of airline %d with weighing %d lbs", id, bag->airlineCode, bag->weight);
-        airport->airplanes[bag->airlineCode]->Append(bag);
-        luggage[bag->airlineCode]++;
-        weight[bag->airlineCode] += bag->weight;
+        else
+        {   // Process bag and load onto airplane.
+            Luggage* bag = (Luggage*)airport->conveyor->Remove();
+            printf("Cargo Handler %d picked bag of airline %d with weighing %d lbs",
+                    id, bag->airlineCode, bag->weight);
+            airport->airplanes[bag->airlineCode]->Append(bag);
+            luggage[bag->airlineCode]++;
+            weight[bag->airlineCode] += bag->weight;
+            airport->conveyorLock->Release();
+        }
     }
 }

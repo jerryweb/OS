@@ -1,11 +1,11 @@
 #include "liaison.h"
 
-Liaison::Liaison(int id, Airport* airport)
+Liaison::Liaison(int id_, Airport* airport_)
 {
-	this.id = id;
-    this.airport = airport;
-    this.passengers = {0};
-    this.luggage = {0};
+	id = id_;
+    airport = airport_;
+    passengers = {0};
+    luggage = {0};
 }
 
 Liaison::~Liaison()
@@ -13,13 +13,32 @@ Liaison::~Liaison()
     airport = NULL;
 }
 
-void Liaison::doStuff() // TODO: ADD SYNCHRONIZATION.
+void Liaison::Run()
 {
-    while (true) // TODO: change this to avoid busy waiting.
+    Passenger* pass = NULL;
+    while (true)
     {
         // Check line for passengers.
+        airport->liaisonLineLock->Acquire();
+        if (airport->liaisonQueues[id]->Size() > 0)
+        {   // if line is not empty:
+            airport->liaisonCV[id]->Signal(/*lock*/);
+            pass = (Passenger*)airport->liaisonQueues[id]->Remove();
+            airport->liaisonState[id] = BUSY;
+        }
+        else
+        {   // if line is empty:
+            pass = NULL;
+            airport->liaisonState[id] = FREE;
+        }
+        airport->liaisonLock[id]->Acquire();
+        airport->liaisonLineLock->Release();
+        airport->liaisonCV[id]->Wait(/*lock*/);
+        
+        /*
+        
         if (airport->liaisonQueues[id]->IsEmpty()) currentThread->Sleep();
-        Passenger* pass = (Passenger*)liaisonQueues[id]->Remove(); // TODO: get first, remove later.
+        
         // Process passenger's ticket and direct them to proper check-in line.
         int passAirline = pass->ticket.airlineCode;
         passengers[passAirline]++;
@@ -27,13 +46,8 @@ void Liaison::doStuff() // TODO: ADD SYNCHRONIZATION.
         pass->airlineCode = passAirline;
         printf("Airport Liaison %d directed passenger %d of airline %d",
                 id, pass->id, passAirline);
-        /* TODO: use CV wait list. */->Signal();
+        cv->Signal();
+        
+        */
     }
-}
-
-//This isn't complete and needs a LOT more work
-int  takeTicket(Ticket* ticket){
-
-
-    return ticket.airline;
 }
