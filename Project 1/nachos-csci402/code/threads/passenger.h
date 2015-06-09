@@ -12,7 +12,7 @@
 
 class Passenger {
 	public:
-		Passenger(int ID, List* bags, Ticket T, int *liaisonArray, int *checkInStaffArray);
+		Passenger(int ID, List* bags, Ticket T, List** newLiaisonList, int *liaisonArray, int *checkInStaffArray);
 		~Passenger();
 
 		/*this function iterates through a given array and returns the location
@@ -49,6 +49,7 @@ class Passenger {
 
 		int id;							//This is the ID of the passenger
 		int liaisonList[7];				//Full list of liaisons
+		List* liaisons[7];
 		int checkInStaffList[5];		//Full list of Check-in Staff
 		List* luggageList;				//This is the array of bags the passenger has
 		Ticket ticket;  				//This is the ticket of the passenger
