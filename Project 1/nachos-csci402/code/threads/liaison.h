@@ -3,6 +3,7 @@
 
 #ifndef LIAISON_H
 #define LIAISON_H
+#endif
 
 #include "copyright.h"
 #include "thread.h"

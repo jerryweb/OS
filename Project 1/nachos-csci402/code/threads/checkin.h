@@ -4,6 +4,7 @@
 
 #ifndef CHECKIN_H
 #define CHECKIN_H
+#endif
 
 #include "copyright.h"
 #include "thread.h"
