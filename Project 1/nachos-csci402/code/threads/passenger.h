@@ -12,7 +12,7 @@
 
 class Passenger {
 	public:
-		Passenger(int ID, Luggage *bags, Ticket T, int *liaisonArray, int *checkInStaffArray);
+		Passenger(int ID, List* bags, Ticket T, int *liaisonArray, int *checkInStaffArray);
 		~Passenger();
 
 		/*this function iterates through a given array and returns the location
@@ -28,11 +28,13 @@ class Passenger {
 		
 		//these are the get fucntion for the passenger's ticket
 		Ticket getTicket() { return ticket; }
+
+		List* getLuggage() { return luggageList; }
 		//returns the id of the passenger
 		int getID(){ return id; }
 		//newly added Kevin
 
-		Luggage getLuggage(){ return *luggage; }
+		//Luggage getLuggage(){ return *luggageList; }
 				//void SetScreenPass(bool pnp);
 		/*
 		void SetSecurityPass(bool pnp);
@@ -48,7 +50,7 @@ class Passenger {
 		int id;							//This is the ID of the passenger
 		int liaisonList[7];				//Full list of liaisons
 		int checkInStaffList[5];		//Full list of Check-in Staff
-		Luggage luggage[3];				//This is the array of bags the passenger has
+		List* luggageList;				//This is the array of bags the passenger has
 		Ticket ticket;  				//This is the ticket of the passenger
 		BoardingPass boardingPass;
 		//newly added

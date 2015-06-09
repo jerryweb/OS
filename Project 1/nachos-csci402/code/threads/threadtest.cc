@@ -84,19 +84,19 @@ void StartupOutput(List* pList){
 	//printf("Numner of passengers for airline[code goes here] = %d", );
 	for(int i = 0; i < pList->Size(); i++){
 		Passenger *P = (Passenger*)pList->First();
-		// bags = P->getLuggage();
-		// int bagCount = 0;
-		// int bagWeight[3];
+		List *bags = P->getLuggage();
+		int tempBagWeights[3] = {0,0,0};				//This helps list the weights of the bags
 		printf("Passenger %d belongs to airline %d\n", P->getID(),P->getTicket().airline);
 
-		/*for(int j = 0; j < 3 || bags[j] == NULL; j++){
-			bagCount++;
-			bagWeight[j] = bags[j].weight;
+		for(int j = 0; j < 3; j++){						//This calculates the weights of each of the bags 
+			Luggage *l = (Luggage*)bags->First();		//and puts it into a temp array to be read
+			tempBagWeights[j] = l->weight;
+			bags->Remove();
 		}
 
-		printf("Passenger %d : Number of bags = %d\n", P->getID(), bagCount);
-		printf("Passenger %d : Weight of bags = %d, %d, %d\n", P->getID(), bagWeight[0], bagWeight[1], bagWeight[2]);
-		*/
+		printf("Passenger %d : Number of bags = %d\n", P->getID(), P->getLuggage()->Size());
+		printf("Passenger %d : Weight of bags = %d, %d, %d\n", P->getID(), tempBagWeights[0], tempBagWeights[1], tempBagWeights[2]);
+		
 	}
 
 }
@@ -113,19 +113,21 @@ void PassengerFindsShortestLiaisonLine(){
 	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport
 															//liasions including 
 															//executive
-	Luggage luggage[3];										//3 bags 
+	List* bagList = new List;										//3 bags 
 	List* passengerList = new List;
 
-	for(int i =0; i <3; i++){	
-		luggage[i].airlineCode = 1;
-		luggage[i].weight = 45 + i;							 //weight ranges from 45 -47lbs
+	for(int i =0; i <3; i++){
+		Luggage *bag = new Luggage;	
+		bag->airlineCode = 1;
+		bag->weight = 45 + i;							 //weight ranges from 45 -47lbs
+		bagList->Append((void *)bag);
 	}
 
 	Ticket ticket;
 	ticket.airline = 1;
 	ticket.executive = false;
 
-	Passenger *p = new Passenger(0, luggage, ticket, liasionList, checkInStaffList);
+	Passenger *p = new Passenger(0, bagList, ticket, liasionList, checkInStaffList);
 	passengerList->Append((void *)p);
 
 	StartupOutput(passengerList);
@@ -144,19 +146,21 @@ void PassengerFindsShortestCISEconomyLine(){
 	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport
 															//liasions including 
 															//executive
-	Luggage luggage[3];										//3 bags 
+	List* bagList = new List;										//3 bags 
 	List* passengerList = new List;
 
-	for(int i =0; i <3; i++){	
-		luggage[i].airlineCode = 1;
-		luggage[i].weight = 30 + i*2;							 //weight ranges from 45 -47lbs
+	for(int i =0; i <3; i++){
+		Luggage *bag = new Luggage;	
+		bag->airlineCode = 1;
+		bag->weight = 30 + i;							 //weight ranges from 45 -47lbs
+		bagList->Append((void *)bag);
 	}
 
 	Ticket ticket;
 	ticket.airline = 2;
 	ticket.executive = false;								//this makes the passenger economy class
 
-	Passenger *p = new Passenger(0, luggage, ticket, liasionList, checkInStaffList);
+	Passenger *p = new Passenger(1, bagList, ticket, liasionList, checkInStaffList);
 	passengerList->Append((void *)p);
 
 	StartupOutput(passengerList);
