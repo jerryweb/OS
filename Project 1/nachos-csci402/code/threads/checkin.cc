@@ -16,6 +16,7 @@ CheckIn::~CheckIn()
 
 void CheckIn::Run() // TODO: ADD SYNCHRONIZATION.
 {
+    /*
     Passenger* pass = NULL;
     bool exec;
     while (true) // TODO: change this to avoid busy waiting.
@@ -59,7 +60,7 @@ void CheckIn::Run() // TODO: ADD SYNCHRONIZATION.
         }
         printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system",
                 id, airline);
-        /* TODO: use CV wait list. */->Signal();
+        cv->Signal();
         // Check if all passengers are processed, close if done.
         if (airport->airlines[airline]->seatsAssigned >= airport->airlines[airline]->ticketsIssued)
         {
@@ -67,4 +68,5 @@ void CheckIn::Run() // TODO: ADD SYNCHRONIZATION.
             // TODO: use currentThread->Finish() to "close"?
         }
     }
+    */
 }

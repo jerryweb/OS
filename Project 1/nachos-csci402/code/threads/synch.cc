@@ -189,7 +189,6 @@ Condition::Condition(char* debugName)
 }
 Condition::~Condition()
 {
-    waitLock = NULL;
     delete waitList;
 }
 void Condition::Wait(Lock* conditionLock)

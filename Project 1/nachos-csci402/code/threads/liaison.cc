@@ -4,50 +4,51 @@ Liaison::Liaison(int id_, Airport* airport_)
 {
 	id = id_;
     airport = airport_;
-    passengers = {0};
-    luggage = {0};
+    passengers = new int[airport->numAirlines];
+    luggage = new int[airport->numAirlines];
 }
 
 Liaison::~Liaison()
 {
-    airport = NULL;
+    delete passengers;
+    delete luggage;
 }
 
 void Liaison::Run()
 {
     Passenger* pass = NULL;
     while (true)
-    {
+    {   // TODO: WHICH LOCK SHOULD liaisonCV USE?
         // Check line for passengers.
         airport->liaisonLineLock->Acquire();
         if (airport->liaisonQueues[id]->Size() > 0)
-        {   // if line is not empty:
-            airport->liaisonCV[id]->Signal(/*lock*/);
+        {   // If line is not empty, signal next passenger.
+            airport->liaisonCV[id]->Signal(liaisonLock[id]);
             pass = (Passenger*)airport->liaisonQueues[id]->Remove();
             airport->liaisonState[id] = BUSY;
         }
         else
-        {   // if line is empty:
+        {   // If line is empty, do nothing.
             pass = NULL;
             airport->liaisonState[id] = FREE;
         }
         airport->liaisonLock[id]->Acquire();
         airport->liaisonLineLock->Release();
-        airport->liaisonCV[id]->Wait(/*lock*/);
+        airport->liaisonCV[id]->Wait(liaisonLock[id]);
         
-        /*
-        
-        if (airport->liaisonQueues[id]->IsEmpty()) currentThread->Sleep();
+        // passenger signals when it's "given ticket to liaison"
         
         // Process passenger's ticket and direct them to proper check-in line.
-        int passAirline = pass->ticket.airlineCode;
+        int passAirline = pass->getTicket().airlineCode;
+        Luggage* passLuggage = pass->getLuggage();
         passengers[passAirline]++;
-        luggage[passAirline] += 3; // TODO: change to add 2 or 3 depending on how many bags.
-        pass->airlineCode = passAirline;
+        if (passLuggage[3] == NULL) luggage[passAirline] += 2;
+        else                        luggage[passAirline] += 3;
+        pass->setAirlineCode(passAirline);
         printf("Airport Liaison %d directed passenger %d of airline %d",
-                id, pass->id, passAirline);
-        cv->Signal();
-        
-        */
+                id, pass->getID(), passAirline);
+        airport->liaisonState[id] = FREE;
+        airport->liaisonLock[id]->Release();
+        // airport->liaisonCV[id]->Signal(liaisonLock[id]); ???
     }
 }

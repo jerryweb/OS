@@ -1,38 +1,13 @@
 // Defines structs and global data classes used in the airport sim.
 
-#ifndef AIRPORTOBJECTS_H
-#define AIRPORTOBJECTS_H
+#ifndef AIRPORT_H
+#define AIRPORT_H
 #endif
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
-
-
-struct Luggage          // A single bag held by a passenger. airlineCode
-                        //  assigned by check-in staff.
-{
-	int airlineCode;    // The ID of the airline the ticket is for.
-	int weight;         // The weight of the bag, in lbs.
-};
-
-struct Ticket           // A ticket held by a passenger.
-{
-	int airline;        // The ID of the airline the ticket is for.
-	bool executive;     // The type of ticket held: executive is T while
-                        //  economy is F.
-};
-
-struct BoardingPass     // A boarding pass created by check-in staff and
-                        //  given to passenger.
-{
-	int gate;           // The ID of the gate the passenger will wait at
-                        //  pre-boarding. Identical to the airline ID.
-	int seatNum;        // The seat number assigned to the passenger by
-                        //  the check-in staff.
-};
-
-enum LiaisonState {FREE, BUSY};
-enum CheckinState {FREE, BUSY, BREAK};
+#include "airportobjects.h"
+#include "airline.h"
 
 class Airport {
     public:
@@ -81,16 +56,4 @@ class Airport {
 //         Lock* securityLocks[3];     //Array of locks for security lines (each inspector has a lock)
 //         Lock securityQueuesLock;     //Lock for all the security lines as a whole, should be used when determining which line is the shortest
 //         Condition* screenCV[3];      //Array of C.V. for each screen locks
-}
-
-class Airline {
-        // TODO: add constructor (and destructor maybe).
-    public:
-        // No need for an ID because it corresponds with the index of the
-        //  airlines array in Airport.
-        int seatsAssigned;  // Number of seats currently assigned. Used to
-                            //  assign seat numbers to passengers at check-in
-                            //  as well as keeping track of check-in progress.
-        int ticketsIssued;  // Total number of passengers assigned to this
-                            //  flight. Does not change.
 }

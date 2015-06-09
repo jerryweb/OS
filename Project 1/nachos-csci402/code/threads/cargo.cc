@@ -4,12 +4,14 @@ Cargo::Cargo(int id_, Airport* airport_)
 {
 	id = id_;
     airport = airport_;
-    luggage = {0};
+    luggage = new int[airport->numAirlines];
+    weight = new int[airport->numAirlines];
 }
 
 Cargo::~Cargo()
 {
-    airport = NULL;
+    delete luggage;
+    delete weight;
 }
 
 void Cargo::Run()
