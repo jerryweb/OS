@@ -36,6 +36,8 @@ void Liaison::Run()
         airport->liaisonLineLock->Release();
         airport->liaisonCV[id]->Wait(liaisonLock[id]);
         
+        // TODO: figure out what happens below...
+        
         // passenger signals when it's "given ticket to liaison"
         
         // Process passenger's ticket and direct them to proper check-in line.
