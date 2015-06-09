@@ -5,10 +5,13 @@
 //#include "system.h"
 
 // Main constructor for the passenger. 
-Passenger::Passenger(int ID, Luggage *bags, Ticket T, int *liaisonArray){
+Passenger::Passenger(int ID, Luggage *bags, Ticket T, int *liaisonArray, int *checkInStaffArray){
 	id = ID;
 	for(int i =0; i < 7; i++)
 		liaisonList[i] = liaisonArray[i];
+	
+	for(int i =0; i < 7; i++)
+		checkInStaffList[i] = checkInStaffArray[i];
 	//luggage = bags;
 	for(int i =0; i < 3; i++)
 		luggage[i] = bags[i];
@@ -25,18 +28,36 @@ Passenger::~Passenger(){
 /*This function iterates through a given array and sets the location
 	of the smallest value and the value itself to the location and 
 	minValue variables that are passed in*/
-int Passenger::findShortestLine(int* list){//, //int *location, int *minValue){
+int Passenger::findShortestLine(int* list, bool CISline){//, //int *location, int *minValue){
 	int location, minValue = 0;				//this is the size and location of the smallest line 
-	minValue = list[0];
-	for(int i = 0; i < 7; i++){
-		if(minValue > list[i]){
-			//printf("The value of the liaison line: %d\n", list[i]);
-			minValue = list[i];
-			location = i;
+	
+
+	if(!CISline){
+		minValue = list[0];
+		for(int i = 0; i < 7; i++){
+			if(minValue > list[i]){
+				minValue = list[i];
+				location = i;
+			}
 		}
+		return location;						//Found a line
 	}
-	//Found a line
-	return location;
+
+	else if(!ticket.executive && CISline){
+		minValue = list[1];
+		for(int i = 1; i < 5; i++){
+			printf("value: %d\n", list[i]);
+			if(minValue > list[i]){
+				minValue = list[i];
+				location = i;printf("FUCk\n");
+			}
+		}
+		return location;						//Found a line
+	}
+
+	else
+		return location;
+
 }
 
 
@@ -46,14 +67,12 @@ int Passenger::findShortestLine(int* list){//, //int *location, int *minValue){
 	If the passenger has an executive class ticket, he/she should enter
 	line 0, which is the executive line.*/
 void Passenger::findShortestLiaisonLine(){
-
-	int myLine = 0;										//the passeger will default to the executive line positon 
-														// passenger will find shortest line
-	myLine = findShortestLine(liaisonList);
+	int myLine = 0;																					
+	myLine = findShortestLine(liaisonList, false);				// passenger will find shortest line
+	
 	//Should be the first print statment 
 	printf("Passenger %d chose liaison %d with a line length of %d\n", getID(), myLine, liaisonList[myLine]);
-	//if(liaisonList[myLine] > 0)
-	//	lineCV[myLine]->Wait(LineLock);
+	printf("Passenger %d of Airline %d is directed to check-in counter\n", getID(), ticket.airline);
 }
 /*
 void Passenger::SetSecurityPass(bool pnp) {
@@ -67,17 +86,18 @@ bool Passenger::GetSecurityPass() {
 void Passenger::Questioning() {
 
 }
-
-void Passenger::findShortestCheckinLine(int CheckinList[5]){
-	int min = 0;					//this is the size 
-									//of the smallest line 
-	int CheckinID = 0;				//This is the id of the checkin staff
-	if(this.ticket.executive){
-		min = CheckinList[0];
-	}	
-
-	else {
-		this.findShortestLine(CheckinList, CheckinID, min);
-	}
-}
 */
+
+
+void Passenger::findShortestCheckinLine(){
+	int myLine = 1;										//the passeger will default to the executive line positon 
+
+	//if(!ticket.executive){
+		myLine = findShortestLine(checkInStaffList, true);				// passenger will find shortest CIS economy line
+		printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n", 
+		getID(), ticket.airline, myLine, checkInStaffList[myLine]);
+	//}	
+
+	
+}
+

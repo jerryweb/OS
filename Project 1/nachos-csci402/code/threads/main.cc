@@ -62,6 +62,7 @@ extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 extern void TestSuite();
 extern void PassengerFindsShortestLiaisonLine();
+extern void PassengerFindsShortestCISEconomyLine();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -93,10 +94,16 @@ main(int argc, char **argv)
 		// printf("hey it worked\n");
 		TestSuite();
 	} 
-	if (!strcmp(*argv, "-pf")) {				//Tests to see if the passenger goes to the shortest line
+
+	if(!strcmp(*argv, "-findCIS")) {				//Tests to see if the economy passenger goes to the shortest CIS line
+		PassengerFindsShortestCISEconomyLine();
+	}
+
+	if (!strcmp(*argv, "-findL")) {				//Tests to see if the passenger goes to the shortest line
 		PassengerFindsShortestLiaisonLine();
 	}
 
+	
 //#endif
 
         if (!strcmp(*argv, "-z"))               // print copyright
