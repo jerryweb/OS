@@ -25,12 +25,12 @@ void Liaison::Run()
         {   // If line is not empty, signal next passenger.
             airport->liaisonCV[id]->Signal(liaisonLock[id]);
             pass = (Passenger*)airport->liaisonQueues[id]->Remove();
-            airport->liaisonState[id] = BUSY;
+            airport->liaisonState[id] = L_BUSY;
         }
         else
-        {   // If line is empty, do nothing.
+        {   // If line is empty, do nothing; also make sure state is set correctly.
             pass = NULL;
-            airport->liaisonState[id] = FREE;
+            airport->liaisonState[id] = L_FREE;
         }
         airport->liaisonLock[id]->Acquire();
         airport->liaisonLineLock->Release();
@@ -49,7 +49,7 @@ void Liaison::Run()
         pass->setAirlineCode(passAirline);
         printf("Airport Liaison %d directed passenger %d of airline %d",
                 id, pass->getID(), passAirline);
-        airport->liaisonState[id] = FREE;
+        airport->liaisonState[id] = L_FREE;
         airport->liaisonLock[id]->Release();
         // airport->liaisonCV[id]->Signal(liaisonLock[id]); ???
     }

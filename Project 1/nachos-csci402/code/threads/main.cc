@@ -63,6 +63,7 @@ extern void MailTest(int networkID);
 extern void TestSuite();
 extern void PassengerFindsShortestLiaisonLine();
 extern void PassengerFindsShortestCISEconomyLine();
+extern void CargoTest();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -101,6 +102,10 @@ main(int argc, char **argv)
 
 	if (!strcmp(*argv, "-findL")) {				//Tests to see if the passenger goes to the shortest line
 		PassengerFindsShortestLiaisonLine();
+	}
+    
+	if (!strcmp(*argv, "-cargo")) {				//Tests to see if cargo handler works
+		CargoTest();
 	}
 
 	

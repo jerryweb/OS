@@ -2,7 +2,7 @@
 
 #ifndef AIRPORTOBJECTS_H
 #define AIRPORTOBJECTS_H
-#endif
+
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
@@ -31,5 +31,7 @@ struct BoardingPass     // A boarding pass created by check-in staff and
                         //  the check-in staff.
 };
 
-enum LiaisonState {FREE, BUSY};
-enum CheckinState {FREE, BUSY, BREAK};
+enum LiaisonState {L_FREE, L_BUSY};
+enum CheckinState {CI_FREE, CI_BUSY, CI_BREAK};
+
+#endif

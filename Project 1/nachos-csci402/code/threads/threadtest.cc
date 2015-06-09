@@ -3,7 +3,7 @@
 //
 //	Create two threads, and have them context switch
 //	back and forth between themselves by calling Thread::Yield, 
-//	to illustratethe inner workings of the thread system.
+//	to illustrate the inner workings of the thread system.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
@@ -13,7 +13,7 @@
 #include "system.h"
 #include "passenger.h"
 // #include "liaison.h"
-// #include "cargo.h"
+#include "cargo.h"
 // #include "airportobjects.h"
 
 //----------------------------------------------------------------------
@@ -67,6 +67,11 @@ void StartFindShortestLiaisonLine(int arg){
 void StartFindShortestCISLine(int arg){
 	Passenger* p = (Passenger*)arg;
 	p->findShortestCheckinLine();
+}
+
+void StartCargoTest(int arg){
+	Cargo* c = (Cargo*)arg;
+	c->Run();
 }
 
 //----------------------------------------------------------------------
@@ -166,4 +171,47 @@ void PassengerFindsShortestCISEconomyLine(){
 	StartupOutput(passengerList);
 	Thread *t = new Thread("Passenger");
 	t->Fork(StartFindShortestCISLine,(int(p)));
+}
+
+//----------------------------------------------------------------------
+//	CargoTest
+// 	 Adds 5 bags onto the conveyor:
+//    airline 0, weight 30
+//    airline 1, weight 37
+//    airline 2, weight 44
+//    airline 0, weight 40
+//    airline 1, weight 50
+//   Initializes 3 cargo threads and runs them.
+//----------------------------------------------------------------------
+void CargoTest()
+{
+    Airport* airport = new Airport(); // 3 airlines
+    int weight;
+    for (int i = 0; i < 3; i++)
+    {
+        Luggage bag = {i, 30+7*i};
+        airport->conveyor->Append(&bag);
+    }
+    for (int i = 0; i < 2; i++)
+    {
+        Luggage bag = {i, 40+10*i};
+        airport->conveyor->Append(&bag);
+    }
+    
+    Cargo* cargo1 = new Cargo(1, airport);
+    Cargo* cargo2 = new Cargo(2, airport);
+    Cargo* cargo3 = new Cargo(3, airport);
+    
+	Thread* t1 = new Thread("Cargo1");
+	Thread* t2 = new Thread("Cargo2");
+	Thread* t3 = new Thread("Cargo3");
+    
+	t1->Fork(StartCargoTest,(int(cargo1)));
+	t2->Fork(StartCargoTest,(int(cargo2)));
+	t3->Fork(StartCargoTest,(int(cargo3)));
+    
+    delete airport;
+    delete cargo1;
+    delete cargo2;
+    delete cargo3;
 }

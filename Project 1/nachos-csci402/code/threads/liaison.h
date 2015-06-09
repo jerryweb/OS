@@ -26,4 +26,4 @@ class Liaison
         int* luggage;       // Records how many bags this individual staff
                             //  has processed, split by airline.
         LiaisonState state; // State of the liaison (FREE or BUSY).
-}
+};

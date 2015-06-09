@@ -9,6 +9,7 @@
 #include "list.h"
 #include "airportobjects.h"
 #include "airline.h"
+#include "synch.h"
 
 class Airport {
     public:
@@ -19,11 +20,11 @@ class Airport {
         int numAirlines;                // Number of airlines.
         // TODO: change from hard-coded numbers where inappropriate
         //  (e.g. # airlines, aircraft).
-        Airline* airlines[3];           // Array of airlines. Index is
+        // General variables
+        Airline** airlines;             // Array of airlines. Index is
                                         // airline ID.
-        List* aircraft[3];              // Array of aircraft (list of
-                                        //  Luggage). Index corresponds
-                                        //  to airline ID.
+        // Passenger variables?
+        // Liaison variables
         List* liaisonQueues[7];         // Array of liaison queues (list
                                         //  of Passengers). Index
                                         //  corresponds to liaison ID.
@@ -35,16 +36,23 @@ class Airport {
                                         //  Index corresponds to liaison ID.
         LiaisonState liaisonState[7];   // Array of states for each liaison.
                                         //  Index corresponds to liaison ID.
-        List* checkinQueues[3][5];      // 2D array of check-in queues (list
-                                        //  of Passengers): [airline][id].
-        CheckinState checkinState[3][5];// 
-        Condition* checkinCV[3][5];     // 
+        // Check-in variables
+        List** checkinQueues;           // Array of check-in queues (list of
+                                        //  Passengers). Index corresponds
+                                        //  to (ID + airlineID * 5).
+        CheckinState* checkinState;     // 
+        Condition** checkinCV[15];      // 
+        // Cargo variables
         List* conveyor;                 // Conveyor belt for bag transfer
                                         //  from check-in to cargo (list of
                                         //  Luggage).
         Lock* conveyorLock;             // Lock for the conveyor belt.
         Condition* cargoCV;             // CV for cargo worker break.
         Lock* cargoLock;                // Lock for cargo worker break.
+        List** aircraft;                // Array of aircraft (list of
+                                        //  Luggage). Index corresponds
+                                        //  to airline ID.
+        // Screening and security variables
         List* screenQueues[3];          // Array of screening queues (list
                                         //  of Passengers). Index corresponds
                                         //  to screener ID.
@@ -57,4 +65,4 @@ class Airport {
 //         Lock* securityLocks[3];     //Array of locks for security lines (each inspector has a lock)
 //         Lock securityQueuesLock;     //Lock for all the security lines as a whole, should be used when determining which line is the shortest
 //         Condition* screenCV[3];      //Array of C.V. for each screen locks
-}
+};

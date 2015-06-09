@@ -30,4 +30,4 @@ class CheckIn
                             //  staff has processed.
         int weight;         // Records the total weight of bags this
                             //  individual staff has processed.
-}
+};
