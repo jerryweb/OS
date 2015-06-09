@@ -1,8 +1,9 @@
-// Defines structs and global data classes used in the airport sim.
+// Defines global data classes used in the airport sim.
 
 #ifndef AIRPORT_H
 #define AIRPORT_H
 #endif
+
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
