@@ -1,39 +1,54 @@
 #include "liaison.h"
 
-Liaison::Liaison(int id, Airport* airport)
+Liaison::Liaison(int id_, Airport* airport_)
 {
-	this.id = id;
-    this.airport = airport;
-    this.passengers = {0};
-    this.luggage = {0};
+	id = id_;
+    airport = airport_;
+    passengers = new int[airport->numAirlines];
+    luggage = new int[airport->numAirlines];
 }
 
 Liaison::~Liaison()
 {
-    airport = NULL;
+    delete passengers;
+    delete luggage;
 }
 
-void Liaison::doStuff() // TODO: ADD SYNCHRONIZATION.
+void Liaison::Run()
 {
-    while (true) // TODO: change this to avoid busy waiting.
-    {
+    Passenger* pass = NULL;
+    while (true)
+    {   // TODO: WHICH LOCK SHOULD liaisonCV USE?
         // Check line for passengers.
-        if (airport->liaisonQueues[id]->IsEmpty()) currentThread->Sleep();
-        Passenger* pass = (Passenger*)liaisonQueues[id]->Remove(); // TODO: get first, remove later.
+        airport->liaisonLineLock->Acquire();
+        if (airport->liaisonQueues[id]->Size() > 0)
+        {   // If line is not empty, signal next passenger.
+            airport->liaisonCV[id]->Signal(liaisonLock[id]);
+            pass = (Passenger*)airport->liaisonQueues[id]->Remove();
+            airport->liaisonState[id] = BUSY;
+        }
+        else
+        {   // If line is empty, do nothing.
+            pass = NULL;
+            airport->liaisonState[id] = FREE;
+        }
+        airport->liaisonLock[id]->Acquire();
+        airport->liaisonLineLock->Release();
+        airport->liaisonCV[id]->Wait(liaisonLock[id]);
+        
+        // passenger signals when it's "given ticket to liaison"
+        
         // Process passenger's ticket and direct them to proper check-in line.
-        int passAirline = pass->ticket.airlineCode;
+        int passAirline = pass->getTicket().airlineCode;
+        Luggage* passLuggage = pass->getLuggage();
         passengers[passAirline]++;
-        luggage[passAirline] += 3; // TODO: change to add 2 or 3 depending on how many bags.
-        pass->airlineCode = passAirline;
+        if (passLuggage[3] == NULL) luggage[passAirline] += 2;
+        else                        luggage[passAirline] += 3;
+        pass->setAirlineCode(passAirline);
         printf("Airport Liaison %d directed passenger %d of airline %d",
-                id, pass->id, passAirline);
-        /* TODO: use CV wait list. */->Signal();
+                id, pass->getID(), passAirline);
+        airport->liaisonState[id] = FREE;
+        airport->liaisonLock[id]->Release();
+        // airport->liaisonCV[id]->Signal(liaisonLock[id]); ???
     }
-}
-
-//This isn't complete and needs a LOT more work
-int  takeTicket(Ticket* ticket){
-
-
-    return ticket.airline;
 }

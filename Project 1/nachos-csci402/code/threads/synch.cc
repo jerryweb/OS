@@ -178,9 +178,7 @@ void Lock::Release() {
 }
 
 bool Lock::isHeldByCurrentThread(){
-    if(lockOwner == currentThread)
-        return true;
-    else return false;
+    return lockOwner == currentThread;
 }
 
 Condition::Condition(char* debugName)
@@ -191,24 +189,23 @@ Condition::Condition(char* debugName)
 }
 Condition::~Condition()
 {
-    waitLock = NULL;
     delete waitList;
 }
 void Condition::Wait(Lock* conditionLock)
 {
     IntStatus old = interrupt->SetLevel(IntOff);
-    if (conditionLock == NULL) // make sure that the parameter is a valid lock
-    {
+    if (conditionLock == NULL)
+    {   // Make sure that the parameter is a valid lock.
         printf("Condition::Wait: parameter conditionLock is not a valid Lock*\n");
         interrupt->SetLevel(old);
         return;
     }
-    if (waitLock == NULL) // check if another thread has called wait
-    {
+    if (waitLock == NULL)
+    {   // Check if another thread has called wait.
         waitLock = conditionLock;
     }
-    else if (waitLock != conditionLock ) // make sure that the caller is trying to access the right lock
-    {
+    else if (waitLock != conditionLock )
+    {   // Make sure that the caller is trying to access the right lock.
         printf("Condition::Wait: parameter conditionLock is not the same as the waitLock\n");
         interrupt->SetLevel(old);
         return;
@@ -221,13 +218,13 @@ void Condition::Wait(Lock* conditionLock)
 void Condition::Signal(Lock* conditionLock)
 {
     IntStatus old = interrupt->SetLevel(IntOff);
-    if (waitList->IsEmpty()) // nothing to do if no waiting threads
-    {
+    if (waitList->IsEmpty())
+    {   // Nothing to do if no waiting threads.
         interrupt->SetLevel(old);
         return;
     }
-    if (waitLock != conditionLock) // make sure that the caller is trying to access the right lock
-    {
+    if (waitLock != conditionLock)
+    {   // Make sure that the caller is trying to access the right lock.
         printf("Condition::Signal: parameter conditionLock is not the same as the waitLock\n");
         interrupt->SetLevel(old);
         return;

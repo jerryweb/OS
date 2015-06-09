@@ -1,12 +1,12 @@
 #include "checkin.h"
 
-CheckIn::CheckIn(int airline, int id, Airport* airport)
+CheckIn::CheckIn(int airline_, int id_, Airport* airport_)
 {
-    this.airline = airline;
-	this.id = id;
-    this.airport = airport;
-    this.passengers = 0;
-    this.luggage = 0;
+    airline = airline_;
+	id = id_;
+    airport = airport_;
+    passengers = 0;
+    luggage = 0;
 }
 
 CheckIn::~CheckIn()
@@ -14,8 +14,9 @@ CheckIn::~CheckIn()
     airport = NULL;
 }
 
-void CheckIn::doStuff() // TODO: ADD SYNCHRONIZATION.
+void CheckIn::Run() // TODO: ADD SYNCHRONIZATION.
 {
+    /*
     Passenger* pass = NULL;
     bool exec;
     while (true) // TODO: change this to avoid busy waiting.
@@ -25,13 +26,15 @@ void CheckIn::doStuff() // TODO: ADD SYNCHRONIZATION.
         {
             exec = true;
             pass = (Passenger*)airport->checkinQueues[airline][0]->Remove(); // TODO: get first, remove later.
-            printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d", id, airline, airport->checkinQueues[airline][id]->Size());
+            printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d",
+                    id, airline, airport->checkinQueues[airline][id]->Size());
         }
         else if (! airport->checkinQueues[airline][id]->IsEmpty()) // economy line
         {
             exec = false;
             pass = (Passenger*)airport->checkinQueues[airline][id]->Remove(); // TODO: get first, remove later.
-            printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d", id, airline, airport->checkinQueues[airline][0]->Size());
+            printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d",
+                    id, airline, airport->checkinQueues[airline][0]->Size());
         }
         else currentThread->Sleep(); // TODO: MAKE THIS CHECK HAPPEN FIRST.
         // Process ticket, create boarding pass.
@@ -42,8 +45,10 @@ void CheckIn::doStuff() // TODO: ADD SYNCHRONIZATION.
         airport->airlines[airline]->seatsAssigned++;
         bp.gate = airline;
         pass->boardingPass = bp;
-        if (exec) printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d", id, airline, pass->id, airline);
-        else printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d", id, airline, pass->id, airline);
+        if (exec) printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d",
+                          id, airline, pass->id, airline);
+        else printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d",
+                     id, airline, pass->id, airline);
         // Process luggage and add it to conveyor.
         for (int i = 0; i < 3; i++)
         {
@@ -53,8 +58,9 @@ void CheckIn::doStuff() // TODO: ADD SYNCHRONIZATION.
             luggage++;
             weight += bag.weight;
         }
-        printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system", id, airline);
-        /* TODO: use CV wait list. */->Signal();
+        printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system",
+                id, airline);
+        cv->Signal();
         // Check if all passengers are processed, close if done.
         if (airport->airlines[airline]->seatsAssigned >= airport->airlines[airline]->ticketsIssued)
         {
@@ -62,4 +68,5 @@ void CheckIn::doStuff() // TODO: ADD SYNCHRONIZATION.
             // TODO: use currentThread->Finish() to "close"?
         }
     }
+    */
 }
