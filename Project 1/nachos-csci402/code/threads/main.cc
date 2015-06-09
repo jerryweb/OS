@@ -61,7 +61,7 @@ extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 extern void TestSuite();
-
+extern void PassengerFindsShortestLiaisonLine();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -93,6 +93,9 @@ main(int argc, char **argv)
 		// printf("hey it worked\n");
 		TestSuite();
 	} 
+	if (!strcmp(*argv, "-pf")) {				//Tests to see if the passenger goes to the shortest line
+		PassengerFindsShortestLiaisonLine();
+	}
 
 //#endif
 

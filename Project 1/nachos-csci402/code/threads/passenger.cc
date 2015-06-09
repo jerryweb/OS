@@ -1,15 +1,21 @@
 /*This is where all of the functions for the passenger class are defined 
 */
 #include "passenger.h"
+
 //#include "system.h"
 
 // Main constructor for the passenger. 
-Passenger::Passenger(int id, Luggage* luggage, Ticket ticket){
-	this.id = id;
-	this.luggage = luggage;
-	this.ticket = ticket;
-	this.securityPass = true;
-	this.boardingPass = NULL;
+Passenger::Passenger(int ID, Luggage *bags, Ticket T, int *liaisonArray){
+	id = ID;
+	for(int i =0; i < 7; i++)
+		liaisonList[i] = liaisonArray[i];
+	//luggage = bags;
+	for(int i =0; i < 3; i++)
+		luggage[i] = bags[i];
+	
+	ticket = T;
+	securityPass = true;
+	//boardingPass = NULL;
 }
 
 Passenger::~Passenger(){
@@ -19,18 +25,18 @@ Passenger::~Passenger(){
 /*This function iterates through a given array and sets the location
 	of the smallest value and the value itself to the location and 
 	minValue variables that are passed in*/
-void Passenger::findShortestLine(int* list, int *location, int *minValue){
-	location = 0;				//this is the size 
-								//of the smallest line 
-	minValue = 0;				//This is the id of the liaison
-	for(int i = 0; i < list.size(); i++){
+int Passenger::findShortestLine(int* list){//, //int *location, int *minValue){
+	int location, minValue = 0;				//this is the size and location of the smallest line 
+	minValue = list[0];
+	for(int i = 0; i < 7; i++){
 		if(minValue > list[i]){
-			minValue = list.[i];
+			//printf("The value of the liaison line: %d\n", list[i]);
+			minValue = list[i];
 			location = i;
 		}
 	}
 	//Found a line
-
+	return location;
 }
 
 
@@ -39,25 +45,17 @@ void Passenger::findShortestLine(int* list, int *location, int *minValue){
 	sizes is passed to the passenger and iterated to find the min length
 	If the passenger has an executive class ticket, he/she should enter
 	line 0, which is the executive line.*/
-int Passenger::findShortestLiaisonLine(int liaisonList[7]){
-	int minimum = 0;				//this is the size of the smallest line 
-	int liaisonID = 0;				//This is the id of the liaison
-		
-	if(this.ticket.executive){		//checks for executive class ticket
-		minimum = liaisonList[0];
-	}	
+void Passenger::findShortestLiaisonLine(){
 
-	else {							//If not executive class, then passenger will find shortest line
-		this.findShortestLine(liaisonList, liaisonID, minimum);
-	}
-	// printf("Passenger %d chose liaison %d with a line length of %d\n", this.id, liaisonID, minimum);
-
-	//liaisonList[liaisonID]->append((void *)this);
-	
-	return liaisonID;
-
+	int myLine = 0;										//the passeger will default to the executive line positon 
+														// passenger will find shortest line
+	myLine = findShortestLine(liaisonList);
+	//Should be the first print statment 
+	printf("Passenger %d chose liaison %d with a line length of %d\n", getID(), myLine, liaisonList[myLine]);
+	//if(liaisonList[myLine] > 0)
+	//	lineCV[myLine]->Wait(LineLock);
 }
-
+/*
 void Passenger::SetSecurityPass(bool pnp) {
 	this.screenPass = pnp;
 }
@@ -68,10 +66,6 @@ bool Passenger::GetSecurityPass() {
 
 void Passenger::Questioning() {
 
-}
-
-int Passenger::GetID() {
-	return this.id;
 }
 
 void Passenger::findShortestCheckinLine(int CheckinList[5]){
@@ -86,4 +80,4 @@ void Passenger::findShortestCheckinLine(int CheckinList[5]){
 		this.findShortestLine(CheckinList, CheckinID, min);
 	}
 }
-
+*/

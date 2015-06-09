@@ -11,7 +11,7 @@
 
 #include "copyright.h"
 #include "system.h"
-// #include "passenger.h"
+#include "passenger.h"
 // #include "liaison.h"
 // #include "cargo.h"
 // #include "airportobjects.h"
@@ -53,7 +53,11 @@ ThreadTest()
     SimpleThread(0);
 }
 
-/*
+void DoThings(int arg){
+	Passenger* p = (Passenger*)arg;
+	p->findShortestLiaisonLine();
+}
+
 //----------------------------------------------------------------------
 //Passenger Find Shortest Line Test
 // This is the test to show that the passenger chooses the correct line. If the ticket is 
@@ -62,8 +66,6 @@ ThreadTest()
 //----------------------------------------------------------------------
 void PassengerFindsShortestLiaisonLine(){
 	//This is the initialization of a passenger with the following secifications
-	Lock *LineLock = new Lock("line lock");
-	Condition* lineCV[7];
 
 	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport
 															//liasions including 
@@ -80,27 +82,12 @@ void PassengerFindsShortestLiaisonLine(){
 	ticket.executive = false;
 	int passengerID = 0;
 
-	Passenger *passenger = new Passenger(0, luggage, ticket);
+	Passenger *p = new Passenger(0, luggage, ticket, liasionList);
 
 	//Beginning of shortest line test and start of critical section for finding shortest line
-	LineLock->Aquire();
-		
-		int myLine, lineSize = 0; 				//These are the line and its size that the passenger enters
-		// int lineSize =0// = LineCount[0];
-		myLine = passenger->findShortestLiaisonLine(liasionList);		//function to find shortest line
-		lineSize = liasionList[myLine];
+	//->Aquire();
+	Thread *t = new Thread("Passenger");
+	t->Fork(DoThings,(int(p)));//->doStuff(liasionList)));
 
-		//Should be the first print statment 
-		printf("Passenger %d chose liaison %d with a line length of %d\n", Passenger.getID(), myLine, lineSize);
-
-		if(lineSize > 0)
-			lineCV[myLine]->Wait(LineLock);
-		
-
-	LineLock->Release();
-	//end of passenger crtitical section 
-
-	//CreatePassenger(liasionList);
 
 }
-*/
