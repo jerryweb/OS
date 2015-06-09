@@ -21,7 +21,7 @@ void Cargo::Run()
         {   // Conveyor is empty, go on break (sleep).
             printf("Cargo Handler %d is going for a break", id);
             airport->conveyorLock->Release();
-            airport->cargoCV->Wait(/*lock*/);
+            airport->cargoCV->Wait(airport->cargoLock);
         }
         else
         {   // Process bag and load onto airplane.

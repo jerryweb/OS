@@ -65,6 +65,7 @@ class Airport {
                                         //  Luggage).
         Lock* conveyorLock;             // Lock for the conveyor belt.
         Condition* cargoCV;             // CV for cargo worker break.
+        Lock* cargoLock;                // Lock for cargo worker break.
         List* screenQueues[3];          // Array of screening queues (list
                                         //  of Passengers). Index corresponds
                                         //  to screener ID.
