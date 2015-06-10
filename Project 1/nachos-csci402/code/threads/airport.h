@@ -2,7 +2,6 @@
 
 #ifndef AIRPORT_H
 #define AIRPORT_H
-#endif
 
 #include "copyright.h"
 #include "thread.h"
@@ -50,6 +49,7 @@ class Airport {
         Lock* conveyorLock;             // Lock for the conveyor belt.
         Condition* cargoCV;             // CV for cargo worker break.
         Lock* cargoLock;                // Lock for cargo worker break.
+        CargoState cargoState[10];      // 
         List** aircraft;                // Array of aircraft (list of
                                         //  Luggage). Index corresponds
                                         //  to airline ID.
@@ -67,3 +67,5 @@ class Airport {
 //         Lock securityQueuesLock;     //Lock for all the security lines as a whole, should be used when determining which line is the shortest
 //         Condition* screenCV[3];      //Array of C.V. for each screen locks
 };
+
+#endif

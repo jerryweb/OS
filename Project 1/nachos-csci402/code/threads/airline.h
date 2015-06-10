@@ -2,7 +2,7 @@
 
 #ifndef AIRLINE_H
 #define AIRLINE_H
-#endif
+
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
@@ -19,3 +19,5 @@ class Airline {
         int ticketsIssued;  // Total number of passengers assigned to this
                             //  flight. Does not change.
 };
+
+#endif

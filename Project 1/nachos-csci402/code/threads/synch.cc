@@ -152,6 +152,7 @@ void Lock::Acquire() {
 
 void Lock::Release() {
         IntStatus oldLevel = interrupt->SetLevel(IntOff);
+        
         if(!isHeldByCurrentThread()){           //prints an error message if currentThread 
                                                 //not the lockOwner
             printf("Lock::Release: This thread is not the current lockOwner of lock %s\n",
@@ -166,7 +167,7 @@ void Lock::Release() {
             
             if (thread != NULL){    // make thread ready, consuming the V immediately
                 scheduler->ReadyToRun(thread);
-                lockOwner = currentThread;
+                lockOwner = thread;
             }
         }
 
@@ -195,9 +196,10 @@ Condition::~Condition()
 void Condition::Wait(Lock* conditionLock)
 {
     IntStatus old = interrupt->SetLevel(IntOff);
+    
     if (conditionLock == NULL)
     {   // Make sure that the parameter is a valid lock.
-        printf("Condition::Wait: parameter conditionLock is not a valid Lock*\n");
+        printf("Condition::Wait (%s): parameter conditionLock is not a valid Lock*\n", name);
         interrupt->SetLevel(old);
         return;
     }
@@ -220,6 +222,7 @@ void Condition::Wait(Lock* conditionLock)
 void Condition::Signal(Lock* conditionLock)
 {
     IntStatus old = interrupt->SetLevel(IntOff);
+    
     if (waitList->IsEmpty())
     {   // Nothing to do if no waiting threads.
         interrupt->SetLevel(old);

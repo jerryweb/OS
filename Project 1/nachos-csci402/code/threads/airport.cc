@@ -19,6 +19,10 @@ Airport::Airport()
     conveyor = new List();
     cargoCV = new Condition("cargoCV");
     cargoLock = new Lock("cargoLock");
+    for (i = 0; i < 10; i++)
+    {
+        cargoState[i] = C_BUSY;
+    }
     aircraft = new List*[numAirlines];
     for (i = 0; i < numAirlines; i++)
     {

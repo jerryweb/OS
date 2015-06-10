@@ -182,42 +182,56 @@ void PassengerFindsShortestCISEconomyLine(){
 
 //----------------------------------------------------------------------
 //	CargoTest
-// 	 Adds 5 bags onto the conveyor:
+// 	 Adds 7 bags onto the conveyor:
 //    airline 0, weight 30
-//    airline 1, weight 37
-//    airline 2, weight 44
-//    airline 0, weight 40
-//    airline 1, weight 50
-//   Initializes 3 cargo threads and runs them.
+//    airline 1, weight 42
+//    airline 2, weight 54
+//    airline 0, weight 30
+//    airline 1, weight 45
+//    airline 0, weight 45
+//    airline 1, weight 60
+//   Initializes 6 cargo threads and runs them.
 //----------------------------------------------------------------------
 void CargoTest()
 {
     Airport* airport = new Airport(); // 3 airlines
-    int weight;
-    for (int i = 0; i < 3; i++)
+    int weight, i, j;
+    for (i = 0; i < 3; i++)
     {
         Luggage* bag = new Luggage;
         bag->airlineCode = i;
-        bag->weight = 30+7*i;
+        bag->weight = 30+12*i;
         airport->conveyor->Append((void*)bag);
     }
-    for (int i = 0; i < 2; i++)
+    for (i = 0; i < 2; i++)
     {
-        Luggage* bag = new Luggage;
-        bag->airlineCode = i;
-        bag->weight = 40+10*i;
-        airport->conveyor->Append((void*)bag);
+        for (j = 0; j < 2; j++)
+        {
+            Luggage* bag = new Luggage;
+            bag->airlineCode = j;
+            bag->weight = 30+15*(i+j);
+            airport->conveyor->Append((void*)bag);
+        }
     }
     
+    Cargo* cargo0 = new Cargo(0, airport);
     Cargo* cargo1 = new Cargo(1, airport);
     Cargo* cargo2 = new Cargo(2, airport);
     Cargo* cargo3 = new Cargo(3, airport);
+    Cargo* cargo4 = new Cargo(4, airport);
+    Cargo* cargo5 = new Cargo(5, airport);
     
+	Thread* t0 = new Thread("Cargo0");
 	Thread* t1 = new Thread("Cargo1");
 	Thread* t2 = new Thread("Cargo2");
 	Thread* t3 = new Thread("Cargo3");
+	Thread* t4 = new Thread("Cargo4");
+	Thread* t5 = new Thread("Cargo5");
     
+	t0->Fork(StartCargoTest,(int(cargo0)));
 	t1->Fork(StartCargoTest,(int(cargo1)));
 	t2->Fork(StartCargoTest,(int(cargo2)));
 	t3->Fork(StartCargoTest,(int(cargo3)));
+	t4->Fork(StartCargoTest,(int(cargo4)));
+	t5->Fork(StartCargoTest,(int(cargo5)));
 }
