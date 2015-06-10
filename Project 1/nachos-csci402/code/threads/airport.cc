@@ -9,12 +9,14 @@ Airport::Airport()
     numAirlines = 3;
     // Liaison variables
     liaisonLineLock = new Lock("liaisonLineLock");
+    liaisonList = new List();
     for (i = 0; i < 7; i++)
     {
         liaisonQueues[i] = new List();
-        liaisonCV[i] = new Condition("liaisonCV" + i);
+        lineCV[i] = new Condition("lineCV" + i);
+        liaisonCV[i] = new Condition("LiaisonCV" + i);
         liaisonLock[i] = new Lock("liaisonLock" + i);
-        liaisonState[i] = L_FREE;
+        liaisonState[i] = L_BUSY;
     }
     // Cargo variables
     conveyorLock = new Lock("conveyorLock");
@@ -37,6 +39,7 @@ Airport::~Airport()
     // Liaison variables
     delete liaisonLineLock;
     delete[] liaisonQueues;
+    delete[] lineCV;
     delete[] liaisonCV;
     delete[] liaisonLock;
     // Cargo variables
