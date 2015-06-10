@@ -6,7 +6,6 @@ Liaison::Liaison(int id_, Airport* airport_)
     airport = airport_;
     passengers = new int[airport->numAirlines];
     totalLuggageWeight = new int[airport->numAirlines];
-    myLineOfPassengers = new List();
     airport->liaisonState[id] = L_BUSY;
 }
 
@@ -14,7 +13,6 @@ Liaison::~Liaison()
 {
     delete[] passengers;
     delete[] totalLuggageWeight;
-    delete myLineOfPassengers;
 }
 /*
 void Liaison::Run()
@@ -59,8 +57,8 @@ void Liaison::Run()
 }*/
 
 //----------------------------------------------------------------------
-//  This Function handels the interaction between the Liaison and the Passengers
-//  First the Liaison will aquire the lock and see if there are any Passengers 
+//  This Function handles the interaction between the Liaison and the Passengers
+//  First the Liaison will acquire the lock and see if there are any Passengers 
 //  waiting in his respective queue
 //----------------------------------------------------------------------
 void Liaison::DirectPassengers(){

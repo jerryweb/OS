@@ -25,8 +25,8 @@ class CheckIn
                             //  within airlines.
         Airport* airport;   // "Airport"" construct, containing all
                             //  public data.
-        int passengers;     // Records how many passengers this individual
-                            //  staff has processed.
+        int passengers;     // Records how many passengers this
+                            //  individual staff has processed.
         int luggage;        // Records how many bags this individual
                             //  staff has processed.
         int weight;         // Records the total weight of bags this

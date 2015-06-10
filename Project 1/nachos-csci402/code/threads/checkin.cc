@@ -19,13 +19,13 @@ Passenger* CheckIn::FindPassenger(int execLine)
     Passenger* pass = NULL;
     if (! airport->checkinQueues[execLine]->IsEmpty())
     {   // Passenger in executive line.
-        pass = (Passenger*)airport->checkinQueues[execLine]->Remove(); // TODO: get first, remove later.
+        pass = (Passenger*)airport->checkinQueues[execLine]->Remove();
         printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n",
                 id, airline, airport->checkinQueues[id]->Size());
     }
     else // if (! airport->checkinQueues[execLine + id]->IsEmpty())
     {   // Passenger in economy line.
-        pass = (Passenger*)airport->checkinQueues[id]->Remove(); // TODO: get first, remove later.
+        pass = (Passenger*)airport->checkinQueues[id]->Remove();
         printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n",
                 id, airline, airport->checkinQueues[execLine]->Size());
     }

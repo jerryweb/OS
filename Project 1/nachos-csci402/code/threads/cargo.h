@@ -1,4 +1,5 @@
-//This is the check-in staff class 
+// Cargo handler class. Takes cargo from the conveyor and puts it on
+//  the proper airplane, and records statistics for the manager.
 
 #ifndef CARGO_H
 #define CARGO_H
@@ -14,11 +15,16 @@ class Cargo {
 		~Cargo();
 		void Run();
 
-	private: // TODO: change from hard-coded numbers.
+	private:
 		int id;             // ID of the cargo handler. Unique.
-        Airport* airport;   // "Airport"" construct, containing all public data.
-        int* luggage;       // Records how many bags this individual staff has processed, split by airline.
-        int* weight;        // Records the total weight of bags this individual staff has processed, split by airline.
+        Airport* airport;   // "Airport" construct, containing
+                            //  all public data.
+        int* luggage;       // Records how many bags this
+                            //  individual staff has processed,
+                            //  split by airline.
+        int* weight;        // Records the total weight of bags
+                            //  this individual staff has
+                            //  processed, split by airline.
 };
 
 #endif
