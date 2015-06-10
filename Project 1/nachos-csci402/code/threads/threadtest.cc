@@ -147,8 +147,10 @@ void StartupOutput(Airport* airport){
 //----------------------------------------------------------------------
 void ManagerTest(){
 	Airport *airport = new Airport();
+	//These are the arrays that will hold the thread pointers, which are to be forked 
 	List* PassengerThreadArray = new List();
 	List* LiaisonThreadArray = new List();
+	List* CheckInStaffArray =  new List();
 
 	//Generate Passengers each with seperate luggage and tickets 
 	for(int i = 0; i < 8; i++){
@@ -186,8 +188,10 @@ void ManagerTest(){
 	//Generates Check-in Staff; there are 5 for each airline
 	for(int m = 0; m < 3; m++){
 		for(int n = 0; n <5; n++){
-			CheckIn* C = new CheckIn(m, n, airport);
+			CheckIn *C = new CheckIn(m, n, airport);
     		airport->checkInStaffList->Append((void *)C);
+    		Thread  *tC =  new Thread("Check_In_Staff");
+    		CheckInStaffArray->Append((void *)tC);
 		}
 	}
 
@@ -217,6 +221,10 @@ void ManagerTest(){
 		Thread *tL = (Thread*)LiaisonThreadArray->First();
 		LiaisonThreadArray->Remove();
 		tL->Fork(StartLiaisonThread,(int(L)));
+	}
+
+	for(int k = CheckInStaffArray->Size(); k > 0; k--){
+		CheckIn *C = (CheckIn*)->airport->checkInStaffList->First();
 	}
 }
 
