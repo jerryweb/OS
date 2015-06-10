@@ -133,19 +133,19 @@ void PassengerFindsShortestLiaisonLine(){
 	}
 
 	//This fills the liaison queues with dummy int variables to simulate line lengths
-	for(int i = 5; i >= 0; i--){
-		int tempVariable = 5 - i;
-		for(int j = 0; j < 6 - i; j++){
-			airport->liaisonQueues[i]->Append((void *)tempVariable);
-			//printf("Size: %d\n", airport->liaisonQueues[i]->Size());
-		}
-	}
+	// for(int i = 5; i >= 0; i--){
+	// 	int tempVariable = 5 - i;
+	// 	for(int j = 0; j < 6 - i; j++){
+	// 		airport->liaisonQueues[i]->Append((void *)tempVariable);
+	// 		//printf("Size: %d\n", airport->liaisonQueues[i]->Size());
+	// 	}
+	// }
 
 	Ticket ticket;
 	ticket.airline = 1;
 	ticket.executive = false;
 
-	Liaison *L = new Liaison(6,airport);
+	Liaison *L = new Liaison(1,airport);
 	airport->liaisonList->Append((void *)L);
 
 	Passenger *p = new Passenger(0, bagList, ticket, airport, airport->liaisonQueues, checkInStaffList);

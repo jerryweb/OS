@@ -8,7 +8,7 @@ Airport::Airport()
     passengerList = new List();
     numAirlines = 3;
     // Liaison variables
-    liaisonLineLock = new Lock("liaisonLineLock");
+    LineLock = new Lock("LineLock");
     liaisonList = new List();
     for (i = 0; i < 7; i++)
     {
@@ -37,7 +37,7 @@ Airport::Airport()
 Airport::~Airport()
 {
     // Liaison variables
-    delete liaisonLineLock;
+    delete LineLock;
     delete[] liaisonQueues;
     delete[] lineCV;
     delete[] liaisonCV;

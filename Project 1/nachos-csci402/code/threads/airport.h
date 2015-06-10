@@ -29,7 +29,7 @@ class Airport {
                                         //  of Passengers). Index
                                         //  corresponds to liaison ID.
         List* liaisonList;              // List of Liaisons
-        Lock* liaisonLineLock;          // Lock for the liaison lines.
+        Lock* LineLock;          // Lock for the liaison lines.
         Lock* liaisonLock[7];           // Array of locks for each
                                         //  liaison. Index corresponds to
                                         //  liaison ID.

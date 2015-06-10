@@ -73,12 +73,14 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 // This is the first version of the function for the passenger to find 
 // the shortest liaison line in the Airport. An array of liaison line 
 // sizes is passed to the passenger and iterated to find the min length
-// If the passenger has an executive class ticket, he/she should enter
-// line 0, which is the executive line.
+// If all lines have the same value, the passenger should enter the first
+// line. The Passenger will then get in that queue and wait to be helped.
+// Once he has been helped by the corresponding liaison, a print statement 
+// describing the ID and airline of the passenger should be printed.
 //----------------------------------------------------------------------
 void Passenger::findShortestLiaisonLine(){
 	int myLine = 0;
-	airport->liaisonLineLock->Acquire();																					
+	airport->LineLock->Acquire();																					
 		myLine = findShortestLine(airport->liaisonQueues, false);				// passenger will find shortest line
 		
 		printf("Passenger %d chose liaison %d with a line length of %d\n", 
@@ -87,12 +89,13 @@ void Passenger::findShortestLiaisonLine(){
 		if(airport->liaisonState[myLine] == L_BUSY){						// If the liaison is busy
 			//Wait in line
 			airport->liaisonQueues[myLine]->Append((void *)this);			// add passenger to queue
-			airport->lineCV[myLine]->Wait(airport->liaisonLineLock);
+			printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
+			airport->lineCV[myLine]->Wait(airport->LineLock);
 		}
-		// printf("Passenger %d of Airline %d is directed to check-in counter\n", 
-		// 	getID(), ticket.airline);
 
-	airport->liaisonLineLock->Release();
+	printf("Passenger %d of Airline %d is directed to the airline counter.\n", 
+		id, ticket.airline);
+	airport->LineLock->Release();
 
 }
 /*
