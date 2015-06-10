@@ -61,6 +61,7 @@ extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 extern void TestSuite();
+extern void ManagerTest();
 extern void PassengerFindsShortestLiaisonLine();
 extern void PassengerFindsCorrectCISLine();
 extern void CheckInTest();
@@ -94,6 +95,10 @@ main(int argc, char **argv)
     if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
 		// printf("hey it worked\n");
 		TestSuite();
+	} 
+
+	if (!strcmp(*argv, "-manager")) {	// Manager and full simulation test
+		ManagerTest();
 	} 
 
 	if(!strcmp(*argv, "-findcis"))

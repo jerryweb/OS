@@ -32,6 +32,7 @@ Airport::Airport()
 
     // Check-in variables
     int numCheckin = numAirlines * 6;
+    checkInStaffList = new List();
     checkinQueues = new List*[numCheckin];
     checkinLineLock = new Lock*[numAirlines];
     checkinLock = new Lock*[numCheckin];

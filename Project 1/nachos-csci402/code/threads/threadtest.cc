@@ -53,7 +53,12 @@ ThreadTest()
     SimpleThread(0);
 }
 
+void StartManagerTest(int arg){
+
+}
+
 //----------------------------------------------------------------------
+// The passenger should find the shortest liaison line 
 //----------------------------------------------------------------------
 void StartFindShortestLiaisonLine(int arg){
 	Passenger* p = (Passenger*)arg;
@@ -88,83 +93,135 @@ void StartCheckInTest(int arg){
 //These are the initial print statements needed at the beginning of each simulation
 //The parameters should all be lists of each thread. 
 //----------------------------------------------------------------------
-void StartupOutput(Airport* airPort){
-	printf("Number of airport liaisons = %d\n", airPort->liaisonList->Size());
-	printf("Number of airlines = %d\n", airPort->numAirlines);//airlines->Size());
-	//printf("Number of check-in staff = %d\n", checkInStaffList.Size());
-	printf("Number of cargo handlers = %d\n", airPort->cargoHandlerList->Size());
+void StartupOutput(Airport* airport){
+	printf("Number of airport liaisons = %d\n", airport->liaisonList->Size());
+	printf("Number of airlines = %d\n", airport->numAirlines);
+	printf("Number of check-in staff = %d\n", airport->checkInStaffList->Size());
+	printf("Number of cargo handlers = %d\n", airport->cargoHandlerList->Size());
 	//printf("Number of screening officers = %d\n", screeningOfficersList.Size());
-	printf("Total number of passengers = %d\n", airPort->passengerList->Size());
+	printf("Total number of passengers = %d\n", airport->passengerList->Size());
 
-	//printf("Numner of passengers for airline[code goes here] = %d", );
-	for(int i = 0; i < airPort->passengerList->Size(); i++){
-		Passenger *P = (Passenger*)airPort->passengerList->First();
-		List *bags = P->getLuggage();
-		int tempBagWeights[3] = {0,0,0};				//This helps list the weights of the bags
+	// for(int h = 0; h < airport->numAirlines; h++){
+	// 		printf("Numner of passengers for airline %d = %d", 
+	// 			airport->airlines[h]->id, airport->);
+
+	// }
+
+	for(int i = 0; i < airport->passengerList->Size(); i++){
+		Passenger *P = (Passenger*)airport->passengerList->First();
+		airport->passengerList->Remove();
+		airport->passengerList->Append((void *)P);			//Prevent destruction of global passenger list	
+		List *bags = P->getLuggage();						//Temp list for iterating through luggage
+		int tempBagWeights[3] = {0,0,0};					//This helps list the weights of the bags
+		
 		printf("Passenger %d belongs to airline %d\n", P->getID(),P->getTicket().airline);
 
-		for(int j = 0; j < 3; j++){						//This calculates the weights of each of the bags 
-			Luggage *l = (Luggage*)bags->First();		//and puts it into a temp array to be read
+		for(int j = 0; j < bags->Size(); j++){				//This calculates the weights of each of the bags 
+			Luggage *l = (Luggage*)bags->First();			//and puts it into a temp array to be read
 			tempBagWeights[j] = l->weight;
 			bags->Remove();
+			bags->Append((void *)bags);						//Prevent destruction of local bags list
 		}
+		
 		printf("Passenger %d : Number of bags = %d\n", P->getID(), P->getLuggage()->Size());
 		printf("Passenger %d : Weight of bags = %d, %d, %d\n", P->getID(), tempBagWeights[0],
-		 tempBagWeights[1], tempBagWeights[2]);
-		
+		 tempBagWeights[1], tempBagWeights[2]);	
 	}
-
 }
 
 //----------------------------------------------------------------------
+// This runs a full simulation of the airport interactions 
+//----------------------------------------------------------------------
+void ManagerTest(){
+	Airport *airport = new Airport();
+
+	//Generate Passengers 
+	for(int i = 0; i < 8; i++){
+		List* bagList = new List();
+
+		for(int j =0; j <3; j++){
+			Luggage *bag = new Luggage;	
+			bag->airlineCode = 2;
+			bag->weight = (30 + i*2 + j) % 60;				//weight ranges from 30 to 60lbs
+			bagList->Append((void *)bag);
+		}
+
+		//Varies the airline codes and executive class status for the passengers
+		Ticket ticket;
+		ticket.airline = i % 3 ;
+		if(i % 3 == 2)
+			ticket.executive = true;
+		else
+			ticket.executive = false;
+
+		Passenger *p = new Passenger(i, bagList, ticket, airport);
+		airport->passengerList->Append((void *)p);
+
+	}
+
+	//Generates Liaisons
+	for(int k = 0; k < 7; k++){
+
+		Liaison *L = new Liaison(k,airport);
+		airport->liaisonList->Append((void *)L);
+	}
+	
+	StartupOutput(airport);
+
+}
+
+
+//----------------------------------------------------------------------
 //Passenger Find Shortest Line Test
-// This is the test to show that the passenger chooses the correct line. If the ticket is 
-// economy class, then the passenger will pick line 0, otherwise, he will pick the shortest
-// of the other 6 lines. The values below are hard coded and can be changed here.
+// This is the test to show that the passenger chooses the correct line.
+// Liaison Queues 0 through 5 are filled with dummy sizes all greater
+// than queue 6 to demonstrate passenger finding shortest queue (size 0)
+// Only 1 passenger and 1 liaison (for queue 6) are created to simulate
+// their interaction
 //----------------------------------------------------------------------
 void PassengerFindsShortestLiaisonLine(){
-	//This is the initialization of a passenger with the following secifications
-	int checkInStaffList[5] = {1,4,0,2,0};
-	// liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport liaisons
-	
 	Airport *airport = new Airport();					//This creates a new airpost object with all of the 
 														//global variables listed here
 	List* bagList = new List();							//List of passenger's luggage
-	// List* passengerList = new List();
 
 	for(int i =0; i <3; i++){
 		Luggage *bag = new Luggage;	
-		bag->airlineCode = 1;
+		bag->airlineCode = 2;
 		bag->weight = 45 + i;							 //weight ranges from 45 -47lbs
 		bagList->Append((void *)bag);
 	}
 
-	//This fills the liaison queues with dummy int variables to simulate line lengths
-	// for(int i = 5; i >= 0; i--){
-	// 	int tempVariable = 5 - i;
-	// 	for(int j = 0; j < 6 - i; j++){
-	// 		airport->liaisonQueues[i]->Append((void *)tempVariable);
-	// 		//printf("Size: %d\n", airport->liaisonQueues[i]->Size());
-	// 	}
-	// }
+	// This fills the liaison queues with dummy int variables to simulate line lengths
+	for(int i = 5; i >= 0; i--){
+		int tempVariable = 5 - i;
+		for(int j = 0; j < 6 - i; j++){
+			airport->liaisonQueues[i]->Append((void *)tempVariable);
+			//printf("Size: %d\n", airport->liaisonQueues[i]->Size());
+		}
+	}
 
 	Ticket ticket;
-	ticket.airline = 1;
+	ticket.airline = 2;
 	ticket.executive = false;
 
-	Liaison *L = new Liaison(1,airport);
-	airport->liaisonList->Append((void *)L);
+	// Liaison *L0 = new Liaison(0,airport);
+	Liaison *L6 = new Liaison(6,airport);
+	// airport->liaisonList->Append((void *)L0);
+	airport->liaisonList->Append((void *)L6);
 
-	Passenger *p = new Passenger(0, bagList, ticket, airport, airport->liaisonQueues, checkInStaffList);
+	Passenger *p = new Passenger(0, bagList, ticket, airport);
 	//passengerList->Append((void *)p);
 	airport->passengerList->Append((void *)p);
 
-	StartupOutput(airport);
+	StartupOutput(airport);								//Prints the initial output
 	//Beginning of shortest line test and start of critical section for finding shortest line
 	Thread *t = new Thread("Passenger");
-	Thread *tLiaison = new Thread("Liaison");
+	// Thread *tL0 = new Thread("Liaison_0");
+	Thread *tL6 = new Thread("Liaison_6");
+
 	t->Fork(StartFindShortestLiaisonLine,(int(p)));
-	tLiaison->Fork(StartLiaisonThread,(int(L)));
+	// tL0->Fork(StartLiaisonThread,(int(L0)));
+	tL6->Fork(StartLiaisonThread,(int(L6)));
 }
 
 
@@ -216,6 +273,9 @@ void PassengerFindsCorrectCISLine()
     Passenger* p0 = new Passenger(0, ticket0, 0);
     Passenger* p1 = new Passenger(1, ticket1, 0);
     Passenger* p2 = new Passenger(2, ticket2, 0);
+    airport->passengerList->Append((void *)p0);
+    airport->passengerList->Append((void *)p1);
+    airport->passengerList->Append((void *)p2);
     
     // Create threads.
     Thread* t0 = new Thread("Passenger0");
@@ -256,7 +316,8 @@ void CheckInTest()
 
     // Create CIS class.
     CheckIn* ci = new CheckIn(0, 1, airport);
-    
+    airport->checkInStaffList->Append((void *)ci);
+
     // Create thread.
     Thread* t = new Thread("CheckIn");
 

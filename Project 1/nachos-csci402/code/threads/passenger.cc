@@ -5,18 +5,15 @@
 //#include "system.h"
 
 // Main constructor for the passenger. 
-Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A, List** newLiaisonList, 
-	 int *checkInStaffArray){
+Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A){
 	id = ID;
 	airport = A;
 	
-	for(int i =0; i < 7; i++){
-		//liaisonList[i] = liaisonArray[i];
-		liaisons[i] = newLiaisonList[i];
-	}
+	// for(int i =0; i < 7; i++)
+	// 	liaisons[i] = airport->liaisonQueues[i];
 
-	for(int i =0; i < 5; i++)
-		checkInStaffList[i] = checkInStaffArray[i];
+	// for(int i =0; i < 5; i++)
+	// 	checkInStaffList[i] = airport->checkInStaffList[i];
 
 	luggageList = bags;
 
@@ -46,17 +43,15 @@ Passenger::~Passenger(){
 // minValue variables that are passed in
 //----------------------------------------------------------------------
 int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, int *minValue){
-	int location, minValue = 0;				//this is the size and location of the smallest line 
+	int location = 0;
+	int minValue = 0;				//this is the size and location of the smallest line 
 	
-	for(int i = 0; i < 7; i++)
-		list[i] = airport->liaisonQueues[i];
-
-
 	if(!CISline){
 		minValue = list[0]->Size();
+
 		for(int i = 0; i < 7; i++){
+			//printf("Size: %d\n", list[i]->Size());
 			if(minValue > list[i]->Size()){
-				//printf("NO\n");
 				minValue = list[i]->Size();
 				location = i;
 			}

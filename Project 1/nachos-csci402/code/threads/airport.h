@@ -53,6 +53,7 @@ class Airport {
                                         //  Passengers). Index corresponds
                                         //  to check-in staff ID. The executive
                                         //  lines are (airlineID * 5).
+        List* checkInStaffList;         // List of total number of checkin staff
         CheckinState* checkinState;     // Array of states for each check-in
                                         //  staff. Index corresponds to ID.
         Lock** checkinLineLock;         // Array of locks for each airline's
