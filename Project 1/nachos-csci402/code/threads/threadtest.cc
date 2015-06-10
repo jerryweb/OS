@@ -11,7 +11,6 @@
 
 #include "copyright.h"
 #include "system.h"
-//#include "passenger.h"
 #include "liaison.h"
 #include "checkin.h"
 #include "cargo.h"
@@ -120,6 +119,7 @@ void StartupOutput(Airport* airport){
 				airport->airlines[h]->id, passengersPerAirline[h]);
 	}
 
+	//This prints out the number bags and their weights for each passenger 
 	for(int i = 0; i < airport->passengerList->Size(); i++){
 		Passenger *P = (Passenger*)airport->passengerList->First();
 		airport->passengerList->Remove();
@@ -129,11 +129,11 @@ void StartupOutput(Airport* airport){
 		
 		printf("Passenger %d belongs to airline %d\n", P->getID(),P->getTicket().airline);
 
-		for(int j = 0; j < bags->Size(); j++){				//This calculates the weights of each of the bags 
+		for(int j = bags->Size(); j > 0; j--){				//This calculates the weights of each of the bags 
 			Luggage *l = (Luggage*)bags->First();			//and puts it into a temp array to be read
-			tempBagWeights[j] = l->weight;
+			tempBagWeights[3 - j] = l->weight;
 			bags->Remove();
-			bags->Append((void *)bags);						//Prevent destruction of local bags list
+			bags->Append((void *)bags);					//Prevent destruction of local bags list
 		}
 		
 		printf("Passenger %d : Number of bags = %d\n", P->getID(), P->getLuggage()->Size());
@@ -143,17 +143,20 @@ void StartupOutput(Airport* airport){
 }
 
 //----------------------------------------------------------------------
-// This runs a full simulation of the airport interactions 
+// This runs a full simulation of the airport interactions in order to test the manager
+// 10 passengers, 7 liaisons, 3 airlines each with 5 check-in staff, and 10 cargo handlers
+// are created at the beginning of the test.
 //----------------------------------------------------------------------
 void ManagerTest(){
 	Airport *airport = new Airport();
 	//These are the arrays that will hold the thread pointers, which are to be forked 
 	List* PassengerThreadArray = new List();
 	List* LiaisonThreadArray = new List();
-	List* CheckInStaffArray =  new List();
+	List* CheckInStaffThreadArray =  new List();
+	List* CargoHandlerTreadArray = new List();
 
 	//Generate Passengers each with seperate luggage and tickets 
-	for(int i = 0; i < 8; i++){
+	for(int i = 0; i < 10; i++){
 		List* bagList = new List();
 
 		for(int j =0; j <3; j++){
@@ -191,7 +194,7 @@ void ManagerTest(){
 			CheckIn *C = new CheckIn(m, n, airport);
     		airport->checkInStaffList->Append((void *)C);
     		Thread  *tC =  new Thread("Check_In_Staff");
-    		CheckInStaffArray->Append((void *)tC);
+    		CheckInStaffThreadArray->Append((void *)tC);
 		}
 	}
 
@@ -199,12 +202,14 @@ void ManagerTest(){
 	for(int q = 0; q < 10; q++){
 		Cargo* cargo = new Cargo(q, airport);
 		airport->cargoHandlerList->Append((void *)cargo);
+		Thread *tCH = new Thread("Cargo_Handler");
+		CargoHandlerTreadArray->Append((void *)tCH);
 	}
     
     //Display initial airport data
 	StartupOutput(airport);
 
-	//Fork all of the Passenger Threads
+	//Fork all of the Passenger Threads from the array of passenger threads
 	for(int i = PassengerThreadArray->Size(); i > 0 ; i--){
 		Passenger *P = (Passenger*)airport->passengerList->First();
 		airport->passengerList->Remove();
@@ -214,6 +219,7 @@ void ManagerTest(){
 		t->Fork(StartFindShortestLiaisonLine,(int(P)));
 	}
 
+	//Fork all of the Liaison Threads from the array of liaison threads
 	for(int j = LiaisonThreadArray->Size(); j > 0 ; j--){
 		Liaison *L = (Liaison*)airport->liaisonList->First();
 		airport->liaisonList->Remove();
@@ -223,19 +229,50 @@ void ManagerTest(){
 		tL->Fork(StartLiaisonThread,(int(L)));
 	}
 
-	for(int k = CheckInStaffArray->Size(); k > 0; k--){
-		CheckIn *C = (CheckIn*)->airport->checkInStaffList->First();
+	//Fork all of the Check-in Staff Threads from the array of Check-in Staff threads
+	for(int k = CheckInStaffThreadArray->Size(); k > 0; k--){
+		CheckIn *CIS = (CheckIn*)airport->checkInStaffList->First();
+		airport->checkInStaffList->Remove();
+		airport->checkInStaffList->Append((void *)CIS);
+		Thread *tCIS = (Thread*)LiaisonThreadArray->First();
+		LiaisonThreadArray->Remove();
+		//tCIS->Fork(StartCheckInTest,(int(CIS)));
+	}
+
+	//Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
+	for(int m = CargoHandlerTreadArray->Size(); m > 0; m--){
+		Cargo *CH = (Cargo*)airport->cargoHandlerList->First();
+		airport->cargoHandlerList->Remove();
+		airport->cargoHandlerList->Append((void *)CH);
+		Thread *tCH = (Thread*)CargoHandlerTreadArray->First();
+		CargoHandlerTreadArray->Remove();
+		//tCH->Fork(StartCargoTest,(int(CH)));
 	}
 }
 
 
 //----------------------------------------------------------------------
-//Passenger Find Shortest Line Test
+//Passenger Find Shortest Liaison Line Test
 // This is the test to show that the passenger chooses the correct line.
 // Liaison Queues 0 through 5 are filled with dummy sizes all greater
 // than queue 6 to demonstrate passenger finding shortest queue (size 0)
-// Only 1 passenger and 1 liaison (for queue 6) are created to simulate
-// their interaction
+// Adds dummy passengers into the liaison queues:
+//    line 0: 6
+//    line 1: 5
+//    line 2: 4
+//    line 3: 3
+//    line 4: 2
+//    line 5: 1
+// 	  line 6: 0
+// Only 1 passenger and 1 liaison (for queue 6) are created to simulate.
+// Sets liaison to busy
+//   Initializes 1 passenger and 1 liaison thread and runs them:
+//    id 0, airline 2 
+//	  id 6 
+//   Intended result:
+//    Passenger 0 will go to line 6 (length 0).
+// 	  The Liaison will then direct the passenger to airline 2 checkin 
+//    counter.
 //----------------------------------------------------------------------
 void PassengerFindsShortestLiaisonLine(){
 	Airport *airport = new Airport();					//This creates a new airpost object with all of the 
