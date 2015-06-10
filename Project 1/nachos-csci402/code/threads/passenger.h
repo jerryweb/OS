@@ -52,8 +52,6 @@ class Passenger {
 
 		int id;							//This is the ID of the passenger
         int airline;                    // Code of the airline. Set by liaison.
-		//List* liaisons[7];
-		// int checkInStaffList[5];		//Full list of Check-in Staff
 		List* luggageList;				//This is the array of bags the passenger has
 		Ticket ticket;  				//This is the ticket of the passenger
 		Airport* airport;   // "Airport" construct, containing all

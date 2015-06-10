@@ -97,11 +97,28 @@ void StartupOutput(Airport* airport){
 	//printf("Number of screening officers = %d\n", screeningOfficersList.Size());
 	printf("Total number of passengers = %d\n", airport->passengerList->Size());
 
-	// for(int h = 0; h < airport->numAirlines; h++){
-	// 		printf("Numner of passengers for airline %d = %d", 
-	// 			airport->airlines[h]->id, airport->);
+	int passengersPerAirline[3] = {0,0,0};
+	//Static counter for number of passengers per airline for 3 airlines
+	for(int i = 0; i < airport->passengerList->Size(); i++){
+		Passenger *P = (Passenger*)airport->passengerList->First();
+		airport->passengerList->Remove();
+		airport->passengerList->Append((void *)P);	
 
-	// }
+		if(P->getTicket().airline == 0){
+			passengersPerAirline[0]++;
+		}
+		else if(P->getTicket().airline == 1){
+			passengersPerAirline[1]++;
+		}
+		else if(P->getTicket().airline == 2){
+			passengersPerAirline[2]++;
+		}
+	}
+	
+	for(int h = 0; h < airport->numAirlines; h++){
+			printf("Numner of passengers for airline %d = %d\n", 
+				airport->airlines[h]->id, passengersPerAirline[h]);
+	}
 
 	for(int i = 0; i < airport->passengerList->Size(); i++){
 		Passenger *P = (Passenger*)airport->passengerList->First();
@@ -130,8 +147,10 @@ void StartupOutput(Airport* airport){
 //----------------------------------------------------------------------
 void ManagerTest(){
 	Airport *airport = new Airport();
+	List* PassengerThreadArray = new List();
+	List* LiaisonThreadArray = new List();
 
-	//Generate Passengers 
+	//Generate Passengers each with seperate luggage and tickets 
 	for(int i = 0; i < 8; i++){
 		List* bagList = new List();
 
@@ -152,18 +171,53 @@ void ManagerTest(){
 
 		Passenger *p = new Passenger(i, bagList, ticket, airport);
 		airport->passengerList->Append((void *)p);
-
+		Thread *t = new Thread("Passenger");
+		PassengerThreadArray->Append((void *)t);
 	}
 
 	//Generates Liaisons
 	for(int k = 0; k < 7; k++){
-
 		Liaison *L = new Liaison(k,airport);
 		airport->liaisonList->Append((void *)L);
+		Thread *tL = new Thread("Liaison");
+		LiaisonThreadArray->Append((void *)tL);
 	}
-	
+
+	//Generates Check-in Staff; there are 5 for each airline
+	for(int m = 0; m < 3; m++){
+		for(int n = 0; n <5; n++){
+			CheckIn* C = new CheckIn(m, n, airport);
+    		airport->checkInStaffList->Append((void *)C);
+		}
+	}
+
+	//Generates Cargo Handlers; there should be 10 in total 
+	for(int q = 0; q < 10; q++){
+		Cargo* cargo = new Cargo(q, airport);
+		airport->cargoHandlerList->Append((void *)cargo);
+	}
+    
+    //Display initial airport data
 	StartupOutput(airport);
 
+	//Fork all of the Passenger Threads
+	for(int i = PassengerThreadArray->Size(); i > 0 ; i--){
+		Passenger *P = (Passenger*)airport->passengerList->First();
+		airport->passengerList->Remove();
+		airport->passengerList->Append((void *)P);
+		Thread *t = (Thread*)PassengerThreadArray->First();
+		PassengerThreadArray->Remove();
+		t->Fork(StartFindShortestLiaisonLine,(int(P)));
+	}
+
+	for(int j = LiaisonThreadArray->Size(); j > 0 ; j--){
+		Liaison *L = (Liaison*)airport->liaisonList->First();
+		airport->liaisonList->Remove();
+		airport->liaisonList->Append((void *)L);
+		Thread *tL = (Thread*)LiaisonThreadArray->First();
+		LiaisonThreadArray->Remove();
+		tL->Fork(StartLiaisonThread,(int(L)));
+	}
 }
 
 

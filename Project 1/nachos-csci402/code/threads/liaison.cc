@@ -81,8 +81,6 @@ void Liaison::DirectPassengers(){
             p->SetAirline(p->getTicket().airline);
             // This adds the statistics for # of passengers and weight of bags for each
             // of the airlines
-
-            
         }
 
         // If line is empty, do nothing; also make sure state is set correctly.
