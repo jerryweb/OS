@@ -4,9 +4,17 @@ Airport::Airport()
 {
     int i;
     // TODO: add everything and non-hardcode it
+    // General variables
+    numAirlines = 3;
+    airlines = new Airline*[numAirlines];
+    airlineLock = new Lock*[numAirlines];
+    for (i = 0; i < numAirlines; i++)
+    {
+        airlines[i] = new Airline(i, 0);
+        airlineLock[i] = new Lock("airlineLock" + i);
+    }
     //Passenger variables
     passengerList = new List();
-    numAirlines = 3;
     // Liaison variables
     liaisonLineLock = new Lock("liaisonLineLock");
     for (i = 0; i < 7; i++)
@@ -15,6 +23,24 @@ Airport::Airport()
         liaisonCV[i] = new Condition("liaisonCV" + i);
         liaisonLock[i] = new Lock("liaisonLock" + i);
         liaisonState[i] = L_FREE;
+    }
+    // Check-in variables
+    int numCheckin = numAirlines * 5;
+    checkinQueues = new List*[numCheckin];
+    checkinLineLock = new Lock*[numAirlines];
+    checkinLock = new Lock*[numCheckin];
+    checkinCV = new Condition*[numCheckin];
+    checkinBreakCV = new Condition*[numCheckin];
+    for (i = 0; i < numAirlines; i++)
+    {
+        checkinLineLock[i] = new Lock("checkinLineLock" + i);
+    }
+    for (i = 0; i < numCheckin; i++)
+    {
+        checkinQueues[i] = new List();
+        checkinLock[i] = new Lock("checkinLock" + i);
+        checkinCV[i] = new Condition("checkinCV" + i);
+        checkinBreakCV[i] = new Condition("checkinBreakCV" + i);
     }
     // Cargo variables
     conveyorLock = new Lock("conveyorLock");

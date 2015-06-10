@@ -12,8 +12,8 @@ Liaison::Liaison(int id_, Airport* airport_)
 
 Liaison::~Liaison()
 {
-    delete passengers;
-    delete totalLuggageWeight;
+    delete[] passengers;
+    delete[] totalLuggageWeight;
     delete myLineOfPassengers;
 }
 /*
@@ -50,7 +50,7 @@ void Liaison::Run()
         if (passLuggage[3] == NULL) luggage[passAirline] += 2;
         else                        luggage[passAirline] += 3;
         pass->setAirlineCode(passAirline);
-        printf("Airport Liaison %d directed passenger %d of airline %d",
+        printf("Airport Liaison %d directed passenger %d of airline %d\n",
                 id, pass->getID(), passAirline);
         airport->liaisonState[id] = L_FREE;
         airport->liaisonLock[id]->Release();

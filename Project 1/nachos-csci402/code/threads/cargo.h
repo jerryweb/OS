@@ -2,7 +2,7 @@
 
 #ifndef CARGO_H
 #define CARGO_H
-#endif
+
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
@@ -20,3 +20,5 @@ class Cargo {
         int* luggage;       // Records how many bags this individual staff has processed, split by airline.
         int* weight;        // Records the total weight of bags this individual staff has processed, split by airline.
 };
+
+#endif

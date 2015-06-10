@@ -21,8 +21,9 @@ class Airport {
         //  (e.g. # airlines, aircraft).
         // General variables
         Airline** airlines;             // Array of airlines. Index is
-                                        // airline ID.
-        // Passenger variables?
+                                        //  airline ID.
+        Lock** airlineLock;             // 
+        // Passenger variables
         List* passengerList;
         // Liaison variables
         List* liaisonQueues[7];         // Array of liaison queues (list
@@ -39,9 +40,13 @@ class Airport {
         // Check-in variables
         List** checkinQueues;           // Array of check-in queues (list of
                                         //  Passengers). Index corresponds
-                                        //  to (ID + airlineID * 5).
+                                        //  to check-in staff ID. The executive
+                                        //  lines are (airlineID * 5).
         CheckinState* checkinState;     // 
-        Condition** checkinCV[15];      // 
+        Lock** checkinLineLock;         // 
+        Lock** checkinLock;             // 
+        Condition** checkinCV;          // 
+        Condition** checkinBreakCV;     // 
         // Cargo variables
         List* conveyor;                 // Conveyor belt for bag transfer
                                         //  from check-in to cargo (list of

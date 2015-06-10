@@ -63,6 +63,7 @@ extern void MailTest(int networkID);
 extern void TestSuite();
 extern void PassengerFindsShortestLiaisonLine();
 extern void PassengerFindsShortestCISEconomyLine();
+extern void CheckInTest();
 extern void CargoTest();
 //----------------------------------------------------------------------
 // main
@@ -104,7 +105,13 @@ main(int argc, char **argv)
 		PassengerFindsShortestLiaisonLine();
 	}
     
-	if (!strcmp(*argv, "-cargo")) {				//Tests to see if cargo handler works
+	if (!strcmp(*argv, "-checkin"))
+    {   //Tests to see if check-in prioritizes executive line.
+		CheckInTest();
+	}
+    
+	if (!strcmp(*argv, "-cargo"))
+    {   //Tests to see if cargo handler functions.
 		CargoTest();
 	}
 

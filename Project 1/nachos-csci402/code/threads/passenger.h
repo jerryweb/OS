@@ -3,7 +3,6 @@
 
 #ifndef PASSENGER_H
 #define PASSENGER_H
-#endif
 
 #include "copyright.h"
 #include "thread.h"
@@ -13,7 +12,8 @@
 class Passenger {
 	public:
 		Passenger(int ID, List* bags, Ticket T, List** newLiaisonList, int *liaisonArray, int *checkInStaffArray);
-		~Passenger();
+		Passenger(int ID);
+        ~Passenger();
 
 		/*this function iterates through a given array and returns the location
 		of the smallest value and the value itself*/
@@ -60,3 +60,5 @@ class Passenger {
 		bool securityPass;
 
 };
+
+#endif

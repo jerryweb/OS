@@ -12,9 +12,9 @@
 #include "copyright.h"
 #include "system.h"
 #include "passenger.h"
-// #include "liaison.h"
+#include "liaison.h"
+#include "checkin.h"
 #include "cargo.h"
-// #include "airportobjects.h"
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -72,6 +72,11 @@ void StartFindShortestCISLine(int arg){
 void StartCargoTest(int arg){
 	Cargo* c = (Cargo*)arg;
 	c->Run();
+}
+
+void StartCheckInTest(int arg){
+	CheckIn* ci = (CheckIn*)arg;
+	Passenger* p = ci->FindPassenger(0);
 }
 
 //----------------------------------------------------------------------
@@ -144,7 +149,7 @@ void PassengerFindsShortestLiaisonLine(){
 	Thread *t = new Thread("Passenger");
 	Thread *tLiaison = new Thread("Liaison");
 	t->Fork(StartFindShortestLiaisonLine,(int(p)));
-	tLiaison->Fork(directPassengers,(int(L)));
+	//tLiaison->Fork(directPassengers,(int(L)));
 }
 
 
@@ -188,6 +193,28 @@ void PassengerFindsShortestCISEconomyLine(){
 }
 
 //----------------------------------------------------------------------
+//	CheckInTest
+// 	 Adds 3 passengers into the check-in queue:
+//    id 0, executive (line 0)
+//    id 1, economy (line 1)
+//    id 2, economy (line 1)
+//   Initializes 1 check-in thread (id 1; airline 0) and runs it.
+//----------------------------------------------------------------------
+void CheckInTest()
+{
+    Airport* airport = new Airport(); // 3 airlines
+    Passenger* p0 = new Passenger(0);
+    Passenger* p1 = new Passenger(1);
+    Passenger* p2 = new Passenger(2);
+    airport->checkinQueues[0]->Append(p0);
+    airport->checkinQueues[1]->Append(p1);
+    airport->checkinQueues[1]->Append(p2);
+    CheckIn* ci = new CheckIn(0, 1, airport);
+    Thread* t = new Thread("CheckIn");
+    t->Fork(StartCheckInTest, (int)ci);
+}
+
+//----------------------------------------------------------------------
 //	CargoTest
 // 	 Adds 7 bags onto the conveyor:
 //    airline 0, weight 30
@@ -197,7 +224,7 @@ void PassengerFindsShortestCISEconomyLine(){
 //    airline 1, weight 45
 //    airline 0, weight 45
 //    airline 1, weight 60
-//   Initializes 6 cargo threads and runs them.
+//   Initializes 6 cargo (0-5) threads and runs them.
 //----------------------------------------------------------------------
 void CargoTest()
 {
@@ -235,10 +262,10 @@ void CargoTest()
 	Thread* t4 = new Thread("Cargo4");
 	Thread* t5 = new Thread("Cargo5");
     
-	t0->Fork(StartCargoTest,(int(cargo0)));
-	t1->Fork(StartCargoTest,(int(cargo1)));
-	t2->Fork(StartCargoTest,(int(cargo2)));
-	t3->Fork(StartCargoTest,(int(cargo3)));
-	t4->Fork(StartCargoTest,(int(cargo4)));
-	t5->Fork(StartCargoTest,(int(cargo5)));
+	t0->Fork(StartCargoTest, (int)cargo0);
+	t1->Fork(StartCargoTest, (int)cargo1);
+	t2->Fork(StartCargoTest, (int)cargo2);
+	t3->Fork(StartCargoTest, (int)cargo3);
+	t4->Fork(StartCargoTest, (int)cargo4);
+	t5->Fork(StartCargoTest, (int)cargo5);
 }
