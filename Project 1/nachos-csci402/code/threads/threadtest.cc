@@ -66,7 +66,7 @@ void StartFindShortestLiaisonLine(int arg){
 //----------------------------------------------------------------------
 void StartFindCorrectCISLine(int arg){
 	Passenger* p = (Passenger*)arg;
-	int line = p->FindShortestCheckinLine();
+	p->CheckIn();
 }
 
 void StartLiaisonThread(int arg){
@@ -92,7 +92,7 @@ void StartupOutput(Airport* airPort){
 	printf("Number of airport liaisons = %d\n", airPort->liaisonList->Size());
 	printf("Number of airlines = %d\n", airPort->numAirlines);//airlines->Size());
 	//printf("Number of check-in staff = %d\n", checkInStaffList.Size());
-	printf("Number of cargo handlers = %d\n", airport->cargoHandlerList->Size());
+	printf("Number of cargo handlers = %d\n", airPort->cargoHandlerList->Size());
 	//printf("Number of screening officers = %d\n", screeningOfficersList.Size());
 	printf("Total number of passengers = %d\n", airPort->passengerList->Size());
 
@@ -200,11 +200,12 @@ void PassengerFindsCorrectCISLine()
         {
             Passenger* p = new Passenger();
             airport->checkinQueues[i]->Append(p);
+            airport->passengerList->Append(p);
         }
     }
     
     // Put the 4th CIS on break.
-    //airport->checkinState[4] = CI_BREAK;
+    airport->checkinState[4] = CI_BREAK;
     
     // Create tickets.
     Ticket ticket0; ticket0.airline = 0; ticket0.executive = false;
@@ -212,9 +213,12 @@ void PassengerFindsCorrectCISLine()
     Ticket ticket2; ticket2.airline = 0; ticket2.executive = false;
     
     // Create passenger classes.
-    Passenger* p0 = new Passenger(0, ticket0, 0);
-    Passenger* p1 = new Passenger(1, ticket1, 0);
-    Passenger* p2 = new Passenger(2, ticket2, 0);
+    Passenger* p0 = new Passenger(0, ticket0, 0, airport);
+    airport->passengerList->Append(p0);
+    Passenger* p1 = new Passenger(1, ticket1, 0, airport);
+    airport->passengerList->Append(p1);
+    Passenger* p2 = new Passenger(2, ticket2, 0, airport);
+    airport->passengerList->Append(p2);
     
     // Create threads.
     Thread* t0 = new Thread("Passenger0");
@@ -222,9 +226,9 @@ void PassengerFindsCorrectCISLine()
     Thread* t2 = new Thread("Passenger2");
     
     // Fork threads and pass passenger classes.
-	//t0->Fork(StartFindCorrectCISLine, (int)p0);
-	//t1->Fork(StartFindCorrectCISLine, (int)p1);
-	//t2->Fork(StartFindCorrectCISLine, (int)p2);
+	t0->Fork(StartFindCorrectCISLine, (int)p0);
+	t1->Fork(StartFindCorrectCISLine, (int)p1);
+    t2->Fork(StartFindCorrectCISLine, (int)p2);
 }
 
 //----------------------------------------------------------------------

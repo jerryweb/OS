@@ -35,7 +35,7 @@ class Airport {
                                         //  corresponds to liaison ID.
         List* liaisonList;              // List of Liaisons
         
-        //Lock* LineLock;                 // Lock for the liaison lines.
+        Lock* liaisonLineLock;          // Lock for the liaison lines.
         Lock* liaisonLock[7];           // Array of locks for each
                                         //  liaison. Index corresponds to
                                         //  liaison ID.
@@ -63,8 +63,6 @@ class Airport {
                                         //  to ID.
         Lock** checkinLock;             // Array of locks for each check-in
                                         //  staff. index corresponds to ID.
-        Condition** checkinCV;          // Array of CVs for each check-in
-                                        //  staff. Index corresponds to ID.
         Condition** checkinBreakCV;     // Array of CVs for each check-in
                                         //  staff to go on break. Index 
                                         //  corresponds to ID.

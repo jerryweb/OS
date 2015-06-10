@@ -67,7 +67,7 @@ void CheckIn::Run()
                           id, airline, pass->getID(), airline);
         else printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n",
                      id, airline, pass->getID(), airline);
-        airport->checkinCV[id]->Signal(airport->checkinLock[id]);
+        airport->checkinLineCV[id]->Signal(airport->checkinLock[id]);
         airport->airlineLock[airline]->Release();
         // Process luggage and add it to conveyor.
         airport->conveyorLock->Acquire();
