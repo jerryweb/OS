@@ -115,7 +115,7 @@ void StartupOutput(Airport* airport){
 	}
 	
 	for(int h = 0; h < airport->numAirlines; h++){
-			printf("Numner of passengers for airline %d = %d\n", 
+			printf("Number of passengers for airline %d = %d\n", 
 				airport->airlines[h]->id, passengersPerAirline[h]);
 	}
 
