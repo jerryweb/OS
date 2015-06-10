@@ -18,6 +18,7 @@ Airport::Airport()
     conveyorLock = new Lock("conveyorLock");
     conveyor = new List();
     cargoCV = new Condition("cargoCV");
+    cargoLock = new Lock("cargoLock");
     aircraft = new List*[numAirlines];
     for (i = 0; i < numAirlines; i++)
     {

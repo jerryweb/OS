@@ -154,7 +154,8 @@ void Lock::Release() {
         IntStatus oldLevel = interrupt->SetLevel(IntOff);
         if(!isHeldByCurrentThread()){           //prints an error message if currentThread 
                                                 //not the lockOwner
-            printf("This thread is not the current lockOwner of lock %c\n", getName());
+            printf("Lock::Release: This thread is not the current lockOwner of lock %s\n",
+                    getName());
             (void) interrupt->SetLevel(oldLevel);
             return;
         }
@@ -206,7 +207,8 @@ void Condition::Wait(Lock* conditionLock)
     }
     else if (waitLock != conditionLock )
     {   // Make sure that the caller is trying to access the right lock.
-        printf("Condition::Wait: parameter conditionLock is not the same as the waitLock\n");
+        printf("Condition::Wait: parameter conditionLock (%s) is not the same as the waitLock (%s)\n",
+                conditionLock->getName(), waitLock->getName());
         interrupt->SetLevel(old);
         return;
     }
@@ -225,7 +227,8 @@ void Condition::Signal(Lock* conditionLock)
     }
     if (waitLock != conditionLock)
     {   // Make sure that the caller is trying to access the right lock.
-        printf("Condition::Signal: parameter conditionLock is not the same as the waitLock\n");
+        printf("Condition::Wait: parameter conditionLock (%s) is not the same as the waitLock (%s)\n",
+                conditionLock->getName(), waitLock->getName());
         interrupt->SetLevel(old);
         return;
     }

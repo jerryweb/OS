@@ -189,13 +189,17 @@ void CargoTest()
     int weight;
     for (int i = 0; i < 3; i++)
     {
-        Luggage bag = {i, 30+7*i};
-        airport->conveyor->Append(&bag);
+        Luggage* bag = new Luggage;
+        bag->airlineCode = i;
+        bag->weight = 30+7*i;
+        airport->conveyor->Append((void*)bag);
     }
     for (int i = 0; i < 2; i++)
     {
-        Luggage bag = {i, 40+10*i};
-        airport->conveyor->Append(&bag);
+        Luggage* bag = new Luggage;
+        bag->airlineCode = i;
+        bag->weight = 40+10*i;
+        airport->conveyor->Append((void*)bag);
     }
     
     Cargo* cargo1 = new Cargo(1, airport);
@@ -209,9 +213,4 @@ void CargoTest()
 	t1->Fork(StartCargoTest,(int(cargo1)));
 	t2->Fork(StartCargoTest,(int(cargo2)));
 	t3->Fork(StartCargoTest,(int(cargo3)));
-    
-    delete airport;
-    delete cargo1;
-    delete cargo2;
-    delete cargo3;
 }

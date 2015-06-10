@@ -28,7 +28,7 @@ void Cargo::Run()
         else
         {   // Process bag and load onto airplane.
             Luggage* bag = (Luggage*)airport->conveyor->Remove();
-            printf("Cargo Handler %d picked bag of airline %d with weighing %d lbs\n",
+            printf("Cargo Handler %d picked bag of airline %d weighing %d lbs\n",
                     id, bag->airlineCode, bag->weight);
             airport->aircraft[bag->airlineCode]->Append(bag);
             luggage[bag->airlineCode]++;
