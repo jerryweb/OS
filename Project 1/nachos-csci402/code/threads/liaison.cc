@@ -15,6 +15,48 @@ Liaison::~Liaison()
     delete[] totalLuggageWeight;
 }
 
+/*
+-void Liaison::Run()
+-{
+-    Passenger* pass = NULL;
+-    while (true)
+-    {   // TODO: WHICH LOCK SHOULD liaisonCV USE?
+-        // Check line for passengers.
+-        airport->liaisonLineLock->Acquire();
+-        if (airport->liaisonQueues[id]->Size() > 0)
+-        {   // If line is not empty, signal next passenger.
+-            airport->liaisonCV[id]->Signal(liaisonLock[id]);
+-            pass = (Passenger*)airport->liaisonQueues[id]->Remove();
+-            airport->liaisonState[id] = L_BUSY;
+-        }
+-        else
+-        {   // If line is empty, do nothing; also make sure state is set correctly.
+-            pass = NULL;
+-            airport->liaisonState[id] = L_FREE;
+-        }
+-        airport->liaisonLock[id]->Acquire();
+-        airport->liaisonLineLock->Release();
+-        airport->liaisonCV[id]->Wait(liaisonLock[id]);
+-        
+-        // TODO: figure out what happens below...
+-        
+-        // passenger signals when it's "given ticket to liaison"
+-        
+-        // Process passenger's ticket and direct them to proper check-in line.
+-        int passAirline = pass->getTicket().airlineCode;
+-        Luggage* passLuggage = pass->getLuggage();
+-        passengers[passAirline]++;
+-        if (passLuggage[3] == NULL) luggage[passAirline] += 2;
+-        else                        luggage[passAirline] += 3;
+-        pass->setAirlineCode(passAirline);
+-        printf("Airport Liaison %d directed passenger %d of airline %d\n",
+-                id, pass->getID(), passAirline);
+-        airport->liaisonState[id] = L_FREE;
+-        airport->liaisonLock[id]->Release();
+-        // airport->liaisonCV[id]->Signal(liaisonLock[id]); ???
+-    }
+-}
+-*/
 //----------------------------------------------------------------------
 //  This Function handels the interaction between the Liaison and the Passengers
 //  First the Liaison will aquire the lock and see if there are any Passengers 
@@ -29,6 +71,7 @@ void Liaison::DirectPassengers(){
         // Check line for passengers.
 
         airport->liaisonLineLock->Acquire();
+        printf("Size: %d\n", airport->liaisonQueues[id]->Size());
         if (airport->liaisonQueues[id]->Size() > 0){
             // If line is not empty, signal next passenger.
             airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);//liaisonLock[id]);
@@ -49,9 +92,9 @@ void Liaison::DirectPassengers(){
             //printf("Nothing to do....\n");
         }
 
-        airport->liaisonLock[id]->Acquire();
+        //airport->liaisonLock[id]->Acquire();
         airport->liaisonLineLock->Release();
-        airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+        //airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
         
     }
 }

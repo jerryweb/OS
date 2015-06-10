@@ -99,11 +99,18 @@ void Passenger::findShortestLiaisonLine(){
 			//printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
 			airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock);
 		}
+		else
+			airport->liaisonLineLock->Release();
 
 	printf("Passenger %d of Airline %d is directed to the airline counter.\n", 
 		id, ticket.airline);
-	airport->liaisonLineLock->Release();
 
+	
+
+	if(airport->checkInStaffList->Size() > 0){
+		
+		CheckIn();
+	}
 }
 /*
 void Passenger::SetSecurityPass(bool pnp) {
