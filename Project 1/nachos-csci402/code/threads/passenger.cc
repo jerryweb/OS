@@ -27,11 +27,12 @@ Passenger::Passenger(int ID)
 {
     id = ID;
 }
-Passenger::Passenger(int ID, Ticket t, int airlineCode)
+Passenger::Passenger(int ID, Ticket t, int airlineCode, Airport* a)
 {
     id = ID;
     ticket = t;
     airline = airlineCode;
+    airport = a;
 }
 
 Passenger::~Passenger(){
@@ -60,8 +61,8 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 	}
 
 	else if(!ticket.executive && CISline){
-        int CIS_ID = airline * 5 + 1;
-		minValue = list[CIS_ID]->Size();
+        int CIS_ID = airline * 6 + 1;
+		minValue = airport->passengerList->Size();
 		for(int i = CIS_ID; i < CIS_ID + 5; i++){
 			if(minValue > list[i]->Size() && airport->checkinState[i] != CI_BREAK){
 				minValue = list[i]->Size();
@@ -118,27 +119,28 @@ void Passenger::Questioning() {
 }
 */
 
-
-int Passenger::FindShortestCheckinLine()
-{
-    // Find the shortest line to get into. Default is executive.
-	int checkInLine = airline * 6;
-	if( ! ticket.executive )
-    {
-		checkInLine = findShortestLine(airport->checkinQueues, true);
-		printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n", 
-                getID(), airline, checkInLine, airport->checkinQueues[checkInLine]->Size());
-	}	
-    return checkInLine;
-}
 void Passenger::CheckIn()
 {
     airport->checkinLineLock[airline]->Acquire();
-    int ciLine = FindShortestCheckinLine();
-    if( airport->checkinState[ciLine] == CI_BUSY )
-    {   // Wait in line if check-in staff is busy.
-        airport->checkinQueues[ciLine]->Append((void *)this);
-        airport->checkinLineCV[ciLine]->Wait(airport->checkinLineLock[airline]);
+    // Find the shortest line to get into. Default is executive.
+	int checkInLine = airline * 6;
+	if ( ! ticket.executive )
+    {
+		checkInLine = findShortestLine(airport->checkinQueues, true);
+		printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n", 
+                id, airline, checkInLine, airport->checkinQueues[checkInLine]->Size());
+	}
+    else
+    {
+        printf("Passenger %d of Airline %d is waiting in the executive class line\n",
+                id, airline);
     }
+    if( airport->checkinState[checkInLine] == CI_BUSY )
+    {   // Wait in line if check-in staff is busy.
+        airport->checkinQueues[checkInLine]->Append((void *)this);
+        airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
+    }
+    printf("Passenger %d of Airline %d was informed to board at gate %d\n",
+            id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
 }

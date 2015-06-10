@@ -12,9 +12,9 @@
 class Passenger {
 	public:
 		Passenger(int ID, List* bags, Ticket T, Airport* A);
-		Passenger(int ID, Ticket t, int airlineCode);   // For PassengerFindsCorrectCISLine (test).
-        Passenger(int ID);                              // For CheckInTest.
-        Passenger();                                    // For PassengerFindsCorrectCISLine (test).
+		Passenger(int ID, Ticket t, int airlineCode, Airport* a);   // For PassengerFindsCorrectCISLine (test).
+        Passenger(int ID);                                          // For CheckInTest.
+        Passenger();                                                // For PassengerFindsCorrectCISLine (test).
         ~Passenger();
 
 		/*this function iterates through a given array and returns the location
@@ -23,8 +23,7 @@ class Passenger {
 		/*This is the first version of the function for the passenger to find 
 		the shortest liaison line in the Airport.*/
 		void findShortestLiaisonLine();
-		int FindShortestCheckinLine();  // Find the shortest line at the check in counter.
-        void CheckIn();                 // Drop off luggage and get boarding pass.
+        void CheckIn(); // Drop off luggage and get boarding pass.
 		
 		
 		//these are the get fucntion for the passenger's ticket

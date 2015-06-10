@@ -65,13 +65,9 @@ void StartFindShortestLiaisonLine(int arg){
 	p->findShortestLiaisonLine();
 }
 
-//----------------------------------------------------------------------
-// The passenger should find the shortest economy class line because he is in 
-// econ class.
-//----------------------------------------------------------------------
 void StartFindCorrectCISLine(int arg){
 	Passenger* p = (Passenger*)arg;
-	int line = p->FindShortestCheckinLine();
+	p->CheckIn();
 }
 
 void StartLiaisonThread(int arg){
@@ -241,13 +237,15 @@ void PassengerFindsShortestLiaisonLine(){
 //    id 1, executive ticket
 //    id 2, economy ticket
 //   Intended result:
-//    Passenger 0 will go to line 3.
+//    Passenger 0 will go to line 3 (length 2).
 //    Passenger 1 will go to line 0 (the executive line).
-//    Passenger 2 will go to line 1.
+//    Passenger 2 will go to line 1 (length 3).
+//    (note: depending on order, Passengers 0 and 2 may be=
+//      switched, although I haven't found a value of -rs
+//      for which this is true yet.)
 //----------------------------------------------------------------------
 void PassengerFindsCorrectCISLine()
 {
-    printf("yes");
 	Airport* airport = new Airport(); // 3 airlines
     
     // Populate the check-in list.
@@ -258,6 +256,7 @@ void PassengerFindsCorrectCISLine()
         {
             Passenger* p = new Passenger();
             airport->checkinQueues[i]->Append(p);
+            airport->passengerList->Append(p);
         }
     }
     
@@ -270,12 +269,13 @@ void PassengerFindsCorrectCISLine()
     Ticket ticket2; ticket2.airline = 0; ticket2.executive = false;
     
     // Create passenger classes.
-    Passenger* p0 = new Passenger(0, ticket0, 0);
-    Passenger* p1 = new Passenger(1, ticket1, 0);
-    Passenger* p2 = new Passenger(2, ticket2, 0);
-    airport->passengerList->Append((void *)p0);
-    airport->passengerList->Append((void *)p1);
-    airport->passengerList->Append((void *)p2);
+
+    Passenger* p0 = new Passenger(0, ticket0, 0, airport);
+    airport->passengerList->Append(p0);
+    Passenger* p1 = new Passenger(1, ticket1, 0, airport);
+    airport->passengerList->Append(p1);
+    Passenger* p2 = new Passenger(2, ticket2, 0, airport);
+    airport->passengerList->Append(p2);
     
     // Create threads.
     Thread* t0 = new Thread("Passenger0");
@@ -285,7 +285,7 @@ void PassengerFindsCorrectCISLine()
     // Fork threads and pass passenger classes.
 	t0->Fork(StartFindCorrectCISLine, (int)p0);
 	t1->Fork(StartFindCorrectCISLine, (int)p1);
-	t2->Fork(StartFindCorrectCISLine, (int)p2);
+    t2->Fork(StartFindCorrectCISLine, (int)p2);
 }
 
 //----------------------------------------------------------------------
@@ -297,6 +297,7 @@ void PassengerFindsCorrectCISLine()
 //   Initializes 1 CIS thread (id 1; airline 0) and runs it.
 //   Intended result:
 //    The CIS will choose to help the executive passenger.
+//    The economy line will stay at length 2.
 //----------------------------------------------------------------------
 void CheckInTest()
 {

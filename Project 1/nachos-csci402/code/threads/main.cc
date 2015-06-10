@@ -101,9 +101,8 @@ main(int argc, char **argv)
 		ManagerTest();
 	} 
 
-	if(!strcmp(*argv, "-findcis"))
+	if(!strcmp(*argv, "-findCIS"))
     {	// Tests if passengers go the the correct CIS line.
-        printf("maybe");
 		PassengerFindsCorrectCISLine();
 	}
 

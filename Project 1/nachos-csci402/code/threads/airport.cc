@@ -36,8 +36,9 @@ Airport::Airport()
     checkinQueues = new List*[numCheckin];
     checkinLineLock = new Lock*[numAirlines];
     checkinLock = new Lock*[numCheckin];
-    checkinCV = new Condition*[numCheckin];
+    checkinLineCV = new Condition*[numCheckin];
     checkinBreakCV = new Condition*[numCheckin];
+    checkinState = new CheckinState[numCheckin];
     for (i = 0; i < numAirlines; i++)
     {
         checkinLineLock[i] = new Lock("checkinLineLock" + i);
@@ -46,8 +47,9 @@ Airport::Airport()
     {
         checkinQueues[i] = new List();
         checkinLock[i] = new Lock("checkinLock" + i);
-        checkinCV[i] = new Condition("checkinCV" + i);
+        checkinLineCV[i] = new Condition("checkinCV" + i);
         checkinBreakCV[i] = new Condition("checkinBreakCV" + i);
+        checkinState[i] = CI_BUSY;
     }
 
     // Cargo variables
