@@ -66,6 +66,7 @@ extern void PassengerFindsShortestLiaisonLine();
 extern void PassengerFindsCorrectCISLine();
 extern void CheckInTest();
 extern void CargoTest();
+//extern void AirportSim();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -118,6 +119,11 @@ main(int argc, char **argv)
 	if (!strcmp(*argv, "-cargo"))
     {   // Tests if cargo handler functions.
 		CargoTest();
+	}
+    
+	if (!strcmp(*argv, "-airport"))
+    {   // Runs the full airport simulation.
+		AirportSim();
 	}
 
 	

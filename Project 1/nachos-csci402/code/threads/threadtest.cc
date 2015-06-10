@@ -240,7 +240,7 @@ void PassengerFindsShortestLiaisonLine(){
 //    Passenger 0 will go to line 3 (length 2).
 //    Passenger 1 will go to line 0 (the executive line).
 //    Passenger 2 will go to line 1 (length 3).
-//    (note: depending on order, Passengers 0 and 2 may be=
+//    (note: depending on order, Passengers 0 and 2 may be
 //      switched, although I haven't found a value of -rs
 //      for which this is true yet.)
 //----------------------------------------------------------------------
@@ -264,9 +264,15 @@ void PassengerFindsCorrectCISLine()
     airport->checkinState[4] = CI_BREAK;
     
     // Create tickets.
-    Ticket ticket0; ticket0.airline = 0; ticket0.executive = false;
-    Ticket ticket1; ticket1.airline = 0; ticket1.executive = true;
-    Ticket ticket2; ticket2.airline = 0; ticket2.executive = false;
+    Ticket ticket0;
+    ticket0.airline = 0;
+    ticket0.executive = false;
+    Ticket ticket1;
+    ticket1.airline = 0;
+    ticket1.executive = true;
+    Ticket ticket2;
+    ticket2.airline = 0;
+    ticket2.executive = false;
     
     // Create passenger classes.
 
@@ -290,7 +296,7 @@ void PassengerFindsCorrectCISLine()
 
 //----------------------------------------------------------------------
 //	CheckInTest
-// 	 Adds 3 passengers into the check-in queue:
+// 	 Adds 3 passengers into the airline 0 check-in queue:
 //    id 0, executive (line 0)
 //    id 1, economy (line 1)
 //    id 2, economy (line 1)
@@ -308,13 +314,11 @@ void CheckInTest()
     Passenger* p1 = new Passenger(1);
     Passenger* p2 = new Passenger(2);
 
-    
     // Add passengers to queues.
     airport->checkinQueues[0]->Append(p0);
     airport->checkinQueues[1]->Append(p1);
     airport->checkinQueues[1]->Append(p2);
     
-
     // Create CIS class.
     CheckIn* ci = new CheckIn(0, 1, airport);
     airport->checkInStaffList->Append((void *)ci);
@@ -323,7 +327,6 @@ void CheckInTest()
     Thread* t = new Thread("CheckIn");
 
     // Fork thread and pass CIS class.
-
     t->Fork(StartCheckInTest, (int)ci);
 }
 
@@ -401,3 +404,22 @@ void CargoTest()
 	t4->Fork(StartCargoTest, (int)cargo4);
 	t5->Fork(StartCargoTest, (int)cargo5);
 }
+
+/*
+void AirportSim()
+{
+    // MENU ASKING FOR NUMBERS
+    
+    // CREATE NEW AIRPORT USING THOSE NUMBERS
+    
+    // INITIALIZE THREAD CLASSES:
+    //  USE DYNAMICALLY ALLOCATED ARRAYS
+    
+    // FORK
+    
+    // ???
+    
+    // PROFIT
+    
+}
+*/
