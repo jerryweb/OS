@@ -5,15 +5,18 @@ Liaison::Liaison(int id_, Airport* airport_)
 	id = id_;
     airport = airport_;
     passengers = new int[airport->numAirlines];
-    luggage = new int[airport->numAirlines];
+    totalLuggageWeight = new int[airport->numAirlines];
+    myLineOfPassengers = new List();
+    airport->liaisonState[id] = L_BUSY;
 }
 
 Liaison::~Liaison()
 {
     delete passengers;
-    delete luggage;
+    delete totalLuggageWeight;
+    delete myLineOfPassengers;
 }
-
+/*
 void Liaison::Run()
 {
     Passenger* pass = NULL;
@@ -52,5 +55,27 @@ void Liaison::Run()
         airport->liaisonState[id] = L_FREE;
         airport->liaisonLock[id]->Release();
         // airport->liaisonCV[id]->Signal(liaisonLock[id]); ???
+    }
+}*/
+
+//----------------------------------------------------------------------
+//  This Function handels the interaction between the Liaison and the Passengers
+//  First the Liaison will aquire the lock and see if there are any Passengers 
+//  waiting in his respective queue
+//----------------------------------------------------------------------
+void Liaison::directPassengers(){
+    Passenger* p = NULL;
+    while(true){
+        // Check line for passengers.
+        airport->liaisonLineLock->Acquire();
+        if (airport->liaisonQueues[id]->Size() > 0){
+            // If line is not empty, signal next passenger.
+            airport->liaisonCV[id]->Signal(airport->liaisonLock[id]);
+            p = (Passenger*)airport->liaisonQueues[id]->Remove();
+            airport->liaisonState[id] = L_BUSY;
+            printf("Liaison ID: %d, Liaison state: %s, Liaison queue size: %d\n", 
+                id, airport->liaisonState[id], airport->liaisonQueues[id]->Size());
+        }
+
     }
 }

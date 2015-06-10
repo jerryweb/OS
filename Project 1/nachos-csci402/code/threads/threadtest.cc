@@ -117,10 +117,10 @@ void PassengerFindsShortestLiaisonLine(){
 	int checkInStaffList[5] = {1,4,0,2,0};
 	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport liaisons
 	
-	Airport *airport = new Airport();
-
-	List* bagList = new List();
-	List* passengerList = new List();
+	Airport *airport = new Airport();					//This creates a new airpost object with all of the 
+														//global variables listed here
+	List* bagList = new List();							//List of passenger's luggage
+	// List* passengerList = new List();
 
 	for(int i =0; i <3; i++){
 		Luggage *bag = new Luggage;	
@@ -133,13 +133,18 @@ void PassengerFindsShortestLiaisonLine(){
 	ticket.airline = 1;
 	ticket.executive = false;
 
-	Passenger *p = new Passenger(0, bagList, ticket, airport->liaisonQueues, liasionList, checkInStaffList);
-	passengerList->Append((void *)p);
+	Liaison *L = new Liaison(0,airport);
 
-	StartupOutput(passengerList);
+	Passenger *p = new Passenger(0, bagList, ticket, airport->liaisonQueues, liasionList, checkInStaffList);
+	//passengerList->Append((void *)p);
+	airport->passengerList->Append((void *)p);
+
+	StartupOutput(airport->passengerList);
 	//Beginning of shortest line test and start of critical section for finding shortest line
 	Thread *t = new Thread("Passenger");
+	Thread *tLiaison = new Thread("Liaison");
 	t->Fork(StartFindShortestLiaisonLine,(int(p)));
+	tLiaison->Fork(directPassengers,(int(L)));
 }
 
 
@@ -158,13 +163,15 @@ void PassengerFindsShortestCISEconomyLine(){
 		newLList[i] = liaisonLine;
 	}	
 
-	List* bagList = new List();										//3 bags 
-	List* passengerList = new List();
+	Airport *airport = new Airport();					//This creates a new airpost object with all of the 
+														//global variables listed here
+	List* bagList = new List();							//List of passenger's luggage
+	// List* passengerList = new List();
 
 	for(int i =0; i <3; i++){
 		Luggage *bag = new Luggage;	
 		bag->airlineCode = 1;
-		bag->weight = 30 + i;							 //weight ranges from 45 -47lbs
+		bag->weight = 45 + i;							 //weight ranges from 45 -47lbs
 		bagList->Append((void *)bag);
 	}
 
@@ -172,10 +179,10 @@ void PassengerFindsShortestCISEconomyLine(){
 	ticket.airline = 2;
 	ticket.executive = false;								//this makes the passenger economy class
 
-	Passenger *p = new Passenger(1, bagList, ticket, newLList, liasionList, checkInStaffList);
-	passengerList->Append((void *)p);
+	Passenger *p = new Passenger(1, bagList, ticket, airport->liaisonQueues, liasionList, checkInStaffList);
+	airport->passengerList->Append((void *)p);
 
-	StartupOutput(passengerList);
+	StartupOutput(airport->passengerList);
 	Thread *t = new Thread("Passenger");
 	t->Fork(StartFindShortestCISLine,(int(p)));
 }

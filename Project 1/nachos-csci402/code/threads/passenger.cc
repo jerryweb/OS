@@ -28,12 +28,13 @@ Passenger::Passenger(int ID, List* bags, Ticket T, List** newLiaisonList, int *l
 }
 
 Passenger::~Passenger(){
-
 }
 
-/*This function iterates through a given array and sets the location
-	of the smallest value and the value itself to the location and 
-	minValue variables that are passed in*/
+//----------------------------------------------------------------------
+// This function iterates through a given array and sets the location
+// of the smallest value and the value itself to the location and 
+// minValue variables that are passed in
+//----------------------------------------------------------------------
 int Passenger::findShortestLine(int* list, bool CISline){//, //int *location, int *minValue){
 	int location, minValue = 0;				//this is the size and location of the smallest line 
 	
@@ -64,12 +65,13 @@ int Passenger::findShortestLine(int* list, bool CISline){//, //int *location, in
 
 }
 
-
-/*This is the first version of the function for the passenger to find 
-	the shortest liaison line in the Airport. An array of liaison line 
-	sizes is passed to the passenger and iterated to find the min length
-	If the passenger has an executive class ticket, he/she should enter
-	line 0, which is the executive line.*/
+//----------------------------------------------------------------------
+// This is the first version of the function for the passenger to find 
+// the shortest liaison line in the Airport. An array of liaison line 
+// sizes is passed to the passenger and iterated to find the min length
+// If the passenger has an executive class ticket, he/she should enter
+// line 0, which is the executive line.
+//----------------------------------------------------------------------
 void Passenger::findShortestLiaisonLine(){
 	int myLine = 0;																					
 	myLine = findShortestLine(liaisonList, false);				// passenger will find shortest line

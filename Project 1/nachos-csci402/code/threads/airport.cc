@@ -4,6 +4,8 @@ Airport::Airport()
 {
     int i;
     // TODO: add everything and non-hardcode it
+    //Passenger variables
+    passengerList = new List();
     numAirlines = 3;
     // Liaison variables
     liaisonLineLock = new Lock("liaisonLineLock");

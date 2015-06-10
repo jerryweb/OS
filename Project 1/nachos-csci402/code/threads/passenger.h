@@ -8,7 +8,7 @@
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
-#include "airportobjects.h"
+#include "airport.h"
 
 class Passenger {
 	public:
@@ -53,6 +53,8 @@ class Passenger {
 		int checkInStaffList[5];		//Full list of Check-in Staff
 		List* luggageList;				//This is the array of bags the passenger has
 		Ticket ticket;  				//This is the ticket of the passenger
+		Airport* airport;   // "Airport" construct, containing all
+                            //  public data.
 		BoardingPass boardingPass;
 		//newly added
 		bool securityPass;
