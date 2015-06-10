@@ -4,11 +4,11 @@
 
 #ifndef CHECKIN_H
 #define CHECKIN_H
-#endif
 
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
+#include "passenger.h"
 #include "airport.h"
 
 class CheckIn
@@ -16,6 +16,7 @@ class CheckIn
 	public:
 		CheckIn(int airline, int id, Airport* airport);
 		~CheckIn();
+        Passenger* FindPassenger(int execLine);
 		void Run();
 
 	private:
@@ -24,10 +25,12 @@ class CheckIn
                             //  within airlines.
         Airport* airport;   // "Airport"" construct, containing all
                             //  public data.
-        int passengers;     // Records how many passengers this individual
-                            //  staff has processed.
+        int passengers;     // Records how many passengers this
+                            //  individual staff has processed.
         int luggage;        // Records how many bags this individual
                             //  staff has processed.
         int weight;         // Records the total weight of bags this
                             //  individual staff has processed.
 };
+
+#endif

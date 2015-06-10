@@ -29,6 +29,11 @@ Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A, List** newLiaison
 	securityPass = true;
 	//boardingPass = NULL;
 }
+// Basic constructor for tests
+Passenger::Passenger(int ID)
+{
+    id = ID;
+}
 
 Passenger::~Passenger(){
 }
