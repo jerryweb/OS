@@ -9,7 +9,7 @@
 
 class Airline {
     public:
-        Airline(int id, int ticketsIssued);
+        Airline(int id, int ticketsIssued, int totalBagCount);
         ~Airline();
         
         int id;
@@ -17,6 +17,8 @@ class Airline {
                             //  assign seat numbers to passengers at check-in
                             //  as well as keeping track of check-in progress.
         int ticketsIssued;  // Total number of passengers assigned to this
+                            //  flight. Does not change.
+        int totalBagCount;  // Total number of luggage assigned to this
                             //  flight. Does not change.
 };
 

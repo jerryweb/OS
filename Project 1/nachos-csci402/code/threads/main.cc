@@ -62,7 +62,7 @@ extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 extern void TestSuite();
 extern void PassengerFindsShortestLiaisonLine();
-extern void PassengerFindsShortestCISEconomyLine();
+extern void PassengerFindsCorrectCISLine();
 extern void CheckInTest();
 extern void CargoTest();
 //----------------------------------------------------------------------
@@ -85,7 +85,6 @@ main(int argc, char **argv)
     int argCount;			// the number of arguments 
 					// for a particular command
 	
-
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
     argCount = 1;
@@ -97,21 +96,23 @@ main(int argc, char **argv)
 		TestSuite();
 	} 
 
-	/*if(!strcmp(*argv, "-findCIS")) {				//Tests to see if the economy passenger goes to the shortest CIS line
-		PassengerFindsShortestCISEconomyLine();
-	}*/
+	if(!strcmp(*argv, "-findcis"))
+    {	// Tests if passengers go the the correct CIS line.
+        printf("maybe");
+		PassengerFindsCorrectCISLine();
+	}
 
 	if (!strcmp(*argv, "-findL")) {				//Tests to see if the passenger goes to the shortest line
 		PassengerFindsShortestLiaisonLine();
 	}
     
 	if (!strcmp(*argv, "-checkin"))
-    {   //Tests to see if check-in prioritizes executive line.
+    {   // Tests if check-in prioritizes executive line.
 		CheckInTest();
 	}
     
 	if (!strcmp(*argv, "-cargo"))
-    {   //Tests to see if cargo handler functions.
+    {   // Tests if cargo handler functions.
 		CargoTest();
 	}
 

@@ -29,10 +29,17 @@ Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A, List** newLiaison
 	securityPass = true;
 	//boardingPass = NULL;
 }
-// Basic constructor for tests
+// Limited constructors for tests
+Passenger::Passenger() {}
 Passenger::Passenger(int ID)
 {
     id = ID;
+}
+Passenger::Passenger(int ID, Ticket t, int airlineCode)
+{
+    id = ID;
+    ticket = t;
+    airline = airlineCode;
 }
 
 Passenger::~Passenger(){
@@ -60,9 +67,10 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 	}
 
 	else if(!ticket.executive && CISline){
-		minValue = list[1]->Size();
-		for(int i = 1; i < 5; i++){
-			if(minValue > list[i]->Size()){
+        int CIS_ID = airline * 5 + 1;
+		minValue = list[CIS_ID]->Size();
+		for(int i = CIS_ID; i < CIS_ID + 5; i++){
+			if(minValue > list[i]->Size() && airport->checkinState[i] != CI_BREAK){
 				minValue = list[i]->Size();
 				location = i;			}
 		}
@@ -85,7 +93,7 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 //----------------------------------------------------------------------
 void Passenger::findShortestLiaisonLine(){
 	int myLine = 0;
-	airport->LineLock->Acquire();																					
+	airport->liaisonLineLock->Acquire();																					
 		myLine = findShortestLine(airport->liaisonQueues, false);				// passenger will find shortest line
 		
 		printf("Passenger %d chose liaison %d with a line length of %d\n", 
@@ -94,13 +102,13 @@ void Passenger::findShortestLiaisonLine(){
 		if(airport->liaisonState[myLine] == L_BUSY){						// If the liaison is busy
 			//Wait in line
 			airport->liaisonQueues[myLine]->Append((void *)this);			// add passenger to queue
-			printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
-			airport->lineCV[myLine]->Wait(airport->LineLock);
+			//printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
+			airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock);
 		}
 
 	printf("Passenger %d of Airline %d is directed to the airline counter.\n", 
 		id, ticket.airline);
-	airport->LineLock->Release();
+	airport->liaisonLineLock->Release();
 
 }
 /*
@@ -118,15 +126,26 @@ void Passenger::Questioning() {
 */
 
 
-void Passenger::findShortestCheckinLine(){
-	/*int myLine = 0;										//the passeger will default to the executive line positon 
-
-	if(!ticket.executive){
-		myLine = findShortestLine(airport->checkinQueues, true);				// passenger will find shortest CIS economy line
+int Passenger::FindShortestCheckinLine()
+{
+    // Find the shortest line to get into. Default is executive.
+	int checkInLine = airline * 6;
+	if( ! ticket.executive )
+    {
+		checkInLine = findShortestLine(airport->checkinQueues, true);
 		printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n", 
-		getID(), ticket.airline, myLine, checkInStaffList[myLine]);
+                getID(), airline, checkInLine, airport->checkinQueues[checkInLine]->Size());
 	}	
-	*/
-	
+    return checkInLine;
 }
-
+void Passenger::CheckIn()
+{
+    airport->checkinLineLock[airline]->Acquire();
+    int ciLine = FindShortestCheckinLine();
+    if( airport->checkinState[ciLine] == CI_BUSY )
+    {   // Wait in line if check-in staff is busy.
+        airport->checkinQueues[ciLine]->Append((void *)this);
+        airport->checkinLineCV[ciLine]->Wait(airport->checkinLineLock[airline]);
+    }
+    airport->checkinLineLock[airline]->Release();
+}

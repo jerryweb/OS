@@ -69,16 +69,16 @@ void Liaison::DirectPassengers(){
     while(true){
         // Check line for passengers.
 
-        airport->LineLock->Acquire();
+        airport->liaisonLineLock->Acquire();
         if (airport->liaisonQueues[id]->Size() > 0){
             // If line is not empty, signal next passenger.
-            airport->lineCV[id]->Signal(airport->LineLock);//liaisonLock[id]);
+            airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);//liaisonLock[id]);
             p = (Passenger*)airport->liaisonQueues[id]->Remove();
            
             printf("Airport Liaison %d directed passenger %d of airline %d\n", 
             id, p->getID(), p->getTicket().airline);
             airport->liaisonState[id] = L_BUSY;           
-            
+            p->SetAirline(p->getTicket().airline);
             // This adds the statistics for # of passengers and weight of bags for each
             // of the airlines
 
@@ -89,11 +89,11 @@ void Liaison::DirectPassengers(){
         else{
             p = NULL;
             airport->liaisonState[id] = L_FREE;
-            printf("Nothing to do....\n");
+            //printf("Nothing to do....\n");
         }
 
         airport->liaisonLock[id]->Acquire();
-        airport->LineLock->Release();
+        airport->liaisonLineLock->Release();
         airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
         
     }

@@ -35,16 +35,19 @@ class Airport {
                                         //  corresponds to liaison ID.
         List* liaisonList;              // List of Liaisons
         
-        Lock* LineLock;                 // Lock for the liaison lines.
+        //Lock* LineLock;                 // Lock for the liaison lines.
         Lock* liaisonLock[7];           // Array of locks for each
                                         //  liaison. Index corresponds to
                                         //  liaison ID.
         
-        Condition* lineCV[7];           // 
+        //Condition* lineCV[7];           // 
+
+        Condition* liaisonLineCV[7];    // Array of CVs for each liaison's
+                                        //  line. Index corresponds to ID.
         Condition* liaisonCV[7];        // Array of CVs for each liaison.
-                                        //  Index corresponds to liaison ID.
+                                        //  Index corresponds to ID.
         LiaisonState liaisonState[7];   // Array of states for each liaison.
-                                        //  Index corresponds to liaison ID.
+                                        //  Index corresponds to ID.
         // Check-in variables
         List** checkinQueues;           // Array of check-in queues (list of
                                         //  Passengers). Index corresponds
@@ -55,6 +58,9 @@ class Airport {
         Lock** checkinLineLock;         // Array of locks for each airline's
                                         //  check-in staff. Index corresponds
                                         //  to airline.
+        Condition** checkinLineCV;      // Array of CVs for each check-in
+                                        //  staff's line. Index corresponds
+                                        //  to ID.
         Lock** checkinLock;             // Array of locks for each check-in
                                         //  staff. index corresponds to ID.
         Condition** checkinCV;          // Array of CVs for each check-in
