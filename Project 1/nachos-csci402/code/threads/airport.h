@@ -22,9 +22,11 @@ class Airport {
         // General variables
         Airline** airlines;             // Array of airlines. Index is
                                         //  airline ID.
-        Lock** airlineLock;             // 
+        Lock** airlineLock;             // Array of locks to handle airline
+                                        //  seating and passenger checking.
+                                        //  Index corresponds to airline ID.
         // Passenger variables
-        List* passengerList;
+        List* passengerList;            // List of passengers in the sim.
         // Liaison variables
         List* liaisonQueues[7];         // Array of liaison queues (list
                                         //  of Passengers). Index
@@ -34,7 +36,7 @@ class Airport {
         Lock* liaisonLock[7];           // Array of locks for each
                                         //  liaison. Index corresponds to
                                         //  liaison ID.
-        Condition* lineCV[7];
+        Condition* lineCV[7];           // 
         Condition* liaisonCV[7];        // Array of CVs for each liaison.
                                         //  Index corresponds to liaison ID.
         LiaisonState liaisonState[7];   // Array of states for each liaison.
@@ -44,19 +46,27 @@ class Airport {
                                         //  Passengers). Index corresponds
                                         //  to check-in staff ID. The executive
                                         //  lines are (airlineID * 5).
-        CheckinState* checkinState;     // 
-        Lock** checkinLineLock;         // 
-        Lock** checkinLock;             // 
-        Condition** checkinCV;          // 
-        Condition** checkinBreakCV;     // 
+        CheckinState* checkinState;     // Array of states for each check-in
+                                        //  staff. Index corresponds to ID.
+        Lock** checkinLineLock;         // Array of locks for each airline's
+                                        //  check-in staff. Index corresponds
+                                        //  to airline.
+        Lock** checkinLock;             // Array of locks for each check-in
+                                        //  staff. index corresponds to ID.
+        Condition** checkinCV;          // Array of CVs for each check-in
+                                        //  staff. Index corresponds to ID.
+        Condition** checkinBreakCV;     // Array of CVs for each check-in
+                                        //  staff to go on break. Index 
+                                        //  corresponds to ID.
         // Cargo variables
         List* conveyor;                 // Conveyor belt for bag transfer
                                         //  from check-in to cargo (list of
                                         //  Luggage).
         Lock* conveyorLock;             // Lock for the conveyor belt.
-        Condition* cargoCV;             // CV for cargo worker break.
-        Lock* cargoLock;                // Lock for cargo worker break.
-        CargoState cargoState[10];      // 
+        Condition* cargoCV;             // CV for cargo handler break.
+        Lock* cargoLock;                // Lock for cargo handler break.
+        CargoState cargoState[10];      // Array of states for each cargo
+                                        //  handler. Index corresponds to ID.
         List** aircraft;                // Array of aircraft (list of
                                         //  Luggage). Index corresponds
                                         //  to airline ID.
