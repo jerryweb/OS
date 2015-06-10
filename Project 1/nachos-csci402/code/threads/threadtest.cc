@@ -60,10 +60,6 @@ void StartFindShortestLiaisonLine(int arg){
 	p->findShortestLiaisonLine();
 }
 
-//----------------------------------------------------------------------
-// The passenger should find the shortest economy class line because he is in 
-// econ class.
-//----------------------------------------------------------------------
 void StartFindCorrectCISLine(int arg){
 	Passenger* p = (Passenger*)arg;
 	p->CheckIn();
@@ -184,9 +180,12 @@ void PassengerFindsShortestLiaisonLine(){
 //    id 1, executive ticket
 //    id 2, economy ticket
 //   Intended result:
-//    Passenger 0 will go to line 3.
+//    Passenger 0 will go to line 3 (length 2).
 //    Passenger 1 will go to line 0 (the executive line).
-//    Passenger 2 will go to line 1.
+//    Passenger 2 will go to line 1 (length 3).
+//    (note: depending on order, Passengers 0 and 2 may be=
+//      switched, although I haven't found a value of -rs
+//      for which this is true yet.)
 //----------------------------------------------------------------------
 void PassengerFindsCorrectCISLine()
 {
@@ -240,6 +239,7 @@ void PassengerFindsCorrectCISLine()
 //   Initializes 1 CIS thread (id 1; airline 0) and runs it.
 //   Intended result:
 //    The CIS will choose to help the executive passenger.
+//    The economy line will stay at length 2.
 //----------------------------------------------------------------------
 void CheckInTest()
 {
