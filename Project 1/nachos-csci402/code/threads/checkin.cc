@@ -36,7 +36,7 @@ void CheckIn::Run()
 {
     Passenger* pass = NULL;
     bool exec;
-    int passAirline, execLine = airline * 5;
+    int passAirline, execLine = airline * 6;
     BoardingPass bp;
     while (true)
     {
