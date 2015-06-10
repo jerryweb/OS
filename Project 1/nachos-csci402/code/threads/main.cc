@@ -97,9 +97,9 @@ main(int argc, char **argv)
 		TestSuite();
 	} 
 
-	if(!strcmp(*argv, "-findCIS")) {				//Tests to see if the economy passenger goes to the shortest CIS line
+	/*if(!strcmp(*argv, "-findCIS")) {				//Tests to see if the economy passenger goes to the shortest CIS line
 		PassengerFindsShortestCISEconomyLine();
-	}
+	}*/
 
 	if (!strcmp(*argv, "-findL")) {				//Tests to see if the passenger goes to the shortest line
 		PassengerFindsShortestLiaisonLine();

@@ -5,16 +5,19 @@
 //#include "system.h"
 
 // Main constructor for the passenger. 
-Passenger::Passenger(int ID, List* bags, Ticket T, List** newLiaisonList, int *liaisonArray, int *checkInStaffArray){
+Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A, List** newLiaisonList, 
+	 int *checkInStaffArray){
 	id = ID;
+	airport = A;
+	
 	for(int i =0; i < 7; i++){
-		liaisonList[i] = liaisonArray[i];
+		//liaisonList[i] = liaisonArray[i];
 		liaisons[i] = newLiaisonList[i];
 		// int testV = 9;
 		// int testV2 = 10;
 		// liaisons[i]->Append((void *)testV);
 		// liaisons[i]->Append((void *)testV2);
-		printf("This is the liaison queue %d\n", liaisons[i]->First());
+		//printf("This is the liaison queue %d\n", liaisons[i]->First());
 	}
 
 	for(int i =0; i < 5; i++)
@@ -40,15 +43,16 @@ Passenger::~Passenger(){
 // of the smallest value and the value itself to the location and 
 // minValue variables that are passed in
 //----------------------------------------------------------------------
-int Passenger::findShortestLine(int* list, bool CISline){//, //int *location, int *minValue){
+int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, int *minValue){
 	int location, minValue = 0;				//this is the size and location of the smallest line 
 	
 
 	if(!CISline){
-		minValue = list[0];
+		minValue = list[0]->Size();
 		for(int i = 0; i < 7; i++){
-			if(minValue > list[i]){
-				minValue = list[i];
+			if(minValue > list[i]->Size()){
+				//printf("NO\n");
+				minValue = list[i]->Size();
 				location = i;
 			}
 		}
@@ -56,10 +60,10 @@ int Passenger::findShortestLine(int* list, bool CISline){//, //int *location, in
 	}
 
 	else if(!ticket.executive && CISline){
-		minValue = list[1];
+		minValue = list[1]->Size();
 		for(int i = 1; i < 5; i++){
-			if(minValue > list[i]){
-				minValue = list[i];
+			if(minValue > list[i]->Size()){
+				minValue = list[i]->Size();
 				location = i;			}
 		}
 		return location;						//Found a line
@@ -78,14 +82,23 @@ int Passenger::findShortestLine(int* list, bool CISline){//, //int *location, in
 // line 0, which is the executive line.
 //----------------------------------------------------------------------
 void Passenger::findShortestLiaisonLine(){
-	int myLine = 0;																					
-	myLine = findShortestLine(liaisonList, false);				// passenger will find shortest line
-	
-	//Should be the first print statment 
-	printf("Passenger %d chose liaison %d with a line length of %d\n", 
-		getID(), myLine, liaisonList[myLine]);
-	printf("Passenger %d of Airline %d is directed to check-in counter\n", 
-		getID(), ticket.airline);
+	int myLine = 0;
+	airport->liaisonLineLock->Acquire();																					
+		myLine = findShortestLine(airport->liaisonQueues, false);				// passenger will find shortest line
+		
+		printf("Passenger %d chose liaison %d with a line length of %d\n", 
+			getID(), myLine, airport->liaisonQueues[myLine]->Size());
+
+		if(airport->liaisonState[myLine] == L_BUSY){						// If the liaison is busy
+			//Wait in line
+			airport->liaisonQueues[myLine]->Append((void *)this);			// add passenger to queue
+			airport->lineCV[myLine]->Wait(airport->liaisonLineLock);
+		}
+		// printf("Passenger %d of Airline %d is directed to check-in counter\n", 
+		// 	getID(), ticket.airline);
+
+	airport->liaisonLineLock->Release();
+
 }
 /*
 void Passenger::SetSecurityPass(bool pnp) {
@@ -103,14 +116,14 @@ void Passenger::Questioning() {
 
 
 void Passenger::findShortestCheckinLine(){
-	int myLine = 0;										//the passeger will default to the executive line positon 
+	/*int myLine = 0;										//the passeger will default to the executive line positon 
 
 	if(!ticket.executive){
-		myLine = findShortestLine(checkInStaffList, true);				// passenger will find shortest CIS economy line
+		myLine = findShortestLine(airport->checkinQueues, true);				// passenger will find shortest CIS economy line
 		printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n", 
 		getID(), ticket.airline, myLine, checkInStaffList[myLine]);
 	}	
-
+	*/
 	
 }
 

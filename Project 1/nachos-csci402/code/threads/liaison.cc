@@ -63,7 +63,7 @@ void Liaison::Run()
 //  First the Liaison will aquire the lock and see if there are any Passengers 
 //  waiting in his respective queue
 //----------------------------------------------------------------------
-void Liaison::directPassengers(){
+void Liaison::DirectPassengers(){
     Passenger* p = NULL;
     while(true){
         // Check line for passengers.
@@ -71,8 +71,10 @@ void Liaison::directPassengers(){
         if (airport->liaisonQueues[id]->Size() > 0){
             // If line is not empty, signal next passenger.
             airport->liaisonCV[id]->Signal(airport->liaisonLock[id]);
+            
             p = (Passenger*)airport->liaisonQueues[id]->Remove();
             airport->liaisonState[id] = L_BUSY;
+            
             printf("Liaison ID: %d, Liaison state: %s, Liaison queue size: %d\n", 
                 id, airport->liaisonState[id], airport->liaisonQueues[id]->Size());
         }

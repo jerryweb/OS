@@ -17,7 +17,7 @@ class Liaison
 		Liaison(int ID, Airport* airport);
 		~Liaison();
 		void Run();
-        void directPassengers();
+        void DirectPassengers();
         List* getMyPassengers() { return myLineOfPassengers; }
         int getID() { return id; }
 

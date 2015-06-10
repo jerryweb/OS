@@ -11,13 +11,13 @@
 
 class Passenger {
 	public:
-		Passenger(int ID, List* bags, Ticket T, List** newLiaisonList, int *liaisonArray, int *checkInStaffArray);
+		Passenger(int ID, List* bags, Ticket T, Airport* A, List** newLiaisonList, int *checkInStaffArray);
 		Passenger(int ID);
         ~Passenger();
 
 		/*this function iterates through a given array and returns the location
 		of the smallest value and the value itself*/
-		int findShortestLine(int* list, bool CISline);
+		int findShortestLine(List** list, bool CISline);
 		/*This is the first version of the function for the passenger to find 
 		the shortest liaison line in the Airport.*/
 		void findShortestLiaisonLine();

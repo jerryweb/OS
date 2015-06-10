@@ -17,12 +17,14 @@ Airport::Airport()
     passengerList = new List();
     // Liaison variables
     liaisonLineLock = new Lock("liaisonLineLock");
+    liaisonList = new List();
     for (i = 0; i < 7; i++)
     {
         liaisonQueues[i] = new List();
-        liaisonCV[i] = new Condition("liaisonCV" + i);
+        lineCV[i] = new Condition("lineCV" + i);
+        liaisonCV[i] = new Condition("LiaisonCV" + i);
         liaisonLock[i] = new Lock("liaisonLock" + i);
-        liaisonState[i] = L_FREE;
+        liaisonState[i] = L_BUSY;
     }
     // Check-in variables
     int numCheckin = numAirlines * 5;
@@ -63,6 +65,7 @@ Airport::~Airport()
     // Liaison variables
     delete liaisonLineLock;
     delete[] liaisonQueues;
+    delete[] lineCV;
     delete[] liaisonCV;
     delete[] liaisonLock;
     // Cargo variables
