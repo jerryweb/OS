@@ -5,13 +5,17 @@
 //#include "system.h"
 
 // Main constructor for the passenger. 
-Passenger::Passenger(int ID, List* bags, Ticket T, int *liaisonArray, int *checkInStaffArray){
+Passenger::Passenger(int ID, List* bags, Ticket T, List** newLiaisonList, int *liaisonArray, int *checkInStaffArray){
 	id = ID;
 	for(int i =0; i < 7; i++)
 		liaisonList[i] = liaisonArray[i];
 
-	for(int i =0; i < 7; i++)
+	for(int i =0; i < 5; i++)
 		checkInStaffList[i] = checkInStaffArray[i];
+
+	for(int i =0; i < 7; i++)
+		liaisons[i] = *newLiaisonList[i];
+
 	luggageList = bags;
 
 	ticket = T;

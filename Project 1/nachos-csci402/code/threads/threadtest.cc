@@ -76,7 +76,7 @@ void StartCargoTest(int arg){
 
 //----------------------------------------------------------------------
 //These are the initial print statements needed at the beginning of each simulation
-//The parameters should all be lists of each thread
+//The parameters should all be lists of each thread. 
 //----------------------------------------------------------------------
 void StartupOutput(List* pList){
 	//printf("Number of airport liaisons = %d", liaisonList.Size());
@@ -98,9 +98,9 @@ void StartupOutput(List* pList){
 			tempBagWeights[j] = l->weight;
 			bags->Remove();
 		}
-
 		printf("Passenger %d : Number of bags = %d\n", P->getID(), P->getLuggage()->Size());
-		printf("Passenger %d : Weight of bags = %d, %d, %d\n", P->getID(), tempBagWeights[0], tempBagWeights[1], tempBagWeights[2]);
+		printf("Passenger %d : Weight of bags = %d, %d, %d\n", P->getID(), tempBagWeights[0],
+		 tempBagWeights[1], tempBagWeights[2]);
 		
 	}
 
@@ -115,10 +115,14 @@ void StartupOutput(List* pList){
 void PassengerFindsShortestLiaisonLine(){
 	//This is the initialization of a passenger with the following secifications
 	int checkInStaffList[5] = {1,4,0,2,0};
-	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport
-															//liasions including 
-															//executive
-	List* bagList = new List;										//3 bags 
+	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport liaisons
+	List* newLList[7];
+	for(int i =0; i <7; i++){
+		List* liaisonLine = new List;
+
+	}	
+
+	List* bagList = new List;
 	List* passengerList = new List;
 
 	for(int i =0; i <3; i++){
