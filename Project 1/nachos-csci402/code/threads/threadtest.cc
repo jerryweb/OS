@@ -190,7 +190,6 @@ void PassengerFindsShortestLiaisonLine(){
 //----------------------------------------------------------------------
 void PassengerFindsCorrectCISLine()
 {
-    printf("yes");
 	Airport* airport = new Airport(); // 3 airlines
     
     // Populate the check-in list.
@@ -205,7 +204,7 @@ void PassengerFindsCorrectCISLine()
     }
     
     // Put the 4th CIS on break.
-    airport->checkinState[4] = CI_BREAK;
+    //airport->checkinState[4] = CI_BREAK;
     
     // Create tickets.
     Ticket ticket0; ticket0.airline = 0; ticket0.executive = false;
@@ -223,9 +222,9 @@ void PassengerFindsCorrectCISLine()
     Thread* t2 = new Thread("Passenger2");
     
     // Fork threads and pass passenger classes.
-	t0->Fork(StartFindCorrectCISLine, (int)p0);
-	t1->Fork(StartFindCorrectCISLine, (int)p1);
-	t2->Fork(StartFindCorrectCISLine, (int)p2);
+	//t0->Fork(StartFindCorrectCISLine, (int)p0);
+	//t1->Fork(StartFindCorrectCISLine, (int)p1);
+	//t2->Fork(StartFindCorrectCISLine, (int)p2);
 }
 
 //----------------------------------------------------------------------
