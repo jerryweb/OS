@@ -92,7 +92,7 @@ void StartupOutput(Airport* airPort){
 	printf("Number of airport liaisons = %d\n", airPort->liaisonList->Size());
 	printf("Number of airlines = %d\n", airPort->numAirlines);//airlines->Size());
 	//printf("Number of check-in staff = %d\n", checkInStaffList.Size());
-	printf("Number of cargo handlers = %d\n", airport->cargoHandlerList->Size());
+	printf("Number of cargo handlers = %d\n", airPort->cargoHandlerList->Size());
 	//printf("Number of screening officers = %d\n", screeningOfficersList.Size());
 	printf("Total number of passengers = %d\n", airPort->passengerList->Size());
 

@@ -13,11 +13,6 @@ Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A, List** newLiaison
 	for(int i =0; i < 7; i++){
 		//liaisonList[i] = liaisonArray[i];
 		liaisons[i] = newLiaisonList[i];
-		// int testV = 9;
-		// int testV2 = 10;
-		// liaisons[i]->Append((void *)testV);
-		// liaisons[i]->Append((void *)testV2);
-		//printf("This is the liaison queue %d\n", liaisons[i]->First());
 	}
 
 	for(int i =0; i < 5; i++)
@@ -53,6 +48,9 @@ Passenger::~Passenger(){
 int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, int *minValue){
 	int location, minValue = 0;				//this is the size and location of the smallest line 
 	
+	for(int i = 0; i < 7; i++)
+		list[i] = airport->liaisonQueues[i];
+
 
 	if(!CISline){
 		minValue = list[0]->Size();
