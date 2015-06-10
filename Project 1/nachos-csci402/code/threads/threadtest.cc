@@ -116,14 +116,11 @@ void PassengerFindsShortestLiaisonLine(){
 	//This is the initialization of a passenger with the following secifications
 	int checkInStaffList[5] = {1,4,0,2,0};
 	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport liaisons
-	List* newLList[7];
-	for(int i =0; i <7; i++){
-		List* liaisonLine = new List;
+	
+	Airport *airport = new Airport();
 
-	}	
-
-	List* bagList = new List;
-	List* passengerList = new List;
+	List* bagList = new List();
+	List* passengerList = new List();
 
 	for(int i =0; i <3; i++){
 		Luggage *bag = new Luggage;	
@@ -136,7 +133,7 @@ void PassengerFindsShortestLiaisonLine(){
 	ticket.airline = 1;
 	ticket.executive = false;
 
-	Passenger *p = new Passenger(0, bagList, ticket, liasionList, checkInStaffList);
+	Passenger *p = new Passenger(0, bagList, ticket, airport->liaisonQueues, liasionList, checkInStaffList);
 	passengerList->Append((void *)p);
 
 	StartupOutput(passengerList);
@@ -153,10 +150,16 @@ void PassengerFindsShortestLiaisonLine(){
 void PassengerFindsShortestCISEconomyLine(){
 	int checkInStaffList[5] = {3,7,2,1,5};
 	int liasionList[7] = {3, 2, 5, 8, 1, 6, 9};  			//there are 7 airport
-															//liasions including 
-															//executive
-	List* bagList = new List;										//3 bags 
-	List* passengerList = new List;
+	
+	List* newLList[7];
+
+	for(int i =0; i <7; i++){
+		List* liaisonLine = new List();
+		newLList[i] = liaisonLine;
+	}	
+
+	List* bagList = new List();										//3 bags 
+	List* passengerList = new List();
 
 	for(int i =0; i <3; i++){
 		Luggage *bag = new Luggage;	
@@ -169,7 +172,7 @@ void PassengerFindsShortestCISEconomyLine(){
 	ticket.airline = 2;
 	ticket.executive = false;								//this makes the passenger economy class
 
-	Passenger *p = new Passenger(1, bagList, ticket, liasionList, checkInStaffList);
+	Passenger *p = new Passenger(1, bagList, ticket, newLList, liasionList, checkInStaffList);
 	passengerList->Append((void *)p);
 
 	StartupOutput(passengerList);

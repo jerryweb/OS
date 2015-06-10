@@ -7,14 +7,18 @@
 // Main constructor for the passenger. 
 Passenger::Passenger(int ID, List* bags, Ticket T, List** newLiaisonList, int *liaisonArray, int *checkInStaffArray){
 	id = ID;
-	for(int i =0; i < 7; i++)
+	for(int i =0; i < 7; i++){
 		liaisonList[i] = liaisonArray[i];
+		liaisons[i] = newLiaisonList[i];
+		// int testV = 9;
+		// int testV2 = 10;
+		// liaisons[i]->Append((void *)testV);
+		// liaisons[i]->Append((void *)testV2);
+		printf("This is the liaison queue %d\n", liaisons[i]->First());
+	}
 
 	for(int i =0; i < 5; i++)
 		checkInStaffList[i] = checkInStaffArray[i];
-
-	for(int i =0; i < 7; i++)
-		liaisons[i] = *newLiaisonList[i];
 
 	luggageList = bags;
 
@@ -71,8 +75,10 @@ void Passenger::findShortestLiaisonLine(){
 	myLine = findShortestLine(liaisonList, false);				// passenger will find shortest line
 	
 	//Should be the first print statment 
-	printf("Passenger %d chose liaison %d with a line length of %d\n", getID(), myLine, liaisonList[myLine]);
-	printf("Passenger %d of Airline %d is directed to check-in counter\n", getID(), ticket.airline);
+	printf("Passenger %d chose liaison %d with a line length of %d\n", 
+		getID(), myLine, liaisonList[myLine]);
+	printf("Passenger %d of Airline %d is directed to check-in counter\n", 
+		getID(), ticket.airline);
 }
 /*
 void Passenger::SetSecurityPass(bool pnp) {

@@ -24,6 +24,7 @@ class Airport {
         Airline** airlines;             // Array of airlines. Index is
                                         // airline ID.
         // Passenger variables?
+        List* passengerList;
         // Liaison variables
         List* liaisonQueues[7];         // Array of liaison queues (list
                                         //  of Passengers). Index
