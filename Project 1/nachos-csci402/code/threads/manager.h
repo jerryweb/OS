@@ -1,4 +1,5 @@
-// Manager class.
+// 	This is the Manager class that will hold all of the major functions associated with
+//	the airport manager.
 
 #ifndef MANAGER_H
 #define MANAGER_H
@@ -15,8 +16,9 @@ class Manager {
 		void Run();
 
 	private:
-        Airport* airport;   // "Airport" construct, containing all public data.
-        // TODO: add more variables
+        Airport* airport;   		// "Airport" construct, containing all public data.
+        List* airlineLuggage[airport->numAirlines];	//Holds the list of bags for each airline
+
 };
 
 #endif

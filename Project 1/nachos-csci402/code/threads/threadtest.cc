@@ -11,7 +11,7 @@
 
 #include "copyright.h"
 #include "system.h"
-#include "passenger.h"
+//#include "passenger.h"
 #include "liaison.h"
 #include "checkin.h"
 #include "cargo.h"
@@ -92,7 +92,7 @@ void StartupOutput(Airport* airPort){
 	printf("Number of airport liaisons = %d\n", airPort->liaisonList->Size());
 	printf("Number of airlines = %d\n", airPort->numAirlines);//airlines->Size());
 	//printf("Number of check-in staff = %d\n", checkInStaffList.Size());
-	//printf("Number of cargo handlers = %d\n", cargoHandlersList.Size());
+	printf("Number of cargo handlers = %d\n", airport->cargoHandlerList->Size());
 	//printf("Number of screening officers = %d\n", screeningOfficersList.Size());
 	printf("Total number of passengers = %d\n", airPort->passengerList->Size());
 
@@ -221,11 +221,14 @@ void CheckInTest()
     Passenger* p0 = new Passenger(0);
     Passenger* p1 = new Passenger(1);
     Passenger* p2 = new Passenger(2);
+
     airport->checkinQueues[0]->Append(p0);
     airport->checkinQueues[1]->Append(p1);
     airport->checkinQueues[1]->Append(p2);
+    
     CheckIn* ci = new CheckIn(0, 1, airport);
     Thread* t = new Thread("CheckIn");
+
     t->Fork(StartCheckInTest, (int)ci);
 }
 
@@ -269,6 +272,14 @@ void CargoTest()
     Cargo* cargo3 = new Cargo(3, airport);
     Cargo* cargo4 = new Cargo(4, airport);
     Cargo* cargo5 = new Cargo(5, airport);
+
+    //	Add all of the cargo handlers to a main list for the use of the manager
+    airport->cargoHandlerList->Append((void *)cargo0);
+    airport->cargoHandlerList->Append((void *)cargo1);
+    airport->cargoHandlerList->Append((void *)cargo2);
+    airport->cargoHandlerList->Append((void *)cargo3);
+    airport->cargoHandlerList->Append((void *)cargo4);
+    airport->cargoHandlerList->Append((void *)cargo5);    
     
 	Thread* t0 = new Thread("Cargo0");
 	Thread* t1 = new Thread("Cargo1");

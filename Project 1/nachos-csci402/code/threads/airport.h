@@ -22,6 +22,8 @@ class Airport {
         // General variables
         Airline** airlines;             // Array of airlines. Index is
                                         //  airline ID.
+        List* airlineState[3];          // This is the list of airline states 
+                                        // which can either be boared or boarding
         Lock** airlineLock;             // Array of locks to handle airline
                                         //  seating and passenger checking.
                                         //  Index corresponds to airline ID.
@@ -32,10 +34,12 @@ class Airport {
                                         //  of Passengers). Index
                                         //  corresponds to liaison ID.
         List* liaisonList;              // List of Liaisons
-        Lock* LineLock;          // Lock for the liaison lines.
+        
+        Lock* LineLock;                 // Lock for the liaison lines.
         Lock* liaisonLock[7];           // Array of locks for each
                                         //  liaison. Index corresponds to
                                         //  liaison ID.
+        
         Condition* lineCV[7];           // 
         Condition* liaisonCV[7];        // Array of CVs for each liaison.
                                         //  Index corresponds to liaison ID.
@@ -62,6 +66,8 @@ class Airport {
         List* conveyor;                 // Conveyor belt for bag transfer
                                         //  from check-in to cargo (list of
                                         //  Luggage).
+        List* cargoHandlerList;         // List of all of the cargo handlers in 
+                                        //  the airport.
         Lock* conveyorLock;             // Lock for the conveyor belt.
         Condition* cargoCV;             // CV for cargo handler break.
         Lock* cargoLock;                // Lock for cargo handler break.
@@ -83,6 +89,11 @@ class Airport {
 //         Lock* securityLocks[3];     //Array of locks for security lines (each inspector has a lock)
 //         Lock securityQueuesLock;     //Lock for all the security lines as a whole, should be used when determining which line is the shortest
 //         Condition* screenCV[3];      //Array of C.V. for each screen locks
+
+        //  Manager variables
+
+
+
 };
 
 #endif
