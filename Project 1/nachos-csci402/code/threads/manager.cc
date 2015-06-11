@@ -9,7 +9,7 @@ Manager::Manager(Airport* airport_){
 	checkinBaggageWeight = new int[airport->numAirlines];
     liaisonPassengerCount = new int[airport->numAirlines];	
     checkinPassengerCount = new int[airport->numAirlines];
-    securityInspectorPassengerCount = new List*[airport->numAirlines];
+    securityInspectorPassengerCount = new int[airport->numAirlines];
     //Prevent Garbage values
     for(int i = 0; i < airport->numAirlines; i++){
     	liaisonPassengerCount[i] = 0;
@@ -18,7 +18,7 @@ Manager::Manager(Airport* airport_){
     	checkinBaggageWeight[i] = 0;
     	cargoHandlersBaggageWeight[i] = 0;
     	cargoHandlersBaggageCount[i] = 0;
-
+    	securityInspectorPassengerCount[i] = 0;
     }
 
 }
@@ -71,10 +71,10 @@ void Manager::MakeRounds(){
     	}
     	airport->conveyorLock->Release();
 
-    	//if(!liaisonDone){									//Delete this at the end of the project
+    	if(!liaisonDone){									//Delete this at the end of the project
     		LiaisonDataRequest(L);
-    	//	liaisonDone = true;
-    	//}
+    		liaisonDone = true;
+    	}
     	if(!CargoDone){
     		CargoRequest(CH);
     		CargoDone = true;
@@ -179,18 +179,18 @@ void Manager::CargoRequest(Cargo *CH){
 		printf("Getting data from Cargo Handler %d\n", CH->getID());
 		airport->cargoHandlerList->Append((void *)CH);
 		airport->RequestingCargoData[CH->getID()] = true;
-		airport->cargoCV->Broadcast(airport->cargoLock);
-
-		printf("i is: %d\n", i);
+		// airport->cargoCV->Broadcast(airport->cargoLock);
+		airport->cargoDataCV[i]->Signal(airport->cargoLock);
 		airport->cargoManagerCV[CH->getID()]->Wait(airport->CargoHandlerManagerLock);
 		
 		//Waits for the signal of corresponding Liaison
 		airport->cargoDataLock[CH->getID()]->Acquire();
 		//Records the total weight per airline and stores into an array
-		printf("i is: %d\n", i);
+		// printf("i is: %d\n", i);
 		for(int k = 0; k < airport->numAirlines; k++){
 			cargoHandlersBaggageWeight[k] += CH->getWeight(k);
 			cargoHandlersBaggageCount[k] += CH->getLuggage(k);
+			printf("Baggage count for airline %d: %d\n", k, cargoHandlersBaggageCount[k]);
 			printf("Baggage weight for airline %d: %d\n", k, cargoHandlersBaggageWeight[k]);
 		}
 

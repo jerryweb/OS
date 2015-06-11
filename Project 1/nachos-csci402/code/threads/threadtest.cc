@@ -546,6 +546,7 @@ void CargoTest() {
 	Thread* t4 = new Thread("Cargo4");
 	Thread* t5 = new Thread("Cargo5");
 
+
 	// Fork threads and pass cargo handler classes.
 	t0->Fork(StartCargo, (int) cargo0);
 	t1->Fork(StartCargo, (int) cargo1);
@@ -670,6 +671,8 @@ void MTest() {
 	Thread* t4 = new Thread("Cargo4");
 	Thread* t5 = new Thread("Cargo5");
 	Thread* tM = new Thread("Manager");
+	
+	// StartupOutput(airport);
 
 	// Fork threads and pass cargo handler classes.
 	t0->Fork(StartCargo, (int) cargo0);

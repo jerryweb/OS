@@ -33,7 +33,7 @@ class Manager {
 		//Passenger Data
         int* liaisonPassengerCount;	
         int* checkinPassengerCount;
-        List** securityInspectorPassengerCount;
+        int* securityInspectorPassengerCount;
 };
 
 #endif

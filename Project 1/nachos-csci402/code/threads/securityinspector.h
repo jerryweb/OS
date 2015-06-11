@@ -26,4 +26,5 @@ private:
 						//can only be modified by the returning passenger
 	Passenger* returnPassenger;
 };
+
 #endif
