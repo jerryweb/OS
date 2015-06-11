@@ -21,14 +21,15 @@ Airport::Airport()
     // Liaison variables
     liaisonManagerLock = new Lock("liaisonManagerLock");
     liaisonLineLock = new Lock("liaisonLineLock");
-    liaisonList = new List(); liaisonManagerCV = new Condition("liaisonManagerCV");
+    liaisonList = new List(); 
     for (i = 0; i < 7; i++)
     {
         liaisonQueues[i] = new List();
         liaisonLineCV[i] = new Condition("liaisonLineCV");
-
+        liaisonManagerCV[i] = new Condition("liaisonManagerCV");
         liaisonCV[i] = new Condition("liaisonCV");
         liaisonLock[i] = new Lock("liaisonLock");
+        liaisonDataLock[i] = new Lock("liaisonDataLock");
         liaisonState[i] = L_BUSY;
     }
 
@@ -69,6 +70,8 @@ Airport::Airport()
     {
         aircraft[i] = new List();
     }
+
+    managerLock = new Lock("managerLock");
 }
 
 Airport::~Airport()

@@ -95,7 +95,7 @@ Passenger* Liaison::CheckForPassengers()
 //----------------------------------------------------------------------
 void Liaison::DirectPassengers(){
     Passenger* p = NULL;
-
+    bool talkedToManager = false;
     while(true){
         // Check line for passengers.
         airport->liaisonLineLock->Acquire();
@@ -125,18 +125,22 @@ void Liaison::DirectPassengers(){
 
     //Interaction With Manager
         //Recieve from Manager
-
-        airport->liaisonManagerLock->Acquire();
-        printf("liaison %d is sending data.\n", id);
-        //Give manager data
-        airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
-        
-        airport->liaisonLock[id]->Acquire();
-        airport->liaisonManagerLock->Release();
-        airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-        //Wait for manager to signal that all the data has been collected
-        airport->liaisonLock[id]->Acquire();
-        printf("liaison %d has finished reporting data to manager.\n", id);
-        airport->liaisonLock[id]->Release();
+        // if(!talkedToManager){
+            airport->liaisonManagerLock->Acquire();
+            // airport->managerLock->Acquire();
+            printf("liaison %d is sending data.\n", id);
+            //Give manager data
+            airport->liaisonManagerCV[id]->Signal(airport->liaisonManagerLock);
+            
+            airport->liaisonDataLock[id]->Acquire();
+            airport->liaisonManagerLock->Release();
+            airport->liaisonCV[id]->Wait(airport->liaisonDataLock[id]);
+            //Wait for manager to signal that all the data has been collected
+            airport->liaisonDataLock[id]->Acquire();
+            printf("liaison %d has finished reporting data to manager.\n", id);
+            airport->liaisonDataLock[id]->Release();
+            // airport->managerLock->Release();
+        //     talkedToManager = true;
+        // }
     }
 }

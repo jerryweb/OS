@@ -39,9 +39,10 @@ class Airport {
         Lock* liaisonLock[7];           // Array of locks for each
                                         //  liaison. Index corresponds to
                                         //  liaison ID.
+        Lock* liaisonDataLock[7];
         Condition* liaisonLineCV[7];    // Array of CVs for each liaison's
                                         //  line. Index corresponds to ID.
-        Condition* liaisonManagerCV; // Array of CVs for each liaison interaction
+        Condition* liaisonManagerCV[7]; // Array of CVs for each liaison interaction
         Condition* liaisonCV[7];        // Array of CVs for each liaison.
                                         //  Index corresponds to ID.
         LiaisonState liaisonState[7];   // Array of states for each liaison.
@@ -97,6 +98,7 @@ class Airport {
          //Conditon to allow manager to gather data
 
         Lock* managerCargoLock;
+        Lock* managerLock;
         Condition* managerCV;
 
 
