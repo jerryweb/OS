@@ -99,8 +99,9 @@ void CheckIn::StartCheckInStaff()
         }
         airport->airlineLock[airline]->Release();
 
-        airport->checkinCV[id]->Acquire();
-        airport->checkinCV[id]->Release();
+        //need to fix
+       // airport->checkinCV[id]->Acquire();
+        //airport->checkinCV[id]->Release();
         
         if(airport->RequestingCheckinData[id]){
             printf("check-in staff %d says hey.\n", id);
