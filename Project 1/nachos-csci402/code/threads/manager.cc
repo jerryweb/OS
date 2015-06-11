@@ -5,12 +5,15 @@ Manager::Manager(Airport* airport_){
     airlineLuggage = new List*[airport->numAirlines];
 	liaisonBaggageCount = new int[airport->numAirlines];    
 	cargoHandlersBaggageWeight = new int[airport->numAirlines];
+	cargoHandlersBaggageCount = new int[airport->numAirlines];
 	checkinBaggageWeight = new int[airport->numAirlines];
     liaisonPassengerCount = new int[airport->numAirlines];	
+    //Prevent Garbage values
     for(int i = 0; i < airport->numAirlines; i++){
     	liaisonPassengerCount[i] = 0;
     	liaisonBaggageCount[i] = 0;
     	cargoHandlersBaggageWeight[i] = 0;
+    	cargoHandlersBaggageCount[i] = 0;
     }
     checkinPassengerCount = new List*[airport->numAirlines];
     securityInspectorPassengerCount = new List*[airport->numAirlines];
@@ -20,6 +23,7 @@ Manager::~Manager(){
     delete[] airlineLuggage;
     delete[] liaisonBaggageCount;
     delete[] cargoHandlersBaggageWeight;
+    delete[] cargoHandlersBaggageCount;
     delete[] checkinBaggageWeight;
     delete[] liaisonPassengerCount;
     delete[] checkinPassengerCount;
@@ -123,6 +127,7 @@ void Manager::CargoRequest(Cargo *CH){
 		//Records the total weight per airline and stores into an array
 		for(int k = 0; k < airport->numAirlines; k++){
 			cargoHandlersBaggageWeight[k] += CH->getWeight(k);
+			cargoHandlersBaggageCount[k] += CH->getLuggage(k);
 			printf("Baggage weight for airline %d: %d\n", k, cargoHandlersBaggageWeight[k]);
 		}
 

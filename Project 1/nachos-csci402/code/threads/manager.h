@@ -27,7 +27,7 @@ class Manager {
         int* liaisonBaggageCount;			//For the weights just calculate in print function
 		int* cargoHandlersBaggageWeight;
 		int* checkinBaggageWeight;			
-
+		int* cargoHandlersBaggageCount;
 		//Passenger Data
         int* liaisonPassengerCount;	
         List** checkinPassengerCount;
