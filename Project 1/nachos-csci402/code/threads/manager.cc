@@ -3,8 +3,6 @@
 Manager::Manager(Airport* airport_)
 {
     airport = airport_;
-    printf("hello\n");
-    printf("airport stuff %d\n", airport->cargoHandlerList->Size());
     airlineLuggage = new List*[airport->numAirlines];
 	liaisonBaggageCount = new List*[airport->numAirlines];    
 	cargoHandlersBaggageCount = new List*[airport->numAirlines];
@@ -33,10 +31,13 @@ void Manager::MakeRounds()
     						//keeps track of how many cargo handlers are on break
     	//Cargo handler interaction
     	
-    	
-    	
     	airport->conveyorLock->Acquire();
-    	printf("FUCK\n");
+        
+        Luggage* bag = new Luggage;
+        bag->airlineCode = 0;
+        bag->weight = 30;
+        airport->conveyor->Append((void*)bag);
+        
     	if(!airport->conveyor->IsEmpty()){
     		counter = 0;
     		for(int i = 0; i < airport->cargoHandlerList->Size(); i++){
@@ -53,8 +54,8 @@ void Manager::MakeRounds()
     		}
     	}
     	airport->conveyorLock->Release();
-    	//for(int i = 0; i < 100; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
-			//currentThread->Yield();
+    	for(int i = 0; i < 100; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
+			currentThread->Yield();
 		
     }
 }

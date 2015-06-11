@@ -97,7 +97,7 @@ class Airport {
 
         //  Manager variables
         Lock* managerCargoLock;
-        Condition* managerCV
+        Condition* managerCV;
 
 
 

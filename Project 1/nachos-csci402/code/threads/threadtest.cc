@@ -502,14 +502,14 @@ void CargoTest()
     Cargo* cargo5 = new Cargo(5, airport);
 
     Manager* manager = new Manager(airport);
-
+    
     //	Add all of the cargo handlers to a main list for the use of the manager
     airport->cargoHandlerList->Append((void *)cargo0);
-    // airport->cargoHandlerList->Append((void *)cargo1);
-    // airport->cargoHandlerList->Append((void *)cargo2);
-    // airport->cargoHandlerList->Append((void *)cargo3);
-    // airport->cargoHandlerList->Append((void *)cargo4);
-    // airport->cargoHandlerList->Append((void *)cargo5);    
+    airport->cargoHandlerList->Append((void *)cargo1);
+    airport->cargoHandlerList->Append((void *)cargo2);
+    airport->cargoHandlerList->Append((void *)cargo3);
+    airport->cargoHandlerList->Append((void *)cargo4);
+    airport->cargoHandlerList->Append((void *)cargo5);    
     
     // Create threads.
 	Thread* t0 = new Thread("Cargo0");
@@ -522,12 +522,12 @@ void CargoTest()
     
     // Fork threads and pass cargo handler classes.
 	t0->Fork(StartCargo, (int)cargo0);
-	// t1->Fork(StartCargo, (int)cargo1);
-	// t2->Fork(StartCargo, (int)cargo2);
-	// t3->Fork(StartCargo, (int)cargo3);
-	// t4->Fork(StartCargo, (int)cargo4);
-	// t5->Fork(StartCargo, (int)cargo5);
-	tM->Fork(StartManager, (int)tM);
+	t1->Fork(StartCargo, (int)cargo1);
+	t2->Fork(StartCargo, (int)cargo2);
+	t3->Fork(StartCargo, (int)cargo3);
+	t4->Fork(StartCargo, (int)cargo4);
+	t5->Fork(StartCargo, (int)cargo5);
+	tM->Fork(StartManager, (int)manager);
 }
 
 
