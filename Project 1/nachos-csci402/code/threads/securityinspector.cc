@@ -8,6 +8,7 @@ SecurityInspector::SecurityInspector(int ID, Airport* AIRPORT) {
 	airport = AIRPORT;
 	hasReturned = false;
 	returnPassenger = NULL;
+	//PassengerCount = new int[airport->numAirlines];
 }
 
 SecurityInspector::~SecurityInspector() {

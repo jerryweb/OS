@@ -607,7 +607,7 @@ void InspectTest() {
 	sInspector[0] = new SecurityInspector(0, airport);
 
 	for (int i = 0; i < 5; i++) {
-		inspectPassenger[i] = new Passenger(i, 0, airport, sInspector);
+		inspectPassenger[i] = new Passenger(i, 0, airport,0, sInspector);
 		airport->securityQueues[0]->Append(inspectPassenger[i]);
 	}
 

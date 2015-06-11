@@ -24,6 +24,8 @@ private:
 	bool hasReturned;   //initialize to false
 						//true means there is passenger has just returned
 						//can only be modified by the returning passenger
+
+	int* PassengerCount;
 	Passenger* returnPassenger;
 };
 #endif
