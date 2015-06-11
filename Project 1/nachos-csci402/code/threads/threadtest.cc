@@ -189,7 +189,9 @@ void ManagerTest(){
 		//Varies the airline codes and executive class status for the passengers
 		Ticket ticket;
 		ticket.airline = i % 3 ;
-		if(i % 3 == 2)
+        airport->airlines[i % 3]->ticketsIssued++;
+        airport->airlines[i % 3]->totalBagCount += 3;
+		if(i % 2 == 0)
 			ticket.executive = true;
 		else
 			ticket.executive = false;
@@ -210,8 +212,8 @@ void ManagerTest(){
 
 	//Generates Check-in Staff; there are 5 for each airline
 	for(int m = 0; m < 3; m++){
-		for(int n = 0; n <5; n++){
-			CheckIn *C = new CheckIn(m, n, airport);
+		for(int n = 0; n < 5; n++){
+			CheckIn *C = new CheckIn(m, m*6+n+1, airport);
     		airport->checkInStaffList->Append((void *)C);
     		Thread  *tC =  new Thread("CheckInStaff");
     		CheckInStaffThreadArray->Append((void *)tC);
@@ -350,7 +352,7 @@ void PassengerFindsShortestLiaisonLine(){
 //    line 3: 2
 //    line 4: 0
 //    line 5: 7
-//   Sets CIS 4's state to break.
+//   Sets CIS 4's state to closed.
 //   Initializes 3 passenger threads and runs them:
 //    id 0, economy ticket
 //    id 1, executive ticket
@@ -380,7 +382,7 @@ void PassengerFindsCorrectCISLine()
     }
     
     // Put the 4th CIS on break.
-    airport->checkinState[4] = CI_BREAK;
+    airport->checkinState[4] = CI_CLOSED;
     
     // Create tickets.
     Ticket ticket0;

@@ -60,19 +60,16 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 		return location;						//Found a line
 	}
 
-	else if(!ticket.executive && CISline){
+	else {
         int CIS_ID = airline * 6 + 1;
 		minValue = airport->passengerList->Size();
 		for(int i = CIS_ID; i < CIS_ID + 5; i++){
-			if(minValue > list[i]->Size() && airport->checkinState[i] != CI_BREAK){
+			if(minValue > list[i]->Size() && airport->checkinState[i] != CI_CLOSED){
 				minValue = list[i]->Size();
 				location = i;			}
 		}
 		return location;						//Found a line
 	}
-
-	else
-		return location;
 
 }
 
@@ -153,6 +150,7 @@ void Passenger::CheckIn()
         airport->checkinQueues[checkInLine]->Append((void *)this);
         airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
     }
+    
     printf("Passenger %d of Airline %d was informed to board at gate %d\n",
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
