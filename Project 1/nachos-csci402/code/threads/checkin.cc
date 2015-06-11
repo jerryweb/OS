@@ -36,7 +36,8 @@ void CheckIn::StartCheckInStaff()
 {
     Passenger* pass = NULL;
     bool exec;
-    int passAirline, execLine = airline * 6;
+    int passAirline;
+    int execLine = airline * 6;
     BoardingPass bp;
     while (true)
     {
@@ -86,9 +87,11 @@ void CheckIn::StartCheckInStaff()
         airport->airlineLock[airline]->Acquire();
         if (airport->airlines[airline]->seatsAssigned >= airport->airlines[airline]->ticketsIssued)
         {
+            airport->checkinLock[id]->Acquire();
             printf("Airline check-in staff %d is closing the counter\n", id);
+            airport->checkinState[id] = CI_CLOSED;
             airport->airlineLock[airline]->Release();
-            // TODO: use currentThread->Finish() to "close"?
+            airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
         }
         airport->airlineLock[airline]->Release();
     }

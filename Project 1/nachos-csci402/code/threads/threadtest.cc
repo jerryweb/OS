@@ -195,8 +195,8 @@ void ManagerTest(){
 
 	//Generates Check-in Staff; there are 5 for each airline
 	for(int m = 0; m < 3; m++){
-		for(int n = 0; n <5; n++){
-			CheckIn *C = new CheckIn(m, n, airport);
+		for(int n = 0; n < 5; n++){
+			CheckIn *C = new CheckIn(m, m*6+n+1, airport);
     		airport->checkInStaffList->Append((void *)C);
     		Thread  *tC =  new Thread("Check_In_Staff");
     		CheckInStaffThreadArray->Append((void *)tC);
@@ -239,8 +239,9 @@ void ManagerTest(){
 		CheckIn *CIS = (CheckIn*)airport->checkInStaffList->First();
 		airport->checkInStaffList->Remove();
 		airport->checkInStaffList->Append((void *)CIS);
-		Thread *tCIS = (Thread*)LiaisonThreadArray->First();
-		LiaisonThreadArray->Remove();
+		Thread *tCIS = (Thread*)CheckInStaffThreadArray->First();
+		CheckInStaffThreadArray->Remove();
+        printf("tCIS = %p\n", tCIS);
 		tCIS->Fork(StartCheckInStaff,(int(CIS)));
 	}
 

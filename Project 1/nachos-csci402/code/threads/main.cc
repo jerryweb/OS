@@ -123,7 +123,7 @@ main(int argc, char **argv)
     
 	if (!strcmp(*argv, "-airport"))
     {   // Runs the full airport simulation.
-		AirportSim();
+		// AirportSim();
 	}
 
 	
