@@ -37,8 +37,10 @@ void Manager::MakeRounds()
     	//keeps track of how many cargo handlers are on break
 
     	//Cargo handler interaction
+<<<<<<< HEAD
     	airport->conveyorLock->Acquire();
        	if(!airport->conveyor->IsEmpty()){
+
     		counter = 0;
     		for(int i = 0; i < airport->cargoHandlerList->Size(); i++){
     			if(airport->cargoState[i] == C_BREAK){
@@ -54,6 +56,7 @@ void Manager::MakeRounds()
     		}
     	}
     	airport->conveyorLock->Release();
+
     	if(!done){
     	//Gather data from liaisons 
     	for(int j = 0; j < airport->liaisonList->Size(); j++){
@@ -84,9 +87,6 @@ void Manager::MakeRounds()
     	}
     	for(int i = 0; i < 10; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
 			currentThread->Yield();
-
-
-
 		
     }
 }

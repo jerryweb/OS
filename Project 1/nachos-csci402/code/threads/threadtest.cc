@@ -515,7 +515,7 @@ void CargoTest()
     Cargo* cargo5 = new Cargo(5, airport);
 
     Manager* manager = new Manager(airport);
-
+    
     //	Add all of the cargo handlers to a main list for the use of the manager
     airport->cargoHandlerList->Append((void *)cargo0);
     airport->cargoHandlerList->Append((void *)cargo1);
