@@ -11,14 +11,18 @@
 #include "airport.h"
 #include "passenger.h"
 
+
 class Liaison
 {
 	public:
 		Liaison(int ID, Airport* airport);
 		~Liaison();
-		void Run();
         void DirectPassengers();
         int getID() { return id; }
+        int getPassengers(int airline) { return passengers[airline]; }
+        int getLuggageCount(int airline) { return luggageCount[airline]; }
+        int getLuggageWeight(int airline) { return totalLuggageWeight[airline]; }
+
 
 
 	private:
@@ -28,6 +32,7 @@ class Liaison
         int* passengers;            // Records how many passengers this
                                     //  individual staff has processed,
                                     //  split by airline.
+        int* luggageCount;          // Records number of bags per airline
         int* totalLuggageWeight;    // Records how many bags this
                                     //  individual staff has processed,
                                     //  split by airline.

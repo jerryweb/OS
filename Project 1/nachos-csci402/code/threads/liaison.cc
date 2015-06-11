@@ -5,7 +5,13 @@ Liaison::Liaison(int id_, Airport* airport_)
 	id = id_;
     airport = airport_;
     passengers = new int[airport->numAirlines];
-    totalLuggageWeight = new int[airport->numAirlines];
+    luggageCount = new int[airport->numAirlines];
+    totalLuggageWeight = new int[airport->numAirlines];     //May not be needed
+    for(int i= 0; i < airport->numAirlines; i++){
+        passengers[i] = 0;
+        luggageCount[i] = 0;
+    }
+
     airport->liaisonState[id] = L_BUSY;
 }
 
@@ -78,7 +84,7 @@ void Liaison::DirectPassengers(){
             p = (Passenger*)airport->liaisonQueues[id]->Remove();
            
             printf("Airport Liaison %d directed passenger %d of airline %d\n", 
-            id, p->getID(), p->getTicket().airline);
+            id, p->getID(), p->getTicket().airline);        
             airport->liaisonState[id] = L_BUSY;           
             p->SetAirline(p->getTicket().airline);
             // This adds the statistics for # of passengers and weight of bags for each
@@ -102,13 +108,29 @@ void Liaison::DirectPassengers(){
        
         List *bags = p->getLuggage();                       //Temp list for iterating through luggage
         for(int j = bags->Size(); j > 0; j--){              //This calculates the weights of each of the bags 
-            Luggage *l = (Luggage*)bags->First();           //and puts it into a temp array to be read
-            totalLuggageWeight[p->getTicket().airline] += l->weight;
-            bags->Remove();
-            // printf("Total weigth %d\n", totalLuggageWeight[p->getTicket().airline]);
-            bags->Append((void *)l);                 //Prevent destruction of local bags list         
+            // Luggage *l = (Luggage*)bags->First();           //and puts it into a temp array to be read
+            // totalLuggageWeight[p->getTicket().airline] += l->weight;
+            // bags->Remove();
+            // // printf("Total weigth %d\n", totalLuggageWeight[p->getTicket().airline]);
+            // bags->Append((void *)l);                 //Prevent destruction of local bags list         
+            luggageCount[p->getTicket().airline]++;
         }
         airport->liaisonLock[id]->Release();
 
+    //Interaction With Manager
+        //Recieve from Manager
+
+        airport->liaisonManagerLock->Acquire();
+        printf("liaison %d is sending data.\n", id);
+        //Give manager data
+        airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
+        
+        airport->liaisonLock[id]->Acquire();
+        airport->liaisonManagerLock->Release();
+        airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+        //Wait for manager to signal that all the data has been collected
+        airport->liaisonLock[id]->Acquire();
+        printf("liaison %d has finished reporting data to manager.\n", id);
+        airport->liaisonLock[id]->Release();
     }
 }
