@@ -85,19 +85,96 @@ Airport::Airport()
         aircraft[i] = new List();
     }
 
+	//Screen & Security Variables
+	screenQueues = new List*[3];
+	for (i = 0; i < 3; i++) {
+		screenQueues[i] = new List;
+	}
+
+	securityQueues = new List*[3];
+	for (i = 0; i < 3; i++) {
+		securityQueues[i] = new List;
+	}
+
+	returnQueues = new List*[3];
+	for (i = 0; i < 3; i++) {
+		returnQueues[i] = new List;
+	}
+
+	screenLocks = new Lock*[3];
+	for (i = 0; i < 3; i++) {
+		screenLocks[i] = new Lock("screenLocks");
+	}
+	screenQueuesLock = new Lock("screenQueuesLock");
+
+	passengerWaitOfficerCV = new Condition*[3];
+	for (i = 0; i < 3; i++) {
+		passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
+	}
+
+	officerWaitPassengerCV = new Condition*[3];
+	for (i = 0; i < 3; i++) {
+		officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
+	}
+
+	securityLocks = new Lock*[3];
+	for (i = 0; i < 3; i++) {
+		securityLocks[i] = new Lock("securityLocks");
+	}
+	securityQueuesLock = new Lock("securityQueuesLock");
+
+	inspectorWaitRePassengerCV = new Condition*[3];
+	for (i = 0; i < 3; i++) {
+		inspectorWaitRePassengerCV[i] = new Condition(
+				"inspectorWaitRePassengerCV");
+	}
+
+	rePassengerWaitInspectorCV = new Condition*[3];
+	for (i = 0; i < 3; i++) {
+		rePassengerWaitInspectorCV[i] = new Condition(
+				"rePassengerWaitInspectorCV");
+	}
+
+	inspectorWaitPassengerCV = new Condition*[3];
+	for (i = 0; i < 3; i++) {
+		inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
+	}
+
+	passengerWaitInspectorCV = new Condition*[3];
+	for (i = 0; i < 3; i++) {
+		passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
+	}
+
+	appendReturnLineCV = new Condition*[3];
+	for (i = 0; i < 3; i++) {
+		appendReturnLineCV[i] = new Condition("appendReturnLineCV");
+	}
+
 }
 
-Airport::~Airport()
-{
-    // Liaison variables
-    delete liaisonLineLock;
-    delete[] liaisonQueues;
-    delete[] liaisonLineCV;
-    delete[] liaisonCV;
-    delete[] liaisonLock;
-    // Cargo variables
-    delete conveyorLock;
-    delete conveyor;
-    delete cargoCV;
-    delete[] aircraft;
+Airport::~Airport() {
+	// Liaison variables
+	delete liaisonLineLock;
+	delete[] liaisonQueues;
+	delete[] liaisonLineCV;
+	delete[] liaisonCV;
+	delete[] liaisonLock;
+	// Cargo variables
+	delete conveyorLock;
+	delete conveyor;
+	delete cargoCV;
+	delete[] aircraft;
+	//security variables
+	delete[] screenQueues;
+	delete[] securityQueues;
+	delete[] screenLocks;
+	delete screenQueuesLock;
+	delete[] passengerWaitOfficerCV;
+	delete[] officerWaitPassengerCV;
+	delete[] securityLocks;
+	delete securityQueuesLock;
+	delete[] passengerWaitInspectorCV;
+	delete[] inspectorWaitPassengerCV;
+	delete[] rePassengerWaitInspectorCV;
+	delete[] inspectorWaitRePassengerCV;
 }

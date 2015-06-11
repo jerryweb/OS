@@ -67,6 +67,8 @@ extern void PassengerFindsShortestLiaisonLine();
 extern void PassengerFindsCorrectCISLine();
 extern void CheckInTest();
 extern void CargoTest();
+extern void ScreenTest();
+extern void InspectTest();
 extern void MTest();
 //extern void AirportSim();
 //----------------------------------------------------------------------
@@ -130,6 +132,14 @@ main(int argc, char **argv)
 	if (!strcmp(*argv, "-cargo"))
     {   // Tests if cargo handler functions.
 		CargoTest();
+	}
+
+	if (!strcmp(*argv, "-screen")) {
+		ScreenTest();
+	}
+
+	if (!strcmp(*argv, "-inspect")) {
+		InspectTest();
 	}
     
 	if (!strcmp(*argv, "-airport"))

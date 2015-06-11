@@ -11,6 +11,7 @@
 #include "synch.h"
 
 class Airport {
+
     public:
         // TODO: add constructor and destructor.
         Airport();
@@ -96,24 +97,32 @@ class Airport {
                                         //  Luggage). Index corresponds
                                         //  to airline ID.
         // Screening and security variables
-        List* screenQueues[3];          // Array of screening queues (list
-                                        //  of Passengers). Index corresponds
-                                        //  to screener ID.
-        List* securityQueues[3];        // Array of security queues (list
-                                        //  of Passengers). Index corresponds
-                                        //  to security ID.
-        // TODO: add other lists/variables here.
-//         Lock* screenLocks[3];       //Array of locks for screening lines (each officer has a lock)
-//         Lock screenQueuesLock;       //Lock for all the screening lines as a whole, should be used when determining which line is the shortest
-//         Lock* securityLocks[3];     //Array of locks for security lines (each inspector has a lock)
-//         Lock securityQueuesLock;     //Lock for all the security lines as a whole, should be used when determining which line is the shortest
-//         Condition* screenCV[3];      //Array of C.V. for each screen locks
+	List** screenQueues;                     // Array of screening queues (list
+											 //  of Passengers). Index corresponds
+											 //  to screener ID.
 
-        //  Manager variables
-         //Conditon to allow manager to gather data
+	List** securityQueues;                   // Array of security queues (list
+											 //  of Passengers). Index corresponds
+											 //  to security ID.
 
+	List** returnQueues;               //Array of returning security queues(list
+									   // of Passenger). Index corresponds
+									   //  to security ID.
 
+	Lock** screenLocks; //Array of locks for screening lines (each officer has a lock)
+	Lock* screenQueuesLock; //Lock for all the screening lines as a whole, should be used when determining which line is the shortest
+	Lock** securityLocks; //Array of locks for security lines (each inspector has a lock)
+	Lock* securityQueuesLock; //Lock for all the security lines as a whole, should be used when determining which line is the shortest
+	Condition** passengerWaitOfficerCV;    //Array of C.V. for each screen locks
+	Condition** officerWaitPassengerCV;
+	Condition** inspectorWaitRePassengerCV;  //rePassenger is return passenger
+	Condition** rePassengerWaitInspectorCV;
+	Condition** inspectorWaitPassengerCV;
+	Condition** passengerWaitInspectorCV;
+	Condition** appendReturnLineCV;
 
+	//  Manager variables
+	//Conditon to allow manager to gather data
 
 };
 

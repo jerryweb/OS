@@ -1,6 +1,11 @@
 /*This is where all of the functions for the passenger class are defined 
 */
 #include "passenger.h"
+//for random number
+#include "stdlib.h"
+#include "time.h"
+//workaround for circular dependency
+#include "securityinspector.h"
 
 //#include "system.h"
 
@@ -43,6 +48,25 @@ Passenger::Passenger(int ID, Ticket t, int airlineCode, Airport* a)
     ticket = t;
     airline = airlineCode;
     airport = a;
+}
+
+Passenger::Passenger(int ID, int qIndex, Airport* AIRPORT) {
+	id = ID;
+	queueIndex = qIndex;
+	airport = AIRPORT;
+	securityPass = true;
+}
+
+Passenger::Passenger(int ID,int qIndex,Airport* AIRPORT,SecurityInspector** INSPECTORLIST) {
+	id = ID;
+	queueIndex = qIndex;
+	airport = AIRPORT;
+	securityPass = true;
+	inspectorList = INSPECTORLIST;
+}
+
+Passenger::Passenger(Airport* AIRPORT) {
+	airport = AIRPORT;
 }
 
 Passenger::~Passenger(){
@@ -125,19 +149,64 @@ void Passenger::findShortestLiaisonLine(){
 		CheckIn();
 	
 }
-/*
+
+void Passenger::Screening() {
+	int oldQueueIndex = queueIndex;
+	//ping-pong with Screening Officer
+	airport->screenLocks[queueIndex]->Acquire();
+	airport->passengerWaitOfficerCV[queueIndex]->Wait(
+			airport->screenLocks[queueIndex]);
+	//maybe do something here, at the moment nothing
+	airport->screenLocks[oldQueueIndex]->Acquire();
+	airport->officerWaitPassengerCV[oldQueueIndex]->Signal(
+			airport->screenLocks[oldQueueIndex]);
+	airport->screenLocks[oldQueueIndex]->Release();
+}
+
+void Passenger::Inspecting() {
+	airport->securityLocks[queueIndex]->Acquire();
+	airport->passengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
+
+	if (!securityPass) {
+		airport->securityLocks[queueIndex]->Acquire();
+		airport->inspectorWaitPassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
+		airport->securityLocks[queueIndex]->Release();
+
+		srand(time(NULL));
+		int randNum = rand() % 10 + 1;
+		for (int i=0;i<randNum;i++) {
+			currentThread->Yield();
+		}
+
+		airport->securityLocks[queueIndex]->Acquire();
+		inspectorList[queueIndex]->setReturn();
+		inspectorList[queueIndex]->setReturnPassenger(this);
+		airport->securityLocks[queueIndex]->Release();
+
+		airport->securityLocks[queueIndex]->Acquire();
+		airport->rePassengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
+		airport->securityLocks[queueIndex]->Acquire();
+		airport->inspectorWaitRePassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
+		airport->securityLocks[queueIndex]->Release();
+
+	} else {
+		airport->securityLocks[queueIndex]->Acquire();
+		airport->inspectorWaitPassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
+		airport->securityLocks[queueIndex]->Release();
+	}
+}
+
+void Passenger::SetQueueIndex(int qIndex) {
+	queueIndex = qIndex;
+}
+
 void Passenger::SetSecurityPass(bool pnp) {
-	this.screenPass = pnp;
+	securityPass = pnp;
 }
 
 bool Passenger::GetSecurityPass() {
-	return this.SecurityPass;
+	return securityPass;
 }
-
-void Passenger::Questioning() {
-
-}
-*/
 
 void Passenger::CheckIn()
 {
