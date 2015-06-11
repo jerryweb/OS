@@ -19,6 +19,8 @@ class CheckIn
         Passenger* FindPassenger(int execLine);
 		// void Run();
         void StartCheckInStaff();
+        int getID() { return id; }
+        int getAirline() { return airline; }
 
 	private:
         int airline;        // Airline that the staff belongs to.

@@ -91,7 +91,8 @@ void StartCheckInStaff(int arg){
 
 //----------------------------------------------------------------------
 //These are the initial print statements needed at the beginning of each simulation
-//The parameters should all be lists of each thread. 
+//The parameters should all be lists of each thread. Assumption that [Count] in the 
+// output guidelines do not include the brackets in the output.
 //----------------------------------------------------------------------
 void StartupOutput(Airport* airport){
 	printf("Number of airport liaisons = %d\n", airport->liaisonList->Size());
@@ -145,6 +146,14 @@ void StartupOutput(Airport* airport){
 		printf("Passenger %d : Weight of bags = %d, %d, %d\n", P->getID(), tempBagWeights[0],
 		 tempBagWeights[1], tempBagWeights[2]);	
 	}
+
+	//Prints Check-in Staff information
+	for(int k = 0; k < airport->checkInStaffList->Size(); k++){
+		CheckIn *CIS = (CheckIn*)airport->checkInStaffList->First();
+		airport->checkInStaffList->Remove();
+		airport->checkInStaffList->Append((void *)CIS);
+		printf("Airline check-in staff %d belongs to airline %d\n", CIS->getID(), CIS->getAirline());
+	}
 }
 
 //----------------------------------------------------------------------
@@ -161,7 +170,7 @@ void ManagerTest(){
 	List* CargoHandlerTreadArray = new List();
 
 	//Generate Passengers each with seperate luggage and tickets 
-	for(int i = 0; i < 8; i++){
+	for(int i = 0; i < 10; i++){
 		List* bagList = new List();
 
 		for(int j =0; j <3; j++){
@@ -198,7 +207,7 @@ void ManagerTest(){
 		for(int n = 0; n < 5; n++){
 			CheckIn *C = new CheckIn(m, m*6+n+1, airport);
     		airport->checkInStaffList->Append((void *)C);
-    		Thread  *tC =  new Thread("Check_In_Staff");
+    		Thread  *tC =  new Thread("CheckInStaff");
     		CheckInStaffThreadArray->Append((void *)tC);
 		}
 	}
@@ -241,7 +250,6 @@ void ManagerTest(){
 		airport->checkInStaffList->Append((void *)CIS);
 		Thread *tCIS = (Thread*)CheckInStaffThreadArray->First();
 		CheckInStaffThreadArray->Remove();
-        printf("tCIS = %p\n", tCIS);
 		tCIS->Fork(StartCheckInStaff,(int(CIS)));
 	}
 
