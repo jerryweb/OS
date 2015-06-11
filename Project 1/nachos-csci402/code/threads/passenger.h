@@ -11,8 +11,10 @@
 
 class Passenger {
 	public:
-		Passenger(int ID, List* bags, Ticket T, Airport* A);
+		Passenger(int ID, List* bags, Ticket T, Airport* A);        // For full simulation.
 		Passenger(int ID, Ticket t, int airlineCode, Airport* a);   // For PassengerFindsCorrectCISLine (test).
+		Passenger(int ID, Ticket t);                                // For LiaisonTest.
+        Passenger(int ID, Airport* a);                              // For PassengerFindsShortestLiaisonLine (test).
         Passenger(int ID);                                          // For CheckInTest.
         Passenger();                                                // For PassengerFindsCorrectCISLine (test).
         ~Passenger();

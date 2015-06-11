@@ -60,37 +60,50 @@ void StartManagerTest(int arg){
 //----------------------------------------------------------------------
 // The passenger should find the shortest liaison line 
 //----------------------------------------------------------------------
-void StartFindShortestLiaisonLine(int arg){
+void StartFindShortestLiaisonLine(int arg)
+{
 	Passenger* p = (Passenger*)arg;
 	p->findShortestLiaisonLine();
 }
 
-void StartFindCorrectCISLine(int arg){
+void StartFindCorrectCISLine(int arg)
+{
 	Passenger* p = (Passenger*)arg;
 	p->CheckIn();
 }
 
-void StartLiaisonThread(int arg){
+void StartLiaisonTest(int arg)
+{
+	Liaison* l = (Liaison*)arg;
+	Passenger* p = l->CheckForPassengers();
+}
+
+void StartLiaisonThread(int arg)
+{
 	Liaison* L = (Liaison*)arg;
 	L->DirectPassengers();
 }
 
-void StartCargo(int arg){
+void StartCargo(int arg)
+{
 	Cargo* c = (Cargo*)arg;
 	c->StartCargo();
 }
 
-void StartManager(int arg){
+void StartManager(int arg)
+{
 	Manager* M = (Manager*)arg;
 	M->MakeRounds();
 }
 
-void StartCheckInTest(int arg){
+void StartCheckInTest(int arg)
+{
 	CheckIn* ci = (CheckIn*)arg;
 	Passenger* p = ci->FindPassenger(0);
 }
 
-void StartCheckInStaff(int arg){
+void StartCheckInStaff(int arg)
+{
 	CheckIn* ci = (CheckIn*)arg;
 	ci->StartCheckInStaff();
 }
@@ -286,61 +299,63 @@ void ManagerTest(){
 //    line 4: 2
 //    line 5: 1
 // 	  line 6: 0
-// Only 1 passenger and 1 liaison (for queue 6) are created to simulate.
 // Sets liaison to busy
-//   Initializes 1 passenger and 1 liaison thread and runs them:
-//    id 0, airline 2 
-//	  id 6 
+//   Initializes 1 passenger (id 0) and runs it.
 //   Intended result:
 //    Passenger 0 will go to line 6 (length 0).
-// 	  The Liaison will then direct the passenger to airline 2 checkin 
-//    counter.
 //----------------------------------------------------------------------
 void PassengerFindsShortestLiaisonLine(){
 	Airport *airport = new Airport();					//This creates a new airpost object with all of the 
 														//global variables listed here
-	List* bagList = new List();							//List of passenger's luggage
-
-	for(int i =0; i <3; i++){
-		Luggage *bag = new Luggage;	
-		bag->airlineCode = 2;
-		bag->weight = 45 + i;							 //weight ranges from 45 -47lbs
-		bagList->Append((void *)bag);
-	}
 
 	// This fills the liaison queues with dummy int variables to simulate line lengths
 	for(int i = 5; i >= 0; i--){
 		int tempVariable = 5 - i;
 		for(int j = 0; j < 6 - i; j++){
 			airport->liaisonQueues[i]->Append((void *)tempVariable);
-			//printf("Size: %d\n", airport->liaisonQueues[i]->Size());
 		}
 	}
 
-	Ticket ticket;
-	ticket.airline = 2;
-	ticket.executive = false;
+	Passenger *p = new Passenger(0, airport);
 
-	// Liaison *L0 = new Liaison(0,airport);
-	Liaison *L6 = new Liaison(6,airport);
-	// airport->liaisonList->Append((void *)L0);
-	airport->liaisonList->Append((void *)L6);
-
-	Passenger *p = new Passenger(0, bagList, ticket, airport);
-	//passengerList->Append((void *)p);
-	airport->passengerList->Append((void *)p);
-
-	StartupOutput(airport);								//Prints the initial output
 	//Beginning of shortest line test and start of critical section for finding shortest line
 	Thread *t = new Thread("Passenger");
-	// Thread *tL0 = new Thread("Liaison_0");
-	Thread *tL6 = new Thread("Liaison_6");
 
 	t->Fork(StartFindShortestLiaisonLine,(int(p)));
-	// tL0->Fork(StartLiaisonThread,(int(L0)));
-	tL6->Fork(StartLiaisonThread,(int(L6)));
 }
 
+//----------------------------------------------------------------------
+//	LiaisonTest
+// 	 Adds 1 passengers into liaison 0's queue:
+//    id 0, ticket.airline 2
+//   Initializes 1 Liaison thread (id 0) and runs it.
+//   Intended result:
+//    The Liaison will direct the passenger to airline 2.
+//----------------------------------------------------------------------
+void LiaisonTest()
+{
+    Airport* airport = new Airport(); // 3 airlines
+    
+    // Create ticket.
+    Ticket ticket;
+    ticket.airline = 2;
+    ticket.executive = true; // irrelevant
+    
+    // Create passenger shell.
+    Passenger* p0 = new Passenger(0, ticket);
+
+    // Add passengers to queue.
+    airport->liaisonQueues[0]->Append(p0);
+    
+    // Create Liaison class.
+    Liaison* l = new Liaison(0, airport);
+
+    // Create thread.
+    Thread* t = new Thread("Liaison");
+
+    // Fork thread and pass CIS class.
+    t->Fork(StartLiaisonTest, (int)l);
+}
 
 //----------------------------------------------------------------------
 //	PassengerFindsCorrectCISLine
@@ -381,7 +396,7 @@ void PassengerFindsCorrectCISLine()
         }
     }
     
-    // Put the 4th CIS on break.
+    // Close the 4th CIS stand.
     airport->checkinState[4] = CI_CLOSED;
     
     // Create tickets.
@@ -442,7 +457,6 @@ void CheckInTest()
     
     // Create CIS class.
     CheckIn* ci = new CheckIn(0, 1, airport);
-    airport->checkInStaffList->Append((void *)ci);
 
     // Create thread.
     Thread* t = new Thread("CheckIn");
@@ -500,8 +514,6 @@ void CargoTest()
     Cargo* cargo3 = new Cargo(3, airport);
     Cargo* cargo4 = new Cargo(4, airport);
     Cargo* cargo5 = new Cargo(5, airport);
-
-    Manager* manager = new Manager(airport);
     
     //	Add all of the cargo handlers to a main list for the use of the manager
     airport->cargoHandlerList->Append((void *)cargo0);
@@ -518,7 +530,6 @@ void CargoTest()
 	Thread* t3 = new Thread("Cargo3");
 	Thread* t4 = new Thread("Cargo4");
 	Thread* t5 = new Thread("Cargo5");
-	Thread* tM = new Thread("Manager");
     
     // Fork threads and pass cargo handler classes.
 	t0->Fork(StartCargo, (int)cargo0);
@@ -527,7 +538,6 @@ void CargoTest()
 	t3->Fork(StartCargo, (int)cargo3);
 	t4->Fork(StartCargo, (int)cargo4);
 	t5->Fork(StartCargo, (int)cargo5);
-	tM->Fork(StartManager, (int)manager);
 }
 
 

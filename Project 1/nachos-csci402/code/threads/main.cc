@@ -62,6 +62,7 @@ extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 extern void TestSuite();
 extern void ManagerTest();
+extern void LiaisonTest();
 extern void PassengerFindsShortestLiaisonLine();
 extern void PassengerFindsCorrectCISLine();
 extern void CheckInTest();
@@ -109,6 +110,11 @@ main(int argc, char **argv)
 
 	if (!strcmp(*argv, "-findL")) {				//Tests to see if the passenger goes to the shortest line
 		PassengerFindsShortestLiaisonLine();
+	}
+    
+	if (!strcmp(*argv, "-liaison"))
+    {   // Tests if liaison directs customer to correct check-in area.
+		LiaisonTest();
 	}
     
 	if (!strcmp(*argv, "-checkin"))

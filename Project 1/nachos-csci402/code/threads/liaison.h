@@ -19,7 +19,7 @@ class Liaison
 		void Run();
         void DirectPassengers();
         int getID() { return id; }
-
+        Passenger* CheckForPassengers();
 
 	private:
 		int id;                     // ID of the liaison. Unique.

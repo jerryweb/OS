@@ -27,6 +27,16 @@ Passenger::Passenger(int ID)
 {
     id = ID;
 }
+Passenger::Passenger(int ID, Airport* a)
+{
+    id = ID;
+    airport = a;
+}
+Passenger::Passenger(int ID, Ticket t)
+{
+    id = ID;
+    ticket = t;
+}
 Passenger::Passenger(int ID, Ticket t, int airlineCode, Airport* a)
 {
     id = ID;

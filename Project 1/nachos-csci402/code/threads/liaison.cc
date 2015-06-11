@@ -57,6 +57,29 @@ Liaison::~Liaison()
 -    }
 -}
 -*/
+
+// Finds the first passenger in the list (if applicable).
+Passenger* Liaison::CheckForPassengers()
+{
+    Passenger* p;
+    if (airport->liaisonQueues[id]->Size() > 0)
+    {   // If line is not empty, signal next passenger.
+        airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);//liaisonLock[id]);
+        p = (Passenger*)airport->liaisonQueues[id]->Remove();
+       
+        printf("Airport Liaison %d directed passenger %d of airline %d\n", 
+                id, p->getID(), p->getTicket().airline);
+        airport->liaisonState[id] = L_BUSY;           
+        p->SetAirline(p->getTicket().airline);
+    }
+    else
+    {   // If line is empty, do nothing; also make sure state is set correctly.
+        p = NULL;
+        airport->liaisonState[id] = L_FREE;
+    }
+    return p;
+}
+
 //----------------------------------------------------------------------
 //  This Function handels the interaction between the Liaison and the Passengers
 //  First the Liaison will aquire the lock and see if there are any Passengers 
@@ -69,28 +92,8 @@ void Liaison::DirectPassengers(){
 
     while(true){
         // Check line for passengers.
-
         airport->liaisonLineLock->Acquire();
-        //printf("Size: %d\n", airport->liaisonQueues[id]->Size());
-        if (airport->liaisonQueues[id]->Size() > 0){
-            // If line is not empty, signal next passenger.
-            airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);//liaisonLock[id]);
-            p = (Passenger*)airport->liaisonQueues[id]->Remove();
-           
-            printf("Airport Liaison %d directed passenger %d of airline %d\n", 
-            id, p->getID(), p->getTicket().airline);
-            airport->liaisonState[id] = L_BUSY;           
-            p->SetAirline(p->getTicket().airline);
-            // This adds the statistics for # of passengers and weight of bags for each
-            // of the airlines
-        }
-
-        // If line is empty, do nothing; also make sure state is set correctly.
-        else{
-            p = NULL;
-            airport->liaisonState[id] = L_FREE;
-            //printf("Nothing to do....\n");
-        }
+        p = CheckForPassengers();
 
         airport->liaisonLock[id]->Acquire();
         airport->liaisonLineLock->Release();
@@ -98,6 +101,9 @@ void Liaison::DirectPassengers(){
         //Wait for passenger to give liaison information
         airport->liaisonLock[id]->Acquire();
 
+        // This adds the statistics for # of passengers and weight of bags for each
+        // of the airlines
+        
         passengers[p->getTicket().airline]++;
        
         List *bags = p->getLuggage();                       //Temp list for iterating through luggage
