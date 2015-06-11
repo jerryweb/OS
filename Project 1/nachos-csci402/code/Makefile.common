@@ -52,6 +52,7 @@ THREAD_H =../threads/copyright.h\
     ../threads/cargo.h\
     ../threads/checkin.h\
     ../threads/liaison.h\
+    ../threads/manager.h\
 	../machine/interrupt.h\
 	../machine/sysdep.h\
 	../machine/stats.h\
@@ -73,6 +74,7 @@ THREAD_C =../threads/main.cc\
     ../threads/cargo.cc\
     ../threads/checkin.cc\
     ../threads/liaison.cc\
+    ../threads/manager.cc\
 	../machine/interrupt.cc\
 	../machine/sysdep.cc\
 	../machine/stats.cc\
@@ -82,7 +84,7 @@ THREAD_S = ../threads/switch.s
 
 THREAD_O =main.o list.o lockTest.o scheduler.o synch.o synchlist.o system.o thread.o \
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o passenger.o airport.o \
-	airline.o cargo.o checkin.o liaison.o \
+	airline.o cargo.o checkin.o liaison.o manager.o 
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\

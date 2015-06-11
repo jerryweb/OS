@@ -96,6 +96,8 @@ class Airport {
 //         Condition* screenCV[3];      //Array of C.V. for each screen locks
 
         //  Manager variables
+        Lock* managerCargoLock;
+        Condition* managerCV
 
 
 
