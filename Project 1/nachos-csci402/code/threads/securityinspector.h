@@ -20,6 +20,9 @@ public:
 
 private:
 	int id;
+	int qPassengerCount;  //initialize to 0
+							//++ when sent passenger to questionsing
+							//-- when returned
 	Airport* airport;
 	bool hasReturned;   //initialize to false
 						//true means there is passenger has just returned

@@ -5,6 +5,7 @@
 
 SecurityInspector::SecurityInspector(int ID, Airport* AIRPORT) {
 	id = ID;
+	qPassengerCount = 0;
 	airport = AIRPORT;
 	hasReturned = false;
 	returnPassenger = NULL;
@@ -20,7 +21,6 @@ SecurityInspector::~SecurityInspector() {
 }
 
 void SecurityInspector::Inspect() {
-	//printf("in SecurityInspector Inspect() line 15 \n");
 	//initialize random seed
 	srand(time(NULL));
 	while (true) {
@@ -29,16 +29,17 @@ void SecurityInspector::Inspect() {
 		airport->securityLocks[id]->Acquire();
 		Passenger* currentPassenger;
 
-		//check if someone has just returned
-		if (hasReturned) {
+	/*	//check if someone has just returned
+		//if (hasReturned) {
+		if (returnPassenger != NULL) {
 			//printf("inspector line 29/n");
 			airport->returnQueues[id]->Append(returnPassenger);
-			hasReturned = false;
+			//hasReturned = false;
 			returnPassenger = NULL;
 			airport->securityLocks[id]->Release();
 		}
 		//handle return line first
-		else if ((airport->returnQueues[id]->Size()) != 0) {
+		else*/ if ((airport->returnQueues[id]->Size()) != 0) {
 			currentPassenger = (Passenger*) airport->returnQueues[id]->First();
 			currentPassenger->SetSecurityPass(true);
 
@@ -48,12 +49,9 @@ void SecurityInspector::Inspect() {
 			airport->rePassengerWaitInspectorCV[id]->Signal(
 					airport->securityLocks[id]);
 			airport->securityLocks[id]->Release();
-			//printf("insepctor line 40 \n");
 			airport->securityLocks[id]->Acquire();
-			//printf("insepctor line 42 \n");
 			airport->inspectorWaitRePassengerCV[id]->Wait(
 					airport->securityLocks[id]);
-			//printf("insepctor line 45 \n");
 			//ending C.S.(2)
 
 			printf(
@@ -99,6 +97,7 @@ void SecurityInspector::Inspect() {
 				printf(
 						"Security inpector %d asks passenger %d to go for further examination\n",
 						id, currentPassenger->getID());
+				qPassengerCount++;
 			} else {
 				printf(
 						"Security inspector %d is not suspicious of the passenger %d\n",
@@ -111,7 +110,7 @@ void SecurityInspector::Inspect() {
 			}
 
 		} else {
-			continue;
+			airport->securityLocks[id]->Release();
 		}
 	}
 }

@@ -174,14 +174,15 @@ void Passenger::Inspecting() {
 		airport->securityLocks[queueIndex]->Release();
 
 		srand(time(NULL));
-		int randNum = rand() % 10 + 1;
+		int randNum = rand() % 5 + 1;
 		for (int i=0;i<randNum;i++) {
 			currentThread->Yield();
 		}
 
 		airport->securityLocks[queueIndex]->Acquire();
-		inspectorList[queueIndex]->setReturn();
-		inspectorList[queueIndex]->setReturnPassenger(this);
+		//inspectorList[queueIndex]->setReturn();
+		//inspectorList[queueIndex]->setReturnPassenger(this);
+		airport->returnQueues[queueIndex]->Append(this);
 		airport->securityLocks[queueIndex]->Release();
 
 		airport->securityLocks[queueIndex]->Acquire();
