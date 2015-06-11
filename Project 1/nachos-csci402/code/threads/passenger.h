@@ -5,9 +5,12 @@
 #define PASSENGER_H
 
 #include "copyright.h"
+#include "system.h"
 #include "thread.h"
 #include "list.h"
 #include "airport.h"
+//To Avoid Circular Dependency
+class SecurityInspector;
 
 class Passenger {
 	public:
@@ -17,6 +20,9 @@ class Passenger {
         Passenger(int ID, Airport* a);                              // For PassengerFindsShortestLiaisonLine (test).
         Passenger(int ID);                                          // For CheckInTest.
         Passenger();                                                // For PassengerFindsCorrectCISLine (test).
+		Passenger(int ID,int qIndex,Airport* AIRPORT);                                      //For Screening Test
+		Passenger(int ID,int qIndex,Airport* AIRPORT,SecurityInspector** INSPECTORLIST);    //For Security Test
+		Passenger(Airport* AIRPORT);                                                        //For Screening Test(produce dummy passenger to fill arrays)
         ~Passenger();
 
 		/*this function iterates through a given array and returns the location
@@ -34,15 +40,17 @@ class Passenger {
 		List* getLuggage() { return luggageList; }
 		//returns the id of the passenger
 		int getID(){ return id; }
-		//newly added Kevin
 
 		//Luggage getLuggage(){ return *luggageList; }
 				//void SetScreenPass(bool pnp);
-		/*
+
+		/*******For screening and Security**************/
+		void Screening();
+		void Inspecting();
+		void SetQueueIndex(int qIndex);
 		void SetSecurityPass(bool pnp);
 		bool GetSecurityPass();
-		void Questioning();    //yield random cycles
-		*/
+		/*****************************************/
 
 		BoardingPass GetBoardingPass() { return boardingPass; }
 		void SetBoardingPass(BoardingPass BP) { boardingPass = BP; }
@@ -59,9 +67,14 @@ class Passenger {
 		Airport* airport;   // "Airport" construct, containing all
                             //  public data.
 		BoardingPass boardingPass;
-		//newly added
+
+		/*******For screening and Security**************/
 		bool securityPass;
 
+		int queueIndex;        //This is the index of which queue the passenger is now in, it works for all the queues
+							   //Please enforce updating the queueIndex everytime assigning a new queue for the passenger
+		SecurityInspector** inspectorList;
+		/*******************************************/
 };
 
 #endif

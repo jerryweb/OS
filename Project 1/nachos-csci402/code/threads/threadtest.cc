@@ -15,6 +15,8 @@
 #include "checkin.h"
 #include "cargo.h"
 #include "manager.h"
+#include "screenofficer.h"
+#include "securityinspector.h"
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -107,6 +109,32 @@ void StartCheckInStaff(int arg)
 	CheckIn* ci = (CheckIn*)arg;
 	ci->StartCheckInStaff();
 }
+
+/********************Screen&Security************************/
+//call screen officer
+void StartScreening(int arg) {
+	ScreenOfficer* s = (ScreenOfficer*) arg;
+	s->Screen();
+}
+
+//call passenger
+void StartScreeningTest(int arg) {
+	Passenger* p = (Passenger*) arg;
+	p->Screening();
+}
+
+//call inspector
+void StartInspecting(int arg) {
+	SecurityInspector* s = (SecurityInspector*) arg;
+	s->Inspect();
+}
+
+//call passenger
+void StartInspectingTest(int arg) {
+	Passenger* p = (Passenger*) arg;
+	p->Inspecting();
+}
+/********************************************/
 
 //----------------------------------------------------------------------
 //These are the initial print statements needed at the beginning of each simulation
@@ -544,6 +572,75 @@ void CargoTest()
 	t3->Fork(StartCargo, (int)cargo3);
 	t4->Fork(StartCargo, (int)cargo4);
 	t5->Fork(StartCargo, (int)cargo5);
+}
+
+void ScreenTest() {
+	Airport* airport = new Airport();
+
+	//declare passenger array
+	Passenger** screenPassenger = new Passenger*[10];
+	//declare screen officer
+	ScreenOfficer* sOfficer = new ScreenOfficer(0, airport);
+
+	for (int i = 0; i < 10; i++) {
+		screenPassenger[i] = new Passenger(i, 0, airport);
+		airport->screenQueues[0]->Append(screenPassenger[i]);
+	}
+
+	//fill the security lines with dummy passengers
+	//security line 0 has size 1
+	//security line 1 has size 2
+	//security line 2 has size 3
+	Passenger** dummyPassenger = new Passenger*[6];
+	for (int i = 0; i < 6; i++) {
+		dummyPassenger[i] = new Passenger(airport);
+	}
+	airport->securityQueues[0]->Append(dummyPassenger[0]);
+	airport->securityQueues[1]->Append(dummyPassenger[1]);
+	airport->securityQueues[1]->Append(dummyPassenger[2]);
+	airport->securityQueues[2]->Append(dummyPassenger[3]);
+	airport->securityQueues[2]->Append(dummyPassenger[4]);
+	airport->securityQueues[2]->Append(dummyPassenger[5]);
+
+	//spawning all the passenger and officer threads for the test,then fork them
+	Thread** passengerThreads = new Thread*[10];
+	for (int i = 0; i < 10; i++) {
+		passengerThreads[i] = new Thread("Passenger");
+		passengerThreads[i]->Fork(StartScreeningTest,
+				(int(screenPassenger[i])));
+	}
+
+	Thread* officerThread = new Thread("Officer");
+	officerThread->Fork(StartScreening, (int(sOfficer)));
+
+}
+
+void InspectTest() {
+	Airport* airport = new Airport();
+
+	//declare passenger array
+	Passenger** inspectPassenger = new Passenger*[5];
+
+	//declare a single inspector
+	SecurityInspector** sInspector = new SecurityInspector*[1];
+	sInspector[0] = new SecurityInspector(0,airport);
+
+	for (int i = 0; i < 5; i++) {
+		inspectPassenger[i] = new Passenger(i, 0, airport,sInspector);
+		airport->securityQueues[0]->Append(inspectPassenger[i]);
+	}
+
+	//spwaning all the passenger and inspector threads for the test,then for them
+	Thread** passengerThreads = new Thread*[5];
+	for (int i = 0; i < 5; i++) {
+		passengerThreads[i] = new Thread("Passenger");
+		passengerThreads[i]->Fork(StartInspectingTest,
+				(int(inspectPassenger[i])));
+	}
+
+	Thread* inspectorThread = new Thread("Inspector");
+	inspectorThread->Fork(StartInspecting, (int(sInspector[0])));
+
 }
 
 

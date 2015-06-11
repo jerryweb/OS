@@ -2,85 +2,94 @@
 #include "stdlib.h"
 #include "time.h"
 
-Screenofficer::ScreenOfficer(int id)
-{
-	this.id = id;
+ScreenOfficer::ScreenOfficer(int ID, Airport* AIRPORT) {
+	id = ID;
+	airport = AIRPORT;
 }
 
-Screenofficer::~ScreenOfficer() {
+ScreenOfficer::~ScreenOfficer() {
 
 }
 
-void Screenofficer::Screen(int* liaisonList[7]) {
+void ScreenOfficer::Screen() {
+	//initialize random seed
+	srand(time(NULL));
 	//keep checking his own line
 	while (true) {
 		//the index in C.S. parenthesis is for this file only
 
 		//start C.S.(1) between passenger
 		//assuming officer ID is the same as his index in screenLocks array
-        int myLine = this.id;
-        screenLocks[myLine].Acquire();
+		int myLine = id;
+		airport->screenLocks[myLine]->Acquire();
+		Passenger* currentPassenger;
 
-		if (screenLine.size != 0) {
-			Passenger* currentPassenger = (Passenger*) screenLine.First();
+		if ((airport->screenQueues[myLine]->Size()) != 0) {
+			currentPassenger = (Passenger*) airport->screenQueues[id]->First();
 
-			//assume 10% chance fail the screening
-			srand(time(NULL));
+			//assume 20% chance fail the screening
 			int randNum = rand() % 100 + 1;
-			if (randNum > 0 && randNum < 11) {
+			if (randNum > 0 && randNum < 21) {
 				currentPassenger->SetSecurityPass(false);
 				printf(
 						"Screening officer %d is suspicious of the hand luggage of passenger %d\n",
-						this.id, currentPassenger->GetID());
+						id, currentPassenger->getID());
 			} else {
 				printf(
 						"Screening officer %d is not suspicious of the hand luggage of passenger %d\n",
-						this.id, currentPassenger->GetID());
+						id, currentPassenger->getID());
 			}
 
 			//remove the passenger in current line
 
 			//starting C.S.(2) to remove passenger from current line
-			screenQueuesLock.Acquire();
-			screenQueues[myLine].Remove();
-			screenQueuesLock.Release();
+			airport->screenQueuesLock->Acquire();
+			airport->screenQueues[myLine]->Remove();
+			//printf("SO Release 47\n");
+			airport->screenQueuesLock->Release();
 			//ending C.S.(2) to remove passenger from current line
 		}
 
 		//starting C.S.(3) to find shortest security line and append
-		securityQueuesLock.Acquire();
+		airport->securityQueuesLock->Acquire();
 
-		int shortest = 0; //shortest line's id
-		int minimumSize = -1;  //for comparsion in the following loop
+		int shortest = 0;		//shortest line's id
+		int minimumSize = -1;		//for comparsion in the following loop
 
 		//find the shortest line
 		for (int i = 0; i < 3; i++) {
-			if (minimumSize < 0 || minimumSize > screenQueues[i].Size()) {
-				minimumSize = screenQueues[i].Size();
-				shrotest = i;
+			if (minimumSize < 0
+					|| minimumSize > airport->securityQueues[i]->Size()) {
+				minimumSize = airport->securityQueues[i]->Size();
+				shortest = i;
 			}
 		}
 
-		securityQueues[shortest].Append(currentPassenger);
+		airport->securityQueues[shortest]->Append(currentPassenger);
 		//also update the queueIndex for current passenger
 		currentPassenger->SetQueueIndex(shortest);
 
-		securityQueuesLock.Release();
+		//printf("SO Release 70\n");
+		airport->securityQueuesLock->Release();
 		//ending C.S.(3)
 
 		//signal the passenger
-		screenCV[myLine].Signal(screenLocks[myLine]);
-		screenLocks[myLine].Release();
+		airport->passengerWaitOfficerCV[myLine]->Signal(airport->screenLocks[myLine]);
+		//printf("SO Release 77\n");
+		airport->screenLocks[myLine]->Release();
 
 		//wait for passenger thread
-		screenCV[myLine].Wait(screenLocks[myLine]);
-		screenLocks[myLine].Release();
+		//printf("SO wait 81\n");
+		airport->screenLocks[myLine]->Acquire();
+		airport->officerWaitPassengerCV[myLine]->Wait(airport->screenLocks[myLine]);
+		//airport->screenLocks[myLine]->Release();
 		//ending C.S.(1)
 
+		//airport->screenLocks[myLine]->Acquire();
 		//Assuming the index in securityQueues array is the same as security inspector's id
 		printf(
 				"Screening officer %d directs passenger %d to security inspector %d\n",
-				this.id, currentPassenger->GetID(), shortest);
-
+				id, currentPassenger->getID(), shortest);
+		//airport->screenLocks[myLine]->Release();
 	}
 }

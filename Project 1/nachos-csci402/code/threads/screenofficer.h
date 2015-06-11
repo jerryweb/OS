@@ -1,5 +1,3 @@
-//This is the passenger class 
-
 #ifndef SCREENOFFICER_H
 #define SCREENOFFICER_H
 
@@ -7,15 +5,17 @@
 #include "thread.h"
 #include "list.h"
 #include "airportobjects.h"
+#include "passenger.h"
 
-class Screenofficer:public Thread {
-	public:
-		Screenofficer(int id);
-		~Screenofficer();
-		void Screen();
+class ScreenOfficer {
+public:
+	ScreenOfficer(int ID, Airport* AIRPORT);
+	~ScreenOfficer();
+	void Screen();
 
-	private:
-		int id;
-		List screenLine;
+private:
+	int id;
+	Airport* airport;
+};
 
-}
+#endif
