@@ -6,6 +6,7 @@ Cargo::Cargo(int id_, Airport* airport_)
     airport = airport_;
     luggage = new int[airport->numAirlines];
     weight = new int[airport->numAirlines];
+    // airport->RequestingCargoData[id] = false;
 }
 
 Cargo::~Cargo()
@@ -38,6 +39,23 @@ void Cargo::StartCargo()
             luggage[bag->airlineCode]++;
             weight[bag->airlineCode] += bag->weight;
             airport->conveyorLock->Release();
+        }
+        if(airport->RequestingCargoData[id]){
+            printf("heyd\n");
+            airport->CargoHandlerManagerLock->Acquire();
+            printf("Cargo Handler %d is sending data.\n", id);
+            
+            //Give manager data
+            airport->cargoManagerCV[id]->Signal(airport->CargoHandlerManagerLock);
+            airport->cargoDataLock[id]->Acquire();
+            airport->CargoHandlerManagerLock->Release();
+            airport->cargoDataCV[id]->Wait(airport->cargoLock);
+
+            //Wait for manager to signal that all the data has been collected
+            airport->cargoDataLock[id]->Acquire();
+            printf("Cargo Handler %d has finished reporting data to manager.\n", id);
+            airport->cargoDataLock[id]->Release();
+            airport->RequestingCargoData[id] = false;
         }
     }
 }

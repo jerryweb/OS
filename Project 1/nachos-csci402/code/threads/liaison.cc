@@ -11,7 +11,7 @@ Liaison::Liaison(int id_, Airport* airport_)
         passengers[i] = 0;
         luggageCount[i] = 0;
     }
-
+    //airport->RequestingLiaisonData[id] = false;
     airport->liaisonState[id] = L_BUSY;
 }
 
@@ -95,7 +95,7 @@ Passenger* Liaison::CheckForPassengers()
 //----------------------------------------------------------------------
 void Liaison::DirectPassengers(){
     Passenger* p = NULL;
-    airport->RequestingLiaisonData[id] = false;
+    
     while(true){
         // Check line for passengers.
         airport->liaisonLineLock->Acquire();
@@ -129,12 +129,13 @@ void Liaison::DirectPassengers(){
         if(airport->RequestingLiaisonData[id]){     //prevent race conditions with other liaisons
             airport->liaisonManagerLock->Acquire();
             printf("liaison %d is sending data.\n", id);
+           
             //Give manager data
             airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
-            
             airport->liaisonLock[id]->Acquire();
             airport->liaisonManagerLock->Release();
             airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+            
             //Wait for manager to signal that all the data has been collected
             airport->liaisonLock[id]->Acquire();
             printf("liaison %d has finished reporting data to manager.\n", id);

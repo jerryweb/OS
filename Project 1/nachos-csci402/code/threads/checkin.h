@@ -21,6 +21,9 @@ class CheckIn
         void StartCheckInStaff();
         int getID() { return id; }
         int getAirline() { return airline; }
+        int getPassengers() { return passengers; }
+        int getLuggageCount() { return luggage; }
+        int getLuggageWeight() { return weight; }
 
 	private:
         int airline;        // Airline that the staff belongs to.

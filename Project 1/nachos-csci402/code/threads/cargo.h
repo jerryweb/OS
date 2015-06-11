@@ -14,6 +14,9 @@ class Cargo {
 		Cargo(int id, Airport* airport);
 		~Cargo();
 		void StartCargo();
+        int getID() { return id; }
+        int getLuggage(int airline) { return luggage[airline]; }
+        int getWeight(int airline) { return weight[airline]; }
 
 	private:
 		int id;             // ID of the cargo handler. Unique.

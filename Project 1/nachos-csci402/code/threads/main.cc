@@ -69,6 +69,7 @@ extern void CheckInTest();
 extern void CargoTest();
 extern void ScreenTest();
 extern void InspectTest();
+extern void MTest();
 //extern void AirportSim();
 //----------------------------------------------------------------------
 // main
@@ -103,7 +104,11 @@ main(int argc, char **argv)
 
 	if (!strcmp(*argv, "-manager")) {	// Manager and full simulation test
 		ManagerTest();
-	} 
+	}
+
+	if (!strcmp(*argv, "-mtest")) {	// Manager and full simulation test
+		MTest();
+	}  
 
 	if(!strcmp(*argv, "-findCIS"))
     {	// Tests if passengers go the the correct CIS line.

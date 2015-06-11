@@ -7,6 +7,7 @@ CheckIn::CheckIn(int airline_, int id_, Airport* airport_)
     airport = airport_;
     passengers = 0;
     luggage = 0;
+    airport->RequestingCheckinData[id] = false;
 }
 
 CheckIn::~CheckIn()
@@ -41,6 +42,7 @@ void CheckIn::StartCheckInStaff()
     BoardingPass bp;
     while (true)
     {
+        //printf("adfa: %d\n", airport->RequestingCheckinData[id]);
         airport->checkinLineLock[airline]->Acquire();
         // Check the lines, sleep if both empty.
         if (airport->checkinQueues[execLine]->IsEmpty() &&
@@ -96,5 +98,27 @@ void CheckIn::StartCheckInStaff()
             airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
         }
         airport->airlineLock[airline]->Release();
+
+        airport->checkinCV[id]->Acquire();
+        airport->checkinCV[id]->Release();
+        
+        if(airport->RequestingCheckinData[id]){
+            printf("check-in staff %d says hey.\n", id);
+            airport->checkinManagerLock->Acquire();
+            printf("check-in staff %d is sending data.\n", id);
+
+            // Give manager data
+            airport->checkinManagerCV->Signal(airport->checkinManagerLock);
+            airport->checkinLock[id]->Acquire();
+            airport->checkinManagerLock->Release();
+            airport->checkinCV[id]->Wait(airport->checkinLock[id]);
+
+            //Wait for manager to signal that all the data has been collected
+            airport->checkinLock[id]->Acquire();
+            printf("check-in staff %d has finished reporting data to manager.\n", id);
+            airport->checkinLock[id]->Release();
+            airport->RequestingCheckinData[id] = false;          
+        }
+
     }
 }
