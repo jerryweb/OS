@@ -32,7 +32,7 @@ Passenger* CheckIn::FindPassenger(int execLine)
     return pass;
 }
 
-void CheckIn::Run()
+void CheckIn::StartCheckInStaff()
 {
     Passenger* pass = NULL;
     bool exec;

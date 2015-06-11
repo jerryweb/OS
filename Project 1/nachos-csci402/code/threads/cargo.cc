@@ -14,7 +14,7 @@ Cargo::~Cargo()
     delete weight;
 }
 
-void Cargo::Run()
+void Cargo::StartCargo()
 {
     Luggage* bag;
     while (true)

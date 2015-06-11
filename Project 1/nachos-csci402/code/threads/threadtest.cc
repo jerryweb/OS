@@ -74,14 +74,19 @@ void StartLiaisonThread(int arg){
 	L->DirectPassengers();
 }
 
-void StartCargoTest(int arg){
+void StartCargo(int arg){
 	Cargo* c = (Cargo*)arg;
-	c->Run();
+	c->StartCargo();
 }
 
 void StartCheckInTest(int arg){
 	CheckIn* ci = (CheckIn*)arg;
 	Passenger* p = ci->FindPassenger(0);
+}
+
+void StartCheckInStaff(int arg){
+	CheckIn* ci = (CheckIn*)arg;
+	ci->StartCheckInStaff();
 }
 
 //----------------------------------------------------------------------
@@ -133,7 +138,7 @@ void StartupOutput(Airport* airport){
 			Luggage *l = (Luggage*)bags->First();			//and puts it into a temp array to be read
 			tempBagWeights[3 - j] = l->weight;
 			bags->Remove();
-			bags->Append((void *)bags);					//Prevent destruction of local bags list
+			bags->Append((void *)l);					//Prevent destruction of local bags list
 		}
 		
 		printf("Passenger %d : Number of bags = %d\n", P->getID(), P->getLuggage()->Size());
@@ -236,7 +241,7 @@ void ManagerTest(){
 		airport->checkInStaffList->Append((void *)CIS);
 		Thread *tCIS = (Thread*)LiaisonThreadArray->First();
 		LiaisonThreadArray->Remove();
-		//tCIS->Fork(StartCheckInTest,(int(CIS)));
+		tCIS->Fork(StartCheckInStaff,(int(CIS)));
 	}
 
 	//Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
@@ -246,7 +251,7 @@ void ManagerTest(){
 		airport->cargoHandlerList->Append((void *)CH);
 		Thread *tCH = (Thread*)CargoHandlerTreadArray->First();
 		CargoHandlerTreadArray->Remove();
-		//tCH->Fork(StartCargoTest,(int(CH)));
+		tCH->Fork(StartCargo,(int(CH)));
 	}
 }
 
@@ -496,12 +501,12 @@ void CargoTest()
 	Thread* t5 = new Thread("Cargo5");
     
     // Fork threads and pass cargo handler classes.
-	t0->Fork(StartCargoTest, (int)cargo0);
-	t1->Fork(StartCargoTest, (int)cargo1);
-	t2->Fork(StartCargoTest, (int)cargo2);
-	t3->Fork(StartCargoTest, (int)cargo3);
-	t4->Fork(StartCargoTest, (int)cargo4);
-	t5->Fork(StartCargoTest, (int)cargo5);
+	t0->Fork(StartCargo, (int)cargo0);
+	t1->Fork(StartCargo, (int)cargo1);
+	t2->Fork(StartCargo, (int)cargo2);
+	t3->Fork(StartCargo, (int)cargo3);
+	t4->Fork(StartCargo, (int)cargo4);
+	t5->Fork(StartCargo, (int)cargo5);
 }
 
 /*

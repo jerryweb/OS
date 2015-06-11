@@ -101,6 +101,13 @@ void Passenger::findShortestLiaisonLine(){
 		}
 		else
 			airport->liaisonLineLock->Release();
+		
+		airport->liaisonLock[myLine]->Acquire();
+
+		//Give liaison information
+		airport->liaisonCV[myLine]->Signal(airport->liaisonLock[myLine]);
+		airport->liaisonLock[myLine]->Release();
+
 
 	printf("Passenger %d of Airline %d is directed to the airline counter.\n", 
 		id, ticket.airline);

@@ -71,7 +71,7 @@ void Liaison::DirectPassengers(){
         // Check line for passengers.
 
         airport->liaisonLineLock->Acquire();
-        printf("Size: %d\n", airport->liaisonQueues[id]->Size());
+        //printf("Size: %d\n", airport->liaisonQueues[id]->Size());
         if (airport->liaisonQueues[id]->Size() > 0){
             // If line is not empty, signal next passenger.
             airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);//liaisonLock[id]);
@@ -92,9 +92,23 @@ void Liaison::DirectPassengers(){
             //printf("Nothing to do....\n");
         }
 
-        //airport->liaisonLock[id]->Acquire();
+        airport->liaisonLock[id]->Acquire();
         airport->liaisonLineLock->Release();
-        //airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-        
+        airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+        //Wait for passenger to give liaison information
+        airport->liaisonLock[id]->Acquire();
+
+        passengers[p->getTicket().airline]++;
+       
+        List *bags = p->getLuggage();                       //Temp list for iterating through luggage
+        for(int j = bags->Size(); j > 0; j--){              //This calculates the weights of each of the bags 
+            Luggage *l = (Luggage*)bags->First();           //and puts it into a temp array to be read
+            totalLuggageWeight[p->getTicket().airline] += l->weight;
+            bags->Remove();
+            // printf("Total weigth %d\n", totalLuggageWeight[p->getTicket().airline]);
+            bags->Append((void *)l);                 //Prevent destruction of local bags list         
+        }
+        airport->liaisonLock[id]->Release();
+
     }
 }

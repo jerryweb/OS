@@ -13,7 +13,7 @@ class Cargo {
 	public:
 		Cargo(int id, Airport* airport);
 		~Cargo();
-		void Run();
+		void StartCargo();
 
 	private:
 		int id;             // ID of the cargo handler. Unique.
