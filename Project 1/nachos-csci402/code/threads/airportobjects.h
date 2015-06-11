@@ -33,7 +33,7 @@ struct BoardingPass     // A boarding pass created by check-in staff and
 
 //	These are the states used by the various classes 
 enum LiaisonState {L_FREE, L_BUSY};
-enum CheckinState {CI_FREE, CI_BUSY, CI_BREAK};
+enum CheckinState {CI_FREE, CI_BUSY, CI_BREAK, CI_CLOSED};
 enum CargoState   {C_BUSY, C_BREAK};
 enum AirlineState {BOARDING, BOARDED};
 

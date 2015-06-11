@@ -509,15 +509,21 @@ void CargoTest()
 	t5->Fork(StartCargo, (int)cargo5);
 }
 
-/*
-void AirportSim()
+
+/*void AirportSim()
 {
-    // MENU ASKING FOR NUMBERS
+    // MENU ASKING FOR NUMBERS:
+    //  - >=3 AIRLINES
+    //  - 5-7 LIAISONS
+    //  - 3-5 CHECK-IN / AIRLINE (all equal)
+    //  - 6-10 CARGO
+    //  - # SCREENERS/SECURITY
+    //  - # PASSENGERS
     
     // CREATE NEW AIRPORT USING THOSE NUMBERS
     
     // INITIALIZE THREAD CLASSES:
-    //  USE DYNAMICALLY ALLOCATED ARRAYS
+    //  USE 
     
     // FORK
     
@@ -525,5 +531,4 @@ void AirportSim()
     
     // PROFIT
     
-}
-*/
+}*/

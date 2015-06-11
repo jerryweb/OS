@@ -2,7 +2,7 @@ Title:  Writeup for Project 1, Fall/Spring 200x
  Date:  06/10/15
  Group:	Name		Email				SS#
 		Jerry Webb	jerryweb@usc.edu	1288504108
-		???			???					???
+		Andrew Lee	lee533@usc.edu		7540910244
 		???			???					???
 
 
@@ -10,7 +10,11 @@ I. Requirements:
 - Describe what's your understanding of the requirements from the assignment statement. With the requirement analysis, you would be clear about what you are supposed to do.
 
 II. Assumptions:
-	- Reasonable assumptions you take for your scheme.
+	For the airport simulation:
+     - Each airline only has one airplane.
+     - All airlines have the same number of check-in staff.
+     - Everyone who keeps track of statistics for the manager does so individually, and the manager polls everyone and adds the results to get the full picture.
+     - Passengers are randomly assigned to airlines and given luggage.
 
 III. Design:
 - This section is to cover your logic and ideas as to how  you are going to solve the problem presented.  This should include a description of classes, algorithms, etc.
