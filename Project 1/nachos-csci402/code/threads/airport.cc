@@ -86,6 +86,8 @@ Airport::Airport()
     }
 
 	//Screen & Security Variables
+    screeningOfficerList = new List();
+    securityInspectorList = new List();
 	screenQueues = new List*[3];
 	for (i = 0; i < 3; i++) {
 		screenQueues[i] = new List;

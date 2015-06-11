@@ -109,6 +109,7 @@ class Airport {
 	List** returnQueues;                    //Array of returning security queues(list
 									        // of Passenger). Index corresponds
 									        //  to security ID.
+    List* screeningOfficerList;
 
 	Lock** screenLocks; 				    //Array of locks for screening lines (each officer has a lock)
 											//index corresponds to officer id
@@ -142,7 +143,7 @@ class Airport {
 
 	Condition** rePassengerWaitInspectorCV;  //Array of C.V. used in returned passenger waiting inspector
 											 //index corresponds to officer id
-
+            List* securityInspectorList;
 
 	//  Manager variables
 	//Conditon to allow manager to gather data

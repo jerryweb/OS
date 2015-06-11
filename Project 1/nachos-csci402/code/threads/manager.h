@@ -12,6 +12,7 @@
 #include "liaison.h"
 #include "cargo.h"
 #include "checkin.h"
+#include "securityinspector.h"
 
 
 class Manager {

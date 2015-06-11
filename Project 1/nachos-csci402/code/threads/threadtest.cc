@@ -606,6 +606,7 @@ void InspectTest() {
 	//declare a single inspector
 	SecurityInspector** sInspector = new SecurityInspector*[1];
 	sInspector[0] = new SecurityInspector(0, airport);
+	airport->securityInspectorList->Append((void *)sInspector[0]);
 
 	for (int i = 0; i < 5; i++) {
 		inspectPassenger[i] = new Passenger(i, 0, airport,0, sInspector);
