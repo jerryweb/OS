@@ -546,6 +546,69 @@ void CargoTest()
 	t5->Fork(StartCargo, (int)cargo5);
 }
 
+void MTest()
+{
+    Airport* airport = new Airport(); // 3 airlines
+    
+    int weight, i, j;
+    
+    // Create luggage and add to conveyor.
+    for (i = 0; i < 3; i++)
+    {
+        Luggage* bag = new Luggage;
+        bag->airlineCode = i;
+        bag->weight = 30+12*i;
+        airport->conveyor->Append((void*)bag);
+    }
+    for (i = 0; i < 2; i++)
+    {
+        for (j = 0; j < 2; j++)
+        {
+            Luggage* bag = new Luggage;
+            bag->airlineCode = j;
+            bag->weight = 30+15*(i+j);
+            airport->conveyor->Append((void*)bag);
+        }
+    }
+    
+    // Create cargo handler classes.
+    Cargo* cargo0 = new Cargo(0, airport);
+    Cargo* cargo1 = new Cargo(1, airport);
+    Cargo* cargo2 = new Cargo(2, airport);
+    Cargo* cargo3 = new Cargo(3, airport);
+    Cargo* cargo4 = new Cargo(4, airport);
+    Cargo* cargo5 = new Cargo(5, airport);
+
+    //Generates an Airport Manager
+    Manager* manager = new Manager(airport);
+    
+    //	Add all of the cargo handlers to a main list for the use of the manager
+    airport->cargoHandlerList->Append((void *)cargo0);
+    airport->cargoHandlerList->Append((void *)cargo1);
+    airport->cargoHandlerList->Append((void *)cargo2);
+    airport->cargoHandlerList->Append((void *)cargo3);
+    airport->cargoHandlerList->Append((void *)cargo4);
+    airport->cargoHandlerList->Append((void *)cargo5);    
+    
+    // Create threads.
+	Thread* t0 = new Thread("Cargo0");
+	Thread* t1 = new Thread("Cargo1");
+	Thread* t2 = new Thread("Cargo2");
+	Thread* t3 = new Thread("Cargo3");
+	Thread* t4 = new Thread("Cargo4");
+	Thread* t5 = new Thread("Cargo5");
+	Thread* tM = new Thread("Manager");
+
+    // Fork threads and pass cargo handler classes.
+	t0->Fork(StartCargo, (int)cargo0);
+	t1->Fork(StartCargo, (int)cargo1);
+	t2->Fork(StartCargo, (int)cargo2);
+	t3->Fork(StartCargo, (int)cargo3);
+	t4->Fork(StartCargo, (int)cargo4);
+	t5->Fork(StartCargo, (int)cargo5);
+	tM->Fork(StartManager, (int)manager);
+}
+
 
 /*void AirportSim()
 {

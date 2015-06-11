@@ -22,6 +22,8 @@ class Airport {
         // General variables
         bool* RequestingLiaisonData;    // Array of booleans that inform the 
                                         // liaison if the manager wants data
+        bool* RequestingCargoData;      // Array of booleans that inform the 
+                                        // Cargo Handlers if the manager wants data
         Airline** airlines;             // Array of airlines. Index is
                                         //  airline ID.
         List* airlineState[3];          // This is the list of airline states 
@@ -74,8 +76,15 @@ class Airport {
         List* cargoHandlerList;         // List of all of the cargo handlers in 
                                         //  the airport.
         Lock* conveyorLock;             // Lock for the conveyor belt.
+        Lock* CargoHandlerManagerLock;  // for interaction with manager
+
         Condition* cargoCV;             // CV for cargo handler break.
+        Condition* cargoDataCV[10];        // Array of CVs for each liaison.
+                                        //  Index corresponds to ID.
+         
+        Condition* cargoManagerCV[10];  // Array of CVs for each cargo handler interaction
         Lock* cargoLock;                // Lock for cargo handler break.
+        Lock* cargoDataLock[10];
         CargoState cargoState[10];      // Array of states for each cargo
                                         //  handler. Index corresponds to ID.
         List** aircraft;                // Array of aircraft (list of
