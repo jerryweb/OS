@@ -25,7 +25,7 @@ private:
 						//true means there is passenger has just returned
 						//can only be modified by the returning passenger
 
-	int* PassengerCount;          //array storing cleared passenger number for each airline
+	int* passengerCount;          //array storing cleared passenger number for each airline
 	Passenger* returnPassenger;    //used to add return passenger to return queue
 };
 

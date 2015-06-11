@@ -8,7 +8,11 @@ SecurityInspector::SecurityInspector(int ID, Airport* AIRPORT) {
 	airport = AIRPORT;
 	hasReturned = false;
 	returnPassenger = NULL;
-	//PassengerCount = new int[airport->numAirlines];
+	passengerCount = new int[3];
+	for (int i = 0; i < 3; i++) {
+		passengerCount[i] = 0;
+	}
+	airport->securityInspectorList->Append(this);
 }
 
 SecurityInspector::~SecurityInspector() {
@@ -41,7 +45,8 @@ void SecurityInspector::Inspect() {
 			airport->returnQueues[id]->Remove();
 
 			//starting C.S.(2) for ping-pong with returning passenger
-			airport->rePassengerWaitInspectorCV[id]->Signal(airport->securityLocks[id]);
+			airport->rePassengerWaitInspectorCV[id]->Signal(
+					airport->securityLocks[id]);
 			airport->securityLocks[id]->Release();
 			//printf("insepctor line 40 \n");
 			airport->securityLocks[id]->Acquire();
@@ -80,15 +85,14 @@ void SecurityInspector::Inspect() {
 			//ending C.S.(3)
 
 			//starting C.S.(4) for ping-pong with Passenger
-			airport->passengerWaitInspectorCV[id]->Signal(airport->securityLocks[id]);
+			airport->passengerWaitInspectorCV[id]->Signal(
+					airport->securityLocks[id]);
 			airport->securityLocks[id]->Release();
 			airport->securityLocks[id]->Acquire();
-			airport->inspectorWaitPassengerCV[id]->Wait(airport->securityLocks[id]);
+			airport->inspectorWaitPassengerCV[id]->Wait(
+					airport->securityLocks[id]);
 			//make decision based on the result above
 			if (!passFlag) {
-				//airport->returnQueues[id]->Append(currentPassenger);
-				//currentPassenger->SetReturn();
-
 				printf(
 						"Security inspector %d is suspicious of the passenger %d\n",
 						id, currentPassenger->getID());
@@ -101,6 +105,9 @@ void SecurityInspector::Inspect() {
 						id, currentPassenger->getID());
 				printf("Security inspector %d allows passenger %d to board\n",
 						id, currentPassenger->getID());
+				airport->updateClearCount->Acquire();
+				passengerCount[id]++;
+				airport->updateClearCount->Release();
 			}
 
 		} else {

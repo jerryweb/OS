@@ -147,6 +147,8 @@ public:
 	Condition** rePassengerWaitInspectorCV; //Array of C.V. used in returned passenger waiting inspector
 											//index corresponds to officer id
 
+	Lock* updateClearCount;                //Lock to update security inspector's clear passenger count
+
 											//  Manager variables
 											//Conditon to allow manager to gather data
 

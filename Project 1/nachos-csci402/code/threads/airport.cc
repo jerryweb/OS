@@ -152,6 +152,8 @@ Airport::Airport()
 		appendReturnLineCV[i] = new Condition("appendReturnLineCV");
 	}
 
+	updateClearCount = new Lock("updateClearCount");
+
 }
 
 Airport::~Airport() {
