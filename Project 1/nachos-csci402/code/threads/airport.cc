@@ -9,6 +9,7 @@ Airport::Airport()
     numAirlines = 3;
     airlines = new Airline*[numAirlines];
     airlineLock = new Lock*[numAirlines];
+    RequestingLiaisonData = new bool[7];
     for (i = 0; i < numAirlines; i++)
     {
         airlines[i] = new Airline(i, 0, 0);
@@ -21,15 +22,15 @@ Airport::Airport()
     // Liaison variables
     liaisonManagerLock = new Lock("liaisonManagerLock");
     liaisonLineLock = new Lock("liaisonLineLock");
+    liaisonManagerCV = new Condition("liaisonManagerCV");
     liaisonList = new List(); 
     for (i = 0; i < 7; i++)
     {
         liaisonQueues[i] = new List();
         liaisonLineCV[i] = new Condition("liaisonLineCV");
-        liaisonManagerCV[i] = new Condition("liaisonManagerCV");
+        RequestingLiaisonData[i] = false;
         liaisonCV[i] = new Condition("liaisonCV");
         liaisonLock[i] = new Lock("liaisonLock");
-        liaisonDataLock[i] = new Lock("liaisonDataLock");
         liaisonState[i] = L_BUSY;
     }
 

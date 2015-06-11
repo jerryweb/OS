@@ -20,6 +20,8 @@ class Airport {
         // TODO: change from hard-coded numbers where inappropriate
         //  (e.g. # airlines, aircraft).
         // General variables
+        bool* RequestingLiaisonData;    // Array of booleans that inform the 
+                                        // liaison if the manager wants data
         Airline** airlines;             // Array of airlines. Index is
                                         //  airline ID.
         List* airlineState[3];          // This is the list of airline states 
@@ -39,10 +41,9 @@ class Airport {
         Lock* liaisonLock[7];           // Array of locks for each
                                         //  liaison. Index corresponds to
                                         //  liaison ID.
-        Lock* liaisonDataLock[7];
         Condition* liaisonLineCV[7];    // Array of CVs for each liaison's
                                         //  line. Index corresponds to ID.
-        Condition* liaisonManagerCV[7]; // Array of CVs for each liaison interaction
+        Condition* liaisonManagerCV; // Array of CVs for each liaison interaction
         Condition* liaisonCV[7];        // Array of CVs for each liaison.
                                         //  Index corresponds to ID.
         LiaisonState liaisonState[7];   // Array of states for each liaison.
@@ -96,10 +97,6 @@ class Airport {
 
         //  Manager variables
          //Conditon to allow manager to gather data
-
-        Lock* managerCargoLock;
-        Lock* managerLock;
-        Condition* managerCV;
 
 
 
