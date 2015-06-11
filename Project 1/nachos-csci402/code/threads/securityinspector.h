@@ -5,7 +5,7 @@
 #include "thread.h"
 #include "list.h"
 #include "airport.h"
-//#include "passenger.h"
+//to avoid circular dependency
 class Passenger;
 
 class SecurityInspector {
@@ -14,7 +14,7 @@ public:
 	~SecurityInspector();
 	void Inspect();
 	void setReturn();    //can only be called by returning passenger
-	void setReturnPassenger(Passenger* p);
+	void setReturnPassenger(Passenger* p);   //called by returning passenger
 
 	int getID();
 
@@ -25,8 +25,8 @@ private:
 						//true means there is passenger has just returned
 						//can only be modified by the returning passenger
 
-	int* PassengerCount;
-	Passenger* returnPassenger;
+	int* PassengerCount;          //array storing cleared passenger number for each airline
+	Passenger* returnPassenger;    //used to add return passenger to return queue
 };
 
 #endif
