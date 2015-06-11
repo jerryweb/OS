@@ -11,7 +11,7 @@ Liaison::Liaison(int id_, Airport* airport_)
         passengers[i] = 0;
         luggageCount[i] = 0;
     }
-    airport->RequestingLiaisonData[id] = false;
+    //airport->RequestingLiaisonData[id] = false;
     airport->liaisonState[id] = L_BUSY;
 }
 

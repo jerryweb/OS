@@ -6,7 +6,7 @@ Cargo::Cargo(int id_, Airport* airport_)
     airport = airport_;
     luggage = new int[airport->numAirlines];
     weight = new int[airport->numAirlines];
-    airport->RequestingCargoData[id] = false;
+    // airport->RequestingCargoData[id] = false;
 }
 
 Cargo::~Cargo()

@@ -24,6 +24,7 @@ class Airport {
                                         // liaison if the manager wants data
         bool* RequestingCargoData;      // Array of booleans that inform the 
                                         // Cargo Handlers if the manager wants data
+        bool* RequestingCheckinData;
         Airline** airlines;             // Array of airlines. Index is
                                         //  airline ID.
         List* airlineState[3];          // This is the list of airline states 
@@ -45,7 +46,7 @@ class Airport {
                                         //  liaison ID.
         Condition* liaisonLineCV[7];    // Array of CVs for each liaison's
                                         //  line. Index corresponds to ID.
-        Condition* liaisonManagerCV; // Array of CVs for each liaison interaction
+        Condition* liaisonManagerCV;    //  CV for each liaison interaction
         Condition* liaisonCV[7];        // Array of CVs for each liaison.
                                         //  Index corresponds to ID.
         LiaisonState liaisonState[7];   // Array of states for each liaison.
@@ -64,11 +65,15 @@ class Airport {
         Condition** checkinLineCV;      // Array of CVs for each check-in
                                         //  staff's line. Index corresponds
                                         //  to ID.
+        Condition** checkinCV;
         Lock** checkinLock;             // Array of locks for each check-in
                                         //  staff. index corresponds to ID.
         Condition** checkinBreakCV;     // Array of CVs for each check-in
                                         //  staff to go on break. Index 
                                         //  corresponds to ID.
+        Condition* checkinManagerCV;
+        Lock* checkinManagerLock;       // for interaction with manager
+
         // Cargo variables
         List* conveyor;                 // Conveyor belt for bag transfer
                                         //  from check-in to cargo (list of
