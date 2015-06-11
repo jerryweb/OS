@@ -113,11 +113,10 @@ void Passenger::findShortestLiaisonLine(){
 		id, ticket.airline);
 
 	
-
-	if(airport->checkInStaffList->Size() > 0){
-		
+	//Links to next interaction at the checkin counter
+	if(airport->checkInStaffList->Size() > 0)
 		CheckIn();
-	}
+	
 }
 /*
 void Passenger::SetSecurityPass(bool pnp) {
