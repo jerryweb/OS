@@ -12,7 +12,7 @@ Airport::Airport()
     for (i = 0; i < numAirlines; i++)
     {
         airlines[i] = new Airline(i, 0, 0);
-        airlineLock[i] = new Lock("airlineLock" + i);
+        airlineLock[i] = new Lock("airlineLock");
     }
     
     //Passenger variables
@@ -24,9 +24,9 @@ Airport::Airport()
     for (i = 0; i < 7; i++)
     {
         liaisonQueues[i] = new List();
-        liaisonLineCV[i] = new Condition("liaisonLineCV" + i);
-        liaisonCV[i] = new Condition("liaisonCV" + i);
-        liaisonLock[i] = new Lock("liaisonLock" + i);
+        liaisonLineCV[i] = new Condition("liaisonLineCV");
+        liaisonCV[i] = new Condition("liaisonCV");
+        liaisonLock[i] = new Lock("liaisonLock");
         liaisonState[i] = L_BUSY;
     }
 
@@ -41,14 +41,14 @@ Airport::Airport()
     checkinState = new CheckinState[numCheckin];
     for (i = 0; i < numAirlines; i++)
     {
-        checkinLineLock[i] = new Lock("checkinLineLock" + i);
+        checkinLineLock[i] = new Lock("checkinLineLock");
     }
     for (i = 0; i < numCheckin; i++)
     {
         checkinQueues[i] = new List();
-        checkinLock[i] = new Lock("checkinLock" + i);
-        checkinLineCV[i] = new Condition("checkinCV" + i);
-        checkinBreakCV[i] = new Condition("checkinBreakCV" + i);
+        checkinLock[i] = new Lock("checkinLock");
+        checkinLineCV[i] = new Condition("checkinCV");
+        checkinBreakCV[i] = new Condition("checkinBreakCV");
         checkinState[i] = CI_BUSY;
     }
 

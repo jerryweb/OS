@@ -46,11 +46,13 @@ void CheckIn::StartCheckInStaff()
         if (airport->checkinQueues[execLine]->IsEmpty() &&
             airport->checkinQueues[id]->IsEmpty())
         {   // Both lines empty.
-            airport->checkinState[id] = CI_BREAK;
             airport->checkinLock[id]->Acquire();
+            airport->checkinState[id] = CI_BREAK;
             airport->checkinLineLock[airline]->Release();
+            //printf("CheckIn %d goes on break\n", id);
             airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
             airport->checkinState[id] = CI_BUSY;
+            airport->checkinLineLock[airline]->Acquire();
         }
         pass = FindPassenger(execLine);
         airport->checkinLock[id]->Acquire();
