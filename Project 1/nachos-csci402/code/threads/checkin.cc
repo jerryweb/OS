@@ -24,11 +24,23 @@ Passenger* CheckIn::FindPassenger(int execLine)
         printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n",
                 id, airline, airport->checkinQueues[id]->Size());
     }
-    else // if (! airport->checkinQueues[execLine + id]->IsEmpty())
+    else if (! airport->checkinQueues[execLine + id]->IsEmpty())
     {   // Passenger in economy line.
         pass = (Passenger*)airport->checkinQueues[id]->Remove();
         printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n",
                 id, airline, airport->checkinQueues[execLine]->Size());
+    }
+    else
+    {   // Both lines empty.
+            airport->checkinLock[id]->Acquire();
+            airport->checkinState[id] = CI_BREAK;
+            airport->checkinLineLock[airline]->Release();
+            //printf("CheckIn %d goes on break\n", id);
+
+            airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
+
+            airport->checkinState[id] = CI_BUSY;
+            airport->checkinLineLock[airline]->Acquire();
     }
     return pass;
 }
@@ -52,10 +64,13 @@ void CheckIn::StartCheckInStaff()
             airport->checkinState[id] = CI_BREAK;
             airport->checkinLineLock[airline]->Release();
             //printf("CheckIn %d goes on break\n", id);
+
             airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
+
             airport->checkinState[id] = CI_BUSY;
             airport->checkinLineLock[airline]->Acquire();
         }
+
         pass = FindPassenger(execLine);
         airport->checkinLock[id]->Acquire();
         airport->checkinLineLock[airline]->Release();
@@ -68,6 +83,7 @@ void CheckIn::StartCheckInStaff()
         airport->airlines[airline]->seatsAssigned++;
         bp.gate = airline;
         pass->SetBoardingPass(bp);
+
         if (exec) printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n",
                           id, airline, pass->getID(), airline);
         else printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n",
@@ -99,10 +115,6 @@ void CheckIn::StartCheckInStaff()
         }
         airport->airlineLock[airline]->Release();
 
-
-        //need to fix
-       // airport->checkinCV[id]->Acquire();
-        //airport->checkinCV[id]->Release();
         
         if(airport->RequestingCheckinData[id]){
             printf("check-in staff %d says hey.\n", id);

@@ -79,7 +79,7 @@ void Manager::MakeRounds(){
     		CargoRequest(CH);
     		CargoDone = true;
     	}
-    	// for(int j = 0; j < 15; j++){
+    	// // for(int j = 0; j < 15; j++){
 
     	// 	if(airport->checkinState[j] == CI_BUSY){
     	// 		ready = false;
@@ -87,13 +87,13 @@ void Manager::MakeRounds(){
     	// 	}
     		
     	// }
-    	 // if(!CheckinDone){//} && ready){
-			// CheckinDataReuqest(C);
+    	  // if(!CheckinDone){//} && ready){
+			CheckinDataReuqest(C);
 			// CheckinDone = true;
 		//}
 	    	
 	    	
-    	for(int i = 0; i < 10; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
+    	for(int i = 0; i < 100; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
 			currentThread->Yield();
 		
     }
@@ -146,13 +146,10 @@ void Manager::CheckinDataReuqest(CheckIn *C){
 
 		//airport->checkinCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
 		//if(airport->checkinState[C->getID()] == CI_BREAK)
-			//airport->checkinBreakCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
+		airport->checkinBreakCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
 		
 		//else
-			airport->checkinLineCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
-
-		            printf("caasdf\n");
-
+			// airport->checkinLineCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
 		airport->checkinManagerCV->Wait(airport->checkinManagerLock);
 		//Waits for the signal of corresponding Liaison
 		airport->checkinLock[C->getID()]->Acquire();

@@ -225,11 +225,11 @@ void Passenger::CheckIn()
         printf("Passenger %d of Airline %d is waiting in the executive class line\n",
                 id, airline);
     }
-    if( airport->checkinState[checkInLine] == CI_BUSY )
-    {   // Wait in line if check-in staff is busy.
+    // if( airport->checkinState[checkInLine] == CI_BUSY )
+    // {   // Wait in line if check-in staff is busy.
         airport->checkinQueues[checkInLine]->Append((void *)this);
         airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
-    }
+    // }
     
     printf("Passenger %d of Airline %d was informed to board at gate %d\n",
             id, airline, boardingPass.gate);

@@ -208,7 +208,7 @@ void ManagerTest() {
 	List* CargoHandlerTreadArray = new List();
 
 	//Generate Passengers each with seperate luggage and tickets 
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 5; i++) {
 		List* bagList = new List();
 
 		for (int j = 0; j < 3; j++) {
@@ -223,9 +223,9 @@ void ManagerTest() {
 		ticket.airline = i % 3;
 		airport->airlines[i % 3]->ticketsIssued++;
 		airport->airlines[i % 3]->totalBagCount += 3;
-		if (i % 2 == 0)
-			ticket.executive = true;
-		else
+		// if (i % 2 == 0)
+		// 	ticket.executive = true;
+		// else
 			ticket.executive = false;
 
 		Passenger *p = new Passenger(i, bagList, ticket, airport);
