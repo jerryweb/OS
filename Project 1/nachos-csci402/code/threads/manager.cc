@@ -113,7 +113,8 @@ void Manager::CargoRequest(Cargo *CH){
 		printf("Getting data from Cargo Handler %d\n", CH->getID());
 		airport->cargoHandlerList->Append((void *)CH);
 		airport->RequestingCargoData[CH->getID()] = true;
-		airport->cargoCV->Signal(airport->cargoLock);
+		airport->cargoCV->Broadcast(airport->cargoLock);
+
 		printf("i is: %d\n", i);
 		airport->cargoManagerCV[CH->getID()]->Wait(airport->CargoHandlerManagerLock);
 		printf("i is: %d\n", i);
