@@ -21,7 +21,7 @@ class Passenger {
         Passenger(int ID);                                          // For CheckInTest.
         Passenger();                                                // For PassengerFindsCorrectCISLine (test).
 		Passenger(int ID,int qIndex,Airport* AIRPORT);                                      //For Screening Test
-		Passenger(int ID,int qIndex,Airport* AIRPORT,SecurityInspector** INSPECTORLIST);    //For Security Test
+		Passenger(int ID,int qIndex,Airport* AIRPORT,int airlineCode,SecurityInspector** INSPECTORLIST);    //For Security Test
 		Passenger(Airport* AIRPORT);                                                        //For Screening Test(produce dummy passenger to fill arrays)
         ~Passenger();
 

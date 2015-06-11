@@ -57,10 +57,11 @@ Passenger::Passenger(int ID, int qIndex, Airport* AIRPORT) {
 	securityPass = true;
 }
 
-Passenger::Passenger(int ID,int qIndex,Airport* AIRPORT,SecurityInspector** INSPECTORLIST) {
+Passenger::Passenger(int ID,int qIndex,Airport* AIRPORT,int airlineCode,SecurityInspector** INSPECTORLIST) {
 	id = ID;
 	queueIndex = qIndex;
 	airport = AIRPORT;
+	airline = airlineCode;
 	securityPass = true;
 	inspectorList = INSPECTORLIST;
 }
