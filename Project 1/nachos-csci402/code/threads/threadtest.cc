@@ -241,6 +241,9 @@ void ManagerTest(){
 		CargoHandlerTreadArray->Append((void *)tCH);
 	}
     
+    //Generates an Airport Manager
+    Manager* manager = new Manager(airport);
+
     //Display initial airport data
 	StartupOutput(airport);
 
@@ -283,6 +286,9 @@ void ManagerTest(){
 		CargoHandlerTreadArray->Remove();
 		tCH->Fork(StartCargo,(int(CH)));
 	}
+
+	Thread* tM = new Thread("Manager");
+	tM->Fork(StartManager, (int)manager);
 }
 
 

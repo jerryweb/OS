@@ -4,10 +4,14 @@ Manager::Manager(Airport* airport_)
 {
     airport = airport_;
     airlineLuggage = new List*[airport->numAirlines];
-	liaisonBaggageCount = new List*[airport->numAirlines];    
+	liaisonBaggageCount = new int[airport->numAirlines];    
 	cargoHandlersBaggageCount = new List*[airport->numAirlines];
-	checkinBaggageWeight = new List*[airport->numAirlines];
-    liaisonPassengerCount = new List*[airport->numAirlines];
+	checkinBaggageWeight = new int[airport->numAirlines];
+    liaisonPassengerCount = new int[airport->numAirlines];	
+    for(int i = 0; i < airport->numAirlines; i++){
+    	liaisonPassengerCount[i] = 0;
+    	liaisonBaggageCount[i] = 0;
+    }
     checkinPassengerCount = new List*[airport->numAirlines];
     securityInspectorPassengerCount = new List*[airport->numAirlines];
 }
@@ -26,19 +30,17 @@ Manager::~Manager()
 void Manager::MakeRounds()
 {
 	bool cargoHandlersOnBreak = false;
+	bool done = false;
     int counter = 0;
+    Liaison* L = NULL;
     while(true){
-    						//keeps track of how many cargo handlers are on break
+    	//keeps track of how many cargo handlers are on break
+
     	//Cargo handler interaction
-    	
+<<<<<<< HEAD
     	airport->conveyorLock->Acquire();
-        
-        Luggage* bag = new Luggage;
-        bag->airlineCode = 0;
-        bag->weight = 30;
-        airport->conveyor->Append((void*)bag);
-        
-    	if(!airport->conveyor->IsEmpty()){
+       	if(!airport->conveyor->IsEmpty()){
+
     		counter = 0;
     		for(int i = 0; i < airport->cargoHandlerList->Size(); i++){
     			if(airport->cargoState[i] == C_BREAK){
@@ -54,7 +56,36 @@ void Manager::MakeRounds()
     		}
     	}
     	airport->conveyorLock->Release();
-    	for(int i = 0; i < 100; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
+
+    	if(!done){
+    	//Gather data from liaisons 
+    	for(int j = 0; j < airport->liaisonList->Size(); j++){
+    		airport->liaisonManagerLock->Acquire();
+
+    		L = (Liaison*)airport->liaisonList->First();
+    		 printf("Getting data from Liaison %d\n", L->getID());
+    		airport->liaisonList->Remove();
+    		airport->liaisonList->Append((void *)L);
+    		airport->liaisonManagerCV->Wait(airport->liaisonManagerLock);
+
+    		//Waits for the signal of corresponding Liaison
+    		airport->liaisonLock[L->getID()]->Acquire();
+    		//Records the number of passengers per airline and stores into an array
+    		for(int k = 0; k < airport->numAirlines; k++){
+    			printf("num of pass per airline: %d\n", L->getPassengers(k));
+    			liaisonPassengerCount[k] += L->getPassengers(k);
+    			liaisonBaggageCount[k] += L->getLuggageCount(k);
+    			printf("Count for airline %d: %d\n", k, liaisonPassengerCount[k]);
+    			printf("Baggage count for airline %d: %d\n", k, liaisonBaggageCount[k]);
+    		}
+
+    		//Signals liaison that all the data has been collected
+    		airport->liaisonCV[L->getID()]->Signal(airport->liaisonLock[L->getID()]);
+    		airport->liaisonLock[L->getID()]->Release();
+    	}
+    	done =true;
+    	}
+    	for(int i = 0; i < 10; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
 			currentThread->Yield();
 		
     }

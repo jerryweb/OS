@@ -9,6 +9,7 @@
 #include "thread.h"
 #include "list.h"
 #include "airport.h"
+#include "liaison.h"
 
 
 class Manager {
@@ -21,12 +22,12 @@ class Manager {
         Airport* airport;
         //Baggage Data   									// "Airport" construct, containing all public data.
         List** airlineLuggage;				//Holds the list of bags for each airline
-        List** liaisonBaggageCount;	//For the weights just calculate in print function
+        int* liaisonBaggageCount;	//For the weights just calculate in print function
 		List** cargoHandlersBaggageCount;
-		List** checkinBaggageWeight;
+		int* checkinBaggageWeight;			
 
 		//Passenger Data
-        List** liaisonPassengerCount;	
+        int* liaisonPassengerCount;	
         List** checkinPassengerCount;
         List** securityInspectorPassengerCount;
 };

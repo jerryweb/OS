@@ -19,12 +19,14 @@ Airport::Airport()
     passengerList = new List();
 
     // Liaison variables
+    liaisonManagerLock = new Lock("liaisonManagerLock");
     liaisonLineLock = new Lock("liaisonLineLock");
-    liaisonList = new List();
+    liaisonList = new List(); liaisonManagerCV = new Condition("liaisonManagerCV");
     for (i = 0; i < 7; i++)
     {
         liaisonQueues[i] = new List();
         liaisonLineCV[i] = new Condition("liaisonLineCV");
+
         liaisonCV[i] = new Condition("liaisonCV");
         liaisonLock[i] = new Lock("liaisonLock");
         liaisonState[i] = L_BUSY;
