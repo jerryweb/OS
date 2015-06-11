@@ -21,7 +21,7 @@ class Manager {
 		void MakeRounds();
 		void LiaisonDataRequest(Liaison *L);
 		void CheckinDataReuqest(CheckIn *C);
-		// void CargoRequest(Cargo *CH);
+		void CargoRequest(Cargo *CH);
 	private:
         Airport* airport;
         //Baggage Data   									// "Airport" construct, containing all public data.

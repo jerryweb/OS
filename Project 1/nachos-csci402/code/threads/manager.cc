@@ -62,7 +62,10 @@ void Manager::MakeRounds(){
     		if(counter == airport->cargoHandlerList->Size()){
     			printf("Waking up the handlers\n");
     			airport->cargoLock->Acquire();
-    			airport->cargoCV->Broadcast(airport->cargoLock);
+    			for(int i = 0; i < airport->cargoHandlerList->Size(); i++){
+    				airport->cargoDataCV[i]->Signal(airport->cargoLock);
+    			}
+    			// airport->cargoCV->Broadcast(airport->cargoLock);
     			airport->cargoLock->Release();
     		}
     	}
@@ -72,10 +75,10 @@ void Manager::MakeRounds(){
     		LiaisonDataRequest(L);
     	//	liaisonDone = true;
     	//}
-    	// if(!CargoDone){
-    	// 	//CargoRequest(CH);
-    	// 	CargoDone = true;
-    	// }
+    	if(!CargoDone){
+    		CargoRequest(CH);
+    		CargoDone = true;
+    	}
     	// for(int j = 0; j < 15; j++){
 
     	// 	if(airport->checkinState[j] == CI_BUSY){
@@ -85,7 +88,7 @@ void Manager::MakeRounds(){
     		
     	// }
     	 // if(!CheckinDone){//} && ready){
-			CheckinDataReuqest(C);
+			// CheckinDataReuqest(C);
 			// CheckinDone = true;
 		//}
 	    	
@@ -142,10 +145,11 @@ void Manager::CheckinDataReuqest(CheckIn *C){
             // printf("no\n");
 
 		//airport->checkinCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
-//if(airport->checkinState[C->getID()] == CI_BREAK)
-			airport->checkinBreakCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
+		//if(airport->checkinState[C->getID()] == CI_BREAK)
+			//airport->checkinBreakCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
+		
 		//else
-			airport->checkinCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
+			airport->checkinLineCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
 
 		            printf("caasdf\n");
 
@@ -167,31 +171,32 @@ void Manager::CheckinDataReuqest(CheckIn *C){
 	}
 }
 
-// void Manager::CargoRequest(Cargo *CH){
-// 	for(int i = 0; i < airport->cargoHandlerList->Size(); i++){
+void Manager::CargoRequest(Cargo *CH){
+	for(int i = 0; i < airport->cargoHandlerList->Size(); i++){
 
-// 		airport->CargoHandlerManagerLock->Acquire();
-// 		CH = (Cargo*)airport->cargoHandlerList->Remove();
-// 		printf("Getting data from Cargo Handler %d\n", CH->getID());
-// 		airport->cargoHandlerList->Append((void *)CH);
-// 		airport->RequestingCargoData[CH->getID()] = true;
-// 		airport->cargoCV->Broadcast(airport->cargoLock);
+		airport->CargoHandlerManagerLock->Acquire();
+		CH = (Cargo*)airport->cargoHandlerList->Remove();
+		printf("Getting data from Cargo Handler %d\n", CH->getID());
+		airport->cargoHandlerList->Append((void *)CH);
+		airport->RequestingCargoData[CH->getID()] = true;
+		airport->cargoCV->Broadcast(airport->cargoLock);
 
-// 		printf("i is: %d\n", i);
-// 		airport->cargoManagerCV[CH->getID()]->Wait(airport->CargoHandlerManagerLock);
-// 		printf("i is: %d\n", i);
-// 		//Waits for the signal of corresponding Liaison
-// 		airport->cargoDataLock[CH->getID()]->Acquire();
-// 		//Records the total weight per airline and stores into an array
-// 		for(int k = 0; k < airport->numAirlines; k++){
-// 			cargoHandlersBaggageWeight[k] += CH->getWeight(k);
-// 			cargoHandlersBaggageCount[k] += CH->getLuggage(k);
-// 			printf("Baggage weight for airline %d: %d\n", k, cargoHandlersBaggageWeight[k]);
-// 		}
+		printf("i is: %d\n", i);
+		airport->cargoManagerCV[CH->getID()]->Wait(airport->CargoHandlerManagerLock);
+		
+		//Waits for the signal of corresponding Liaison
+		airport->cargoDataLock[CH->getID()]->Acquire();
+		//Records the total weight per airline and stores into an array
+		printf("i is: %d\n", i);
+		for(int k = 0; k < airport->numAirlines; k++){
+			cargoHandlersBaggageWeight[k] += CH->getWeight(k);
+			cargoHandlersBaggageCount[k] += CH->getLuggage(k);
+			printf("Baggage weight for airline %d: %d\n", k, cargoHandlersBaggageWeight[k]);
+		}
 
-// 		//Signals liaison that all the data has been collected
-// 		airport->cargoDataCV[CH->getID()]->Signal(airport->cargoDataLock[CH->getID()]);
-// 		airport->cargoDataLock[CH->getID()]->Release();
+		//Signals liaison that all the data has been collected
+		airport->cargoDataCV[CH->getID()]->Signal(airport->cargoDataLock[CH->getID()]);
+		airport->cargoDataLock[CH->getID()]->Release();
 
-// 	}
-// }
+	}
+}
