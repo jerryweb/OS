@@ -5,7 +5,7 @@
 
 SecurityInspector::SecurityInspector(int ID, Airport* AIRPORT) {
 	id = ID;
-	qPassengerCount = 0;
+	qPassengerCount = -1;
 	airport = AIRPORT;
 	hasReturned = false;
 	returnPassenger = NULL;
@@ -24,6 +24,7 @@ void SecurityInspector::Inspect() {
 	//initialize random seed
 	srand(time(NULL));
 	while (true) {
+		//printf("inspect 27\n");
 		//printf("in SecurityInspector Inspect() line 10 \n");
 		//starting C.S.(1) for security line
 		airport->securityLocks[id]->Acquire();
@@ -39,11 +40,12 @@ void SecurityInspector::Inspect() {
 			airport->securityLocks[id]->Release();
 		}
 		//handle return line first
-		else*/ if ((airport->returnQueues[id]->Size()) != 0) {
+		else*/ if (!(airport->returnQueues[id]->IsEmpty())) {
 			currentPassenger = (Passenger*) airport->returnQueues[id]->First();
 			currentPassenger->SetSecurityPass(true);
 
 			airport->returnQueues[id]->Remove();
+			qPassengerCount--;
 
 			//starting C.S.(2) for ping-pong with returning passenger
 			airport->rePassengerWaitInspectorCV[id]->Signal(
@@ -53,13 +55,14 @@ void SecurityInspector::Inspect() {
 			airport->inspectorWaitRePassengerCV[id]->Wait(
 					airport->securityLocks[id]);
 			//ending C.S.(2)
+			printf("questiongPassenger %d\n",qPassengerCount);
 
 			printf(
 					"Security inspector %d permits returning passenger %d to board\n",
 					id, currentPassenger->getID());
 
 			//if return line is empty handle the security line
-		} else if ((airport->securityQueues[id]->Size()) != 0) {
+		} else if (!(airport->securityQueues[id]->IsEmpty())) {
 			currentPassenger =
 					(Passenger*) airport->securityQueues[id]->First();
 
@@ -97,8 +100,12 @@ void SecurityInspector::Inspect() {
 				printf(
 						"Security inpector %d asks passenger %d to go for further examination\n",
 						id, currentPassenger->getID());
+				if (qPassengerCount == (-1)) {
+					qPassengerCount = 0;
+				}
 				qPassengerCount++;
 			} else {
+				printf("questiongPassenger %d\n",qPassengerCount);
 				printf(
 						"Security inspector %d is not suspicious of the passenger %d\n",
 						id, currentPassenger->getID());
@@ -109,8 +116,11 @@ void SecurityInspector::Inspect() {
 				airport->updateClearCount->Release();
 			}
 
+		} else if (qPassengerCount > 0) {
+			airport->lastCV[id]->Wait(airport->securityLocks[id]);
 		} else {
 			airport->securityLocks[id]->Release();
+			break;
 		}
 	}
 }

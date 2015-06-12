@@ -169,27 +169,47 @@ void Passenger::Inspecting() {
 	airport->passengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
 
 	if (!securityPass) {
+		printf("passenger %d 172\n",id);
 		airport->securityLocks[queueIndex]->Acquire();
+		printf("passenger %d 174\n",id);
 		airport->inspectorWaitPassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
+		printf("passenger %d 176\n",id);
 		airport->securityLocks[queueIndex]->Release();
+		printf("passenger %d 178\n",id);
 
 		srand(time(NULL));
 		int randNum = rand() % 5 + 1;
 		for (int i=0;i<randNum;i++) {
+			//airport->securityLocks[queueIndex]->Acquire();
 			currentThread->Yield();
+			//airport->securityLocks[queueIndex]->Release();
+			printf("passenger yield\n");
 		}
 
 		airport->securityLocks[queueIndex]->Acquire();
-		//inspectorList[queueIndex]->setReturn();
-		//inspectorList[queueIndex]->setReturnPassenger(this);
-		airport->returnQueues[queueIndex]->Append(this);
+		airport->lastCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
 		airport->securityLocks[queueIndex]->Release();
 
+		printf("passenger %d 182\n",id);
 		airport->securityLocks[queueIndex]->Acquire();
-		airport->rePassengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
-		airport->securityLocks[queueIndex]->Acquire();
-		airport->inspectorWaitRePassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
+		//inspectorList[queueIndex]->setReturn();
+		//inspectorList[queueIndex]->setReturnPassenger(this);
+		printf("passenger 186\n");
+		airport->returnQueues[queueIndex]->Append(this);
+		printf("passenger 188\n");
 		airport->securityLocks[queueIndex]->Release();
+
+		printf("passenger 191\n");
+		airport->securityLocks[queueIndex]->Acquire();
+		printf("passenger 193\n");
+		airport->rePassengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
+		printf("passenger 195\n");
+		airport->securityLocks[queueIndex]->Acquire();
+		printf("passenger 197\n");
+		airport->inspectorWaitRePassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
+		printf("passenger 199\n");
+		airport->securityLocks[queueIndex]->Release();
+		printf("passenger 201\n");
 
 	} else {
 		airport->securityLocks[queueIndex]->Acquire();

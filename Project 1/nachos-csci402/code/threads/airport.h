@@ -151,6 +151,7 @@ public:
 
 											//  Manager variables
 											//Conditon to allow manager to gather data
+	Condition** lastCV;
 
 };
 

@@ -154,6 +154,11 @@ Airport::Airport()
 
 	updateClearCount = new Lock("updateClearCount");
 
+	lastCV = new Condition*[3];
+	for (i=0;i<3;i++) {
+		lastCV[i] = new Condition("lastCV");
+	}
+
 }
 
 Airport::~Airport() {

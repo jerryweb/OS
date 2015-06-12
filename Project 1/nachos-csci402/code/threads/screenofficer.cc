@@ -45,7 +45,6 @@ void ScreenOfficer::Screen() {
 			//starting C.S.(2) to remove passenger from current line
 			airport->screenQueuesLock->Acquire();
 			airport->screenQueues[myLine]->Remove();
-			//printf("SO Release 47\n");
 			airport->screenQueuesLock->Release();
 			//ending C.S.(2) to remove passenger from current line
 		}
@@ -69,7 +68,6 @@ void ScreenOfficer::Screen() {
 		//also update the queueIndex for current passenger
 		currentPassenger->SetQueueIndex(shortest);
 
-		//printf("SO Release 70\n");
 		airport->securityQueuesLock->Release();
 		//ending C.S.(3)
 
@@ -79,10 +77,8 @@ void ScreenOfficer::Screen() {
 		airport->screenLocks[myLine]->Release();
 
 		//wait for passenger thread
-		//printf("SO wait 81\n");
 		airport->screenLocks[myLine]->Acquire();
 		airport->officerWaitPassengerCV[myLine]->Wait(airport->screenLocks[myLine]);
-		//airport->screenLocks[myLine]->Release();
 		//ending C.S.(1)
 
 		//airport->screenLocks[myLine]->Acquire();
