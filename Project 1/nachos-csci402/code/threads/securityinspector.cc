@@ -23,23 +23,12 @@ void SecurityInspector::Inspect() {
 	//initialize random seed
 	srand(time(NULL));
 	while (true) {
-		//printf("inspect 27\n");
-		//printf("in SecurityInspector Inspect() line 10 \n");
 		//starting C.S.(1) for security line
 		airport->securityLocks[id]->Acquire();
 		Passenger* currentPassenger;
 
-	/*	//check if someone has just returned
-		//if (hasReturned) {
-		if (returnPassenger != NULL) {
-			//printf("inspector line 29/n");
-			airport->returnQueues[id]->Append(returnPassenger);
-			//hasReturned = false;
-			returnPassenger = NULL;
-			airport->securityLocks[id]->Release();
-		}
-		//handle return line first
-		else*/ if (!(airport->returnQueues[id]->IsEmpty())) {
+		//handle return queue first if it is not empty
+		if (!(airport->returnQueues[id]->IsEmpty())) {
 			currentPassenger = (Passenger*) airport->returnQueues[id]->First();
 			currentPassenger->SetSecurityPass(true);
 
@@ -54,11 +43,17 @@ void SecurityInspector::Inspect() {
 			airport->inspectorWaitRePassengerCV[id]->Wait(
 					airport->securityLocks[id]);
 			//ending C.S.(2)
-			printf("questiongPassenger %d\n",qPassengerCount);
 
 			printf(
 					"Security inspector %d permits returning passenger %d to board\n",
 					id, currentPassenger->getID());
+
+			//starting C.S.(6) to update cleared passenger count for manager
+			//this lock shared by all the inspectors and manager
+			airport->updateClearCount->Acquire();
+			(airport->clearPassengerCount[currentPassenger->GetAirline()])++;
+			airport->updateClearCount->Release();
+			//ending C.S.(6)
 
 			//if return line is empty handle the security line
 		} else if (!(airport->securityQueues[id]->IsEmpty())) {
@@ -91,6 +86,8 @@ void SecurityInspector::Inspect() {
 			airport->securityLocks[id]->Acquire();
 			airport->inspectorWaitPassengerCV[id]->Wait(
 					airport->securityLocks[id]);
+			//ending C.S.(4)
+
 			//make decision based on the result above
 			if (!passFlag) {
 				printf(
@@ -104,32 +101,38 @@ void SecurityInspector::Inspect() {
 				}
 				qPassengerCount++;
 			} else {
-				printf("questiongPassenger %d\n",qPassengerCount);
 				printf(
 						"Security inspector %d is not suspicious of the passenger %d\n",
 						id, currentPassenger->getID());
 				printf("Security inspector %d allows passenger %d to board\n",
 						id, currentPassenger->getID());
+
+				//starting C.S.(5) to update cleared passenger count for manager
 				airport->updateClearCount->Acquire();
-				passengerCount[id]++;
+				(airport->clearPassengerCount[currentPassenger->GetAirline()])++;
 				airport->updateClearCount->Release();
+				//ending C.S.(5)
 			}
 
+		//if both security and return queues are empty but
+		//qPassengerCount is larger than 0, means still has
+		//passenger being questioned,wait those passengers
+		//to come back
 		} else if (qPassengerCount > 0) {
-			airport->lastCV[id]->Wait(airport->securityLocks[id]);
+			airport->inspectorWaitQuestioningCV[id]->Wait(
+					airport->securityLocks[id]);
+			//ending C.S.(1) and goes to wait
+
+		//if it goes to else it ends
 		} else {
 			airport->securityLocks[id]->Release();
+			//ending C.S.(1)
+
+			//add manager control code here
+
 			break;
 		}
 	}
-}
-
-void SecurityInspector::setReturn() {
-	hasReturned = true;
-}
-
-void SecurityInspector::setReturnPassenger(Passenger* p) {
-	returnPassenger = p;
 }
 
 int SecurityInspector::getID() {

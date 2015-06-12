@@ -118,9 +118,9 @@ void CheckIn::StartCheckInStaff()
             printf("check-in staff %d is sending data.\n", id);
 
             // Give manager data
-            airport->checkinManagerCV->Signal(airport->checkinManagerLock);
 
             airport->checkinLock[id]->Acquire();
+            airport->checkinManagerCV->Signal(airport->checkinManagerLock);
 
             airport->checkinManagerLock->Release();
 

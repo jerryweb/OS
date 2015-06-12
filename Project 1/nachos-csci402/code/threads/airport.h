@@ -54,7 +54,7 @@ public:
 	LiaisonState liaisonState[7];   // Array of states for each liaison.
 									//  Index corresponds to ID.
 	// Check-in variables
-    bool* finalCheckin;
+	bool* finalCheckin;
 	List** checkinQueues;           // Array of check-in queues (list of
 									//  Passengers). Index corresponds
 									//  to check-in staff ID. The executive
@@ -91,7 +91,7 @@ public:
 									   //  Index corresponds to ID.
 
 	Condition* cargoManagerCV[10]; // Array of CVs for each cargo handler interaction
-	Lock* cargoLock;                // Lock for cargo handler break.
+	Lock* cargoLock[10];                // Lock for cargo handler break.
 	Lock* cargoDataLock[10];
 	CargoState cargoState[10];      // Array of states for each cargo
 									//  handler. Index corresponds to ID.
@@ -100,6 +100,12 @@ public:
 									//  to airline ID.
 
 									// Screening and security variables
+
+	int* clearPassengerCount;         //array to store cleared passenger cout for each airline
+									  //used by airport manager
+
+	Lock* updateClearCount;           //Lock to update security inspector's clear passenger count
+
 
 	List* securityInspectorList;      //used by airport manager
 
@@ -134,9 +140,6 @@ public:
 	Condition** passengerWaitInspectorCV; //Array of C.V. used in passenger waiting inspector
 										  //index corresponds to inspector id
 
-	Condition** appendReturnLineCV; //Array of C.V. used when appending returned passenger to return queues
-									//index corresponds to inspector id
-
 	Condition** passengerWaitOfficerCV;    //Array of C.V. for each screen locks
 										   //index corresponds to officer id
 
@@ -149,11 +152,14 @@ public:
 	Condition** rePassengerWaitInspectorCV; //Array of C.V. used in returned passenger waiting inspector
 											//index corresponds to officer id
 
-	Lock* updateClearCount;                //Lock to update security inspector's clear passenger count
+	Condition** inspectorWaitQuestioningCV;  //Array of C.V. used in inspector
+											 //waiting questiong passenger
+											 //inspector called this lock when both securityQueue
+											 //and returnQueue is empty but still passenger being questioned
+											 //index corresponds to inspector id
 
-											//  Manager variables
-											//Conditon to allow manager to gather data
-	Condition** lastCV;
+	//  Manager variables
+	//Conditon to allow manager to gather data
 
 };
 

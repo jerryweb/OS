@@ -256,6 +256,7 @@ void ManagerTest() {
 
 	//Display initial airport data
 	StartupOutput(airport);
+	cout << "fuck" << endl;
 
 	//Fork all of the Passenger Threads from the array of passenger threads
 	for (int i = PassengerThreadArray->Size(); i > 0; i--) {
