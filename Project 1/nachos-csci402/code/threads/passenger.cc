@@ -262,7 +262,9 @@ void Passenger::CheckIn()
 			shortest = i;
 		}
 	}
+	airport->screenQueuesLock->Release();
 
+	airport->screenLocks[shortest]->Acquire();
 	airport->screenQueues[shortest]->Append(this);
-	airport->screenQueuesLock->Release();*/
+	airport->screenLocks[shortest]->Release();*/
 }
