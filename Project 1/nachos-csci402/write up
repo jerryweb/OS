@@ -3,6 +3,7 @@ Title:  Writeup for Project 1, Summer 2015
  Group:	Name		Email				SS#
 		Jerry Webb	jerryweb@usc.edu	1288504108
 		Andrew Lee	lee533@usc.edu		7540910244
+		Hao Cui		hcui@usc.edu		1454367516
 		???			???					???
 
 
@@ -335,20 +336,26 @@ V. Testing:  (For each test case, you must show)
          "-T":        Lock and CV test code.
          "-findL":    Passenger selects the shortest line for the airport liaison.
          "-liaison":  Passenger is directed by the Liaison to the correct airline counters.
-         "-findCIS":  Economy class passengers enter the shortest line while Executive class passengers enter their correct line.
-         "-checkin":  Executive class passengers are given priority over the economy class passengers at the check-in kiosks.
-         "-screen":   Screening officer chooses an available security inspector each time a passenger comes in.
-         "-cargo":    Cargo handlers choose bags from the conveyor system each time and go on a break if there are no bags.
+         "-findCIS":  Economy class passengers enter the shortest line while Executive class
+                        passengers enter their correct line.
+         "-checkin":  Executive class passengers are given priority over the economy class
+                        passengers at the check-in kiosks.
+         "-screen":   Screening officer chooses an available security inspector each time
+                        a passenger comes in.
+         "-cargo":    Cargo handlers choose bags from the conveyor system each time and go
+                        on a break if there are no bags.
          "-screen":   Handing over of the hand luggage by the passenger to the screening officer.
          "-inspect":  Passenger returns to the same security inspector after further questioning.
-         "-mtest":    Baggage weights of all the passengers of a particular airline should match the weights of the bags reported by the cargo handlers.
+         "-mtest":    Baggage weights of all the passengers of a particular airline should
+                        match the weights of the bags reported by the cargo handlers.
          "-inspect":  Handing over of boarding pass by the passenger to the security inspector.
          "-manager":  Hardcoded airport simulation.
          "-airport":  Full airport simulation.
          "-menu":     Menu allowing choice between all tests.
     + Test Output
-- Describe the testing output. You don't have to dump all the output info. Just make sure your description can exactly reflect your output.
-        
+        See Discussion/Experiment expectation and the output guidelines - the tests
+         do not introduce any new outputs, and the expected results are described
+         under "Intended result:".
 
 VI. Discussion:
 	+ Experiment expectation.  (What you hope will happen.)
@@ -401,6 +408,32 @@ VI. Discussion:
              order in which they were added to the conveyor.
              After all bags are finished, the cargo handlers
              will all go on break.
+             
+        For ScreenTest
+        	Adds 10 passengers to the screening queues with the following pattern:
+        	screen queue 1: P0,P1,P2,P3
+        	screen queue 2: P4,P5,P6
+        	screen queue 3: P7,P8,P9
+        	
+        	Adds 6 dummy passengers to the security queues with the following pattern:
+        	security queue 1: size 1
+        	security queue 2: size 2
+        	security queue 3: size 3
+        	
+        	Initialize 10 Passenger threads
+        	Initialize 3 ScreenOfficer threads
+        	Run all these threads
+        	Intended Result:
+        	security queue 0: dummy,P0,P1,P3
+        	security queue 1: dummy,dummy,P2,P4
+        	security queue 2: dummy,dummy,dummy,P5
+        	
+        For InspectTest
+        	Create then add 5 passengers to one security queue
+        	Create 1 security inspector at this security queue
+        	The passengers will all finish checking, some goes to return line but eventually
+        	they will all be allowed to aboard	
+        	    
 
         For AirportSim
             This should simulate the entire airport running from start to finish as mentioned in the guidlines. 
@@ -440,6 +473,7 @@ VI. Discussion:
 VIII. Miscellaneous:
 - Whatever else you want the grader know about your development.  You can create your own subsections headings here.
 The Putty terminal locked us out when we were testing our simulation due to us exceeding the process limit. We were sent an email by ITS explaining what had happed:
+
 Our computing policies were instituted to help maximize the resources
 available to our user community.  We expect you to act responsibly and
 with consideration to others.  Please do not run more than 20 processes
@@ -513,7 +547,6 @@ jerryweb 28781  0.0  0.0 6168 4840 pts/29   T 21:02:38  0:01 nachos -manager -rs
 jerryweb 29277  0.0  0.013424 6712 ?        S 21:04:43  0:00 /usr/lsd/openssh/default/sbin/sshd -R
 jerryweb 29281  0.0  0.0 3296 2512 ?        S 21:04:43  0:00 tcsh -c /usr/lsd/openssh/default/libexec/sftp-server -l QUIET
 jerryweb 29283  0.0  0.0 7392 3592 ?        S 21:04:43  0:00 /usr/lsd/openssh/default/libexec/sftp-server -l QUIET
-
 
 Notes from class:
 
