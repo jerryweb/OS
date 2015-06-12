@@ -44,8 +44,6 @@ class Passenger {
 		//returns the id of the passenger
 		int getID(){ return id; }
 
-		//Luggage getLuggage(){ return *luggageList; }
-				//void SetScreenPass(bool pnp);
 
 		/*******For screening and Security**************/
 		void Screening();

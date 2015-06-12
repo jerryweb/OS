@@ -231,6 +231,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
         cargoManagerCV[i] = new Condition("cargoManagerCV");
         cargoDataLock[i] = new Lock("cargoDataLock");
         RequestingCargoData[i] = false;
+		cargoLock[i] = new Lock("cargoLock");
     }
     aircraft = new List*[numAirlines];
     for (i = 0; i < numAirlines; i++)

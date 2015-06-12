@@ -35,8 +35,6 @@ Passenger* CheckIn::FindPassenger(int execLine)
             airport->checkinLock[id]->Acquire();
             airport->checkinState[id] = CI_BREAK;
             airport->checkinLineLock[airline]->Release();
-            //printf("CheckIn %d goes on break\n", id);
-            printf("ID: %d sleep\n", id);
             airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
 
             airport->checkinState[id] = CI_BUSY;
@@ -55,26 +53,10 @@ void CheckIn::StartCheckInStaff()
     BoardingPass bp;
     while (true)
     {
-        //printf("adfa: %d\n", airport->RequestingCheckinData[id]);
         airport->checkinLineLock[airline]->Acquire();
-        // Check the lines, sleep if both empty.
-        // if (airport->checkinQueues[execLine]->IsEmpty() &&
-        //     airport->checkinQueues[id]->IsEmpty())
-        // {   // Both lines empty.
-        //     airport->checkinLock[id]->Acquire();
-        //     airport->checkinState[id] = CI_BREAK;
-        //     airport->checkinLineLock[airline]->Release();
-        //     //printf("CheckIn %d goes on break\n", id);
-        //     printf("ID: %d sleep\n", id);
-        //     airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
-
-        //     airport->checkinState[id] = CI_BUSY;
-        //     airport->checkinLineLock[airline]->Acquire();
-        // }
         if(airport->checkinState[id] != CI_CLOSED){
             pass = FindPassenger(execLine);
         }
-        printf("ID: %d awake\n", id);
 
         airport->checkinLock[id]->Acquire();
         airport->checkinLineLock[airline]->Release();
@@ -113,7 +95,6 @@ void CheckIn::StartCheckInStaff()
             
             printf("ID: %d awake\n", id);
         if(airport->RequestingCheckinData[id]){
-            // talked = true;
             airport->checkinManagerLock->Acquire();
             printf("check-in staff %d is sending data.\n", id);
 

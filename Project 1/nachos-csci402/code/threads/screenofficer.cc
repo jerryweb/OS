@@ -55,14 +55,14 @@ void ScreenOfficer::Screen() {
 			int shortest = 0;		//shortest line's id
 			int minimumSize = -1;		//for comparsion in the following loop
 
-			//find the shortest line
-			for (int i = 0; i < 3; i++) {
-				if (minimumSize < 0
-						|| minimumSize > airport->securityQueues[i]->Size()) {
-					minimumSize = airport->securityQueues[i]->Size();
-					shortest = i;
-				}
+		//find the shortest line
+		for (int i = 0; i < airport->securityInspectorList->Size(); i++) {
+			if (minimumSize < 0
+					|| minimumSize > airport->securityQueues[i]->Size()) {
+				minimumSize = airport->securityQueues[i]->Size();
+				shortest = i;
 			}
+        	}
 
 			airport->securityQueues[shortest]->Append(currentPassenger);
 			//also update the queueIndex for current passenger

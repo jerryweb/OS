@@ -31,7 +31,6 @@ void Cargo::StartCargo()
             airport->cargoState[id] = C_BREAK;
             printf("Cargo Handler %d is going for a break\n", id);
             airport->conveyorLock->Release();
-            // airport->cargoCV->Wait(airport->cargoLock);
             airport->cargoDataCV[id]->Wait(airport->cargoLock[id]);
             airport->cargoState[id] = C_BUSY;
         }

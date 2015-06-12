@@ -70,7 +70,8 @@ extern void CargoTest();
 extern void ScreenTest();
 extern void InspectTest();
 extern void MTest();
-//extern void AirportSim();
+extern void AirportSim();
+extern void MainMenu();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -98,7 +99,6 @@ main(int argc, char **argv)
     
 //#ifdef THREADS
     if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
-		// printf("hey it worked\n");
 		TestSuite();
 	} 
 
@@ -144,7 +144,12 @@ main(int argc, char **argv)
     
 	if (!strcmp(*argv, "-airport"))
     {   // Runs the full airport simulation.
-		// AirportSim();
+		AirportSim();
+	}
+    
+	if (!strcmp(*argv, "-menu"))
+    {   // Runs the full airport simulation.
+		MainMenu();
 	}
 
 	
