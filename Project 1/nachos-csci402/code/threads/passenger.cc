@@ -8,6 +8,18 @@
 
 //#include "system.h"
 
+Passenger::Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST) {
+	id = ID;
+	queueIndex = qIndex;
+	airline = airlineCode;
+	airport = A;
+	ticket = T;
+	luggageList = bags;
+	airport = A;
+	securityPass = true;
+	inspectorList = INSPECTORLIST;
+}
+
 // Main constructor for the passenger. 
 Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A){
 	id = ID;

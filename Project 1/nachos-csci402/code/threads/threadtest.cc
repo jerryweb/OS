@@ -839,3 +839,67 @@ void AirportSim()
 
     // PROFIT
  }
+
+/*void checkinScreenTest() {
+	Airport* airport = new Airport(); // 3 airlines
+
+	// Create passenger shells.
+	Passenger* p0 = new Passenger(0);
+	Passenger* p1 = new Passenger(1);
+	Passenger* p2 = new Passenger(2);
+
+	// Add passengers to queues.
+	airport->checkinQueues[0]->Append(p0);
+	airport->checkinQueues[1]->Append(p1);
+	airport->checkinQueues[1]->Append(p2);
+
+	// Create CIS class.
+	CheckIn* ci = new CheckIn(0, 1, airport);
+
+	// Create thread.
+	Thread* t = new Thread("CheckIn");
+
+	// Fork thread and pass CIS class.
+	t->Fork(StartCheckInTest, (int) ci);
+
+	Airport* airport = new Airport();
+
+	//declare passenger array
+	Passenger** screenPassenger = new Passenger*[10];
+	//declare screen officer
+	ScreenOfficer* sOfficer = new ScreenOfficer(0, airport);
+
+	for (int i = 0; i < 10; i++) {
+		screenPassenger[i] = new Passenger(i, 0, airport);
+		airport->screenQueues[0]->Append(screenPassenger[i]);
+	}
+
+	//fill the security lines with dummy passengers
+	//security line 0 has size 1
+	//security line 1 has size 2
+	//security line 2 has size 3
+	Passenger** dummyPassenger = new Passenger*[6];
+	for (int i = 0; i < 6; i++) {
+		dummyPassenger[i] = new Passenger(airport);
+	}
+	airport->securityQueues[0]->Append(dummyPassenger[0]);
+	airport->securityQueues[1]->Append(dummyPassenger[1]);
+	airport->securityQueues[1]->Append(dummyPassenger[2]);
+	airport->securityQueues[2]->Append(dummyPassenger[3]);
+	airport->securityQueues[2]->Append(dummyPassenger[4]);
+	airport->securityQueues[2]->Append(dummyPassenger[5]);
+
+	//spawning all the passenger and officer threads for the test,then fork them
+	Thread** passengerThreads = new Thread*[10];
+	for (int i = 0; i < 10; i++) {
+		passengerThreads[i] = new Thread("Passenger");
+		passengerThreads[i]->Fork(StartScreeningTest,
+				(int(screenPassenger[i])));
+	}
+
+	Thread* officerThread = new Thread("Officer");
+	officerThread->Fork(StartScreening, (int(sOfficer)));
+
+
+
+}*/
