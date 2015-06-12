@@ -112,7 +112,7 @@ void CheckIn::StartCheckInStaff()
         }    
             
             printf("ID: %d awake\n", id);
-  if(airport->RequestingCheckinData[id]){
+        if(airport->RequestingCheckinData[id]){
             // talked = true;
             airport->checkinManagerLock->Acquire();
             printf("check-in staff %d is sending data.\n", id);

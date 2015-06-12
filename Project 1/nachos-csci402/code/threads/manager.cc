@@ -66,7 +66,7 @@ void Manager::MakeRounds(){
     		//liaisonDone = true;
     	//}
     	// if(!CargoDone){
-    	// 	CargoRequest(CH);
+    		CargoRequest(CH);
     	// 	CargoDone = true;
     	// }
     	// // for(int j = 0; j < 15; j++){
@@ -78,7 +78,7 @@ void Manager::MakeRounds(){
     		
     	// }
     	 //if(!CheckinDone){//} && ready){
-			CheckinDataReuqest(C);
+			//CheckinDataReuqest(C);
 			//CheckinDone = true;
 		//}
 	    	
@@ -92,35 +92,42 @@ void Manager::MakeRounds(){
 void Manager::LiaisonDataRequest(Liaison *L){
 
     //Gather data from liaisons 
-	// for(int i = 0; i < airport->numAirlines; i++){			//prevents multicounting 
- //    	liaisonPassengerCount[i] = 0;
- //    	liaisonBaggageCount[i] = 0;
- //    }
+	for(int i = 0; i < airport->numAirlines; i++){			//prevents multicounting 
+    	liaisonPassengerCount[i] = 0;
+    	liaisonBaggageCount[i] = 0;
+    }
 	for(int j = 0; j < airport->liaisonList->Size(); j++){
-
-		airport->liaisonManagerLock->Acquire();
-		
 		L = (Liaison*)airport->liaisonList->Remove();
-		printf("Getting data from Liaison %d\n", L->getID());
+		
 		airport->liaisonList->Append((void *)L);
-		airport->RequestingLiaisonData[L->getID()] = true;
+		
+		if(airport->liaisonState[j] == L_FREE){
+			airport->liaisonManagerLock->Acquire();
+			
+			L = (Liaison*)airport->liaisonList->Remove();
+			
+			airport->liaisonList->Append((void *)L);
+			airport->RequestingLiaisonData[L->getID()] = true;
+			printf("Getting data from Liaison %d\n", L->getID());
+			airport->liaisonCV[L->getID()]->Signal(airport->liaisonLock[L->getID()]);
+			
+			airport->liaisonManagerCV->Wait(airport->liaisonManagerLock);
+			//Waits for the signal of corresponding Liaison
+			airport->liaisonLock[L->getID()]->Acquire();
 
-		airport->liaisonCV[L->getID()]->Signal(airport->liaisonLock[L->getID()]);
-		airport->liaisonManagerCV->Wait(airport->liaisonManagerLock);
-		//Waits for the signal of corresponding Liaison
-		airport->liaisonLock[L->getID()]->Acquire();
-		//Records the number of passengers per airline and stores into an array
-		for(int k = 0; k < airport->numAirlines; k++){
-			// printf("num of pass per airline: %d\n", L->getPassengers(k));
-			liaisonPassengerCount[k] += L->getPassengers(k);
-			liaisonBaggageCount[k] += L->getLuggageCount(k);
-			// printf("Count for airline %d: %d\n", k, liaisonPassengerCount[k]);
-			// printf("Baggage count for airline %d: %d\n", k, liaisonBaggageCount[k]);
+			//Records the number of passengers per airline and stores into an array
+			for(int k = 0; k < airport->numAirlines; k++){
+				// printf("num of pass per airline: %d\n", L->getPassengers(k));
+				liaisonPassengerCount[k] += L->getPassengers(k);
+				liaisonBaggageCount[k] += L->getLuggageCount(k);
+				printf("Count for airline %d: %d\n", k, liaisonPassengerCount[k]);
+				printf("Baggage count for airline %d: %d\n", k, liaisonBaggageCount[k]);
+			}
+
+			//Signals liaison that all the data has been collected
+			airport->liaisonCV[L->getID()]->Signal(airport->liaisonLock[L->getID()]);
+			airport->liaisonLock[L->getID()]->Release();
 		}
-
-		//Signals liaison that all the data has been collected
-		// airport->liaisonCV[L->getID()]->Signal(airport->liaisonLock[L->getID()]);
-		airport->liaisonLock[L->getID()]->Release();
 	}
 }
 
