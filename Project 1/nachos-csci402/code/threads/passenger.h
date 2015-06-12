@@ -16,7 +16,7 @@ class SecurityInspector;
 class Passenger {
 	public:
 		//For full run
-		Passenger(int ID,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST);
+		Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST);
 		Passenger(int ID, List* bags, Ticket T, Airport* A);        // For full simulation.
 		Passenger(int ID, Ticket t, int airlineCode, Airport* a);   // For PassengerFindsCorrectCISLine (test).
 		Passenger(int ID, Ticket t);                                // For LiaisonTest.
@@ -36,8 +36,6 @@ class Passenger {
 		void findShortestLiaisonLine();
         void CheckIn(); // Drop off luggage and get boarding pass.
 
-        void IWantToFly();    //the whole thing
-
 
 		//these are the get fucntion for the passenger's ticket
 		Ticket getTicket() { return ticket; }
@@ -46,6 +44,8 @@ class Passenger {
 		//returns the id of the passenger
 		int getID(){ return id; }
 
+		//Luggage getLuggage(){ return *luggageList; }
+				//void SetScreenPass(bool pnp);
 
 		/*******For screening and Security**************/
 		void Screening();

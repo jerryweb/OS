@@ -207,18 +207,21 @@ void ManagerTest() {
 	List* LiaisonThreadArray = new List();
 	List* CheckInStaffThreadArray = new List();
 	List* CargoHandlerTreadArray = new List();
+	List* SecurityInspectorThreadArray = new List();
+	List* ScreenOfficerThreadArray = new List();
 
-	Thread** ScreenOfficerThreadArray = new Thread*[3];
-	Thread** SecurityInspectorThreadArray = new Thread*[3];
+
+	// Thread** ScreenOfficerThreadArray = new Thread*[3];
+	// Thread** SecurityInspectorThreadArray = new Thread*[3];
 
 	//s&s************************************************
-	ScreenOfficer** sOfficers = new ScreenOfficer*[3];
-	SecurityInspector** sInspectors = new SecurityInspector*[3];
+	// ScreenOfficer** sOfficers = new ScreenOfficer*[3];
+	// SecurityInspector** sInspectors = new SecurityInspector*[3];
 
-	for (int i=0;i<3;i++) {
-		sOfficers[i] = new ScreenOfficer(i,airport);
-		sInspectors[i] = new SecurityInspector(i,airport);
-	}
+	// for (int i=0;i<3;i++) {
+	// 	sOfficers[i] = new ScreenOfficer(i,airport);
+	// 	sInspectors[i] = new SecurityInspector(i,airport);
+	// }
 
 
 
@@ -277,6 +280,13 @@ void ManagerTest() {
 		CargoHandlerTreadArray->Append((void *) tCH);
 	}
 
+	for(int s = 0; s < 3; s++){
+		ScreenOfficer* SO = new ScreenOfficer(s, airport);
+		airport->screeningOfficerList->Append((void *)SO);
+		Thread* tSO = new Thread("Screening Officer");
+		ScreenOfficerThreadArray->Append((void *)tSO);
+	}
+
 	//Generates an Airport Manager
 	Manager* manager = new Manager(airport);
 
@@ -314,7 +324,7 @@ void ManagerTest() {
 		tCIS->Fork(StartCheckInStaff, (int(CIS)));
 	}
 
-	/*Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
+	//Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
 	for (int m = CargoHandlerTreadArray->Size(); m > 0; m--) {
 		Cargo *CH = (Cargo*) airport->cargoHandlerList->First();
 		airport->cargoHandlerList->Remove();
@@ -322,7 +332,14 @@ void ManagerTest() {
 		Thread *tCH = (Thread*) CargoHandlerTreadArray->First();
 		CargoHandlerTreadArray->Remove();
 		tCH->Fork(StartCargo, (int(CH)));
-	}*/
+	}
+
+	for(int p = ScreenOfficerThreadArray->Size(); p > 0; p--){
+		ScreenOfficer *SO = (ScreenOfficer*)airport->screeningOfficerList->Remove();
+		airport->screeningOfficerList->Append((void *)SO);
+		Thread* tSO = (Thread*)screeningOfficerList->Remove();
+		tSO->Fork(StartScreening,(int(SO)));	
+	}
 
 	/*Fork all ScreenOfficer and SecurityInspector
 	for (int i=0;i<3;i++) {

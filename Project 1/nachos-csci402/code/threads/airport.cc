@@ -111,6 +111,8 @@ Airport::Airport()
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
 
+    securityLineLock = new Lock("securityLineLock")
+
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
 
@@ -137,13 +139,14 @@ Airport::Airport()
 	for (i = 0; i < 3; i++) {
 		screenLocks[i] = new Lock("screenLocks");
 		securityLocks[i] = new Lock("securityLocks");
-
+        screenState[i] = SO_BUSY;   // Array of states for each liaison.
 		screenQueues[i] = new List;
 		securityQueues[i] = new List;
 		returnQueues[i] = new List;
 
 		passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
 		officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
+        screenlineCV[i] = new Condition("screenlineCV");
 		inspectorWaitRePassengerCV[i] = new Condition(
 				"inspectorWaitRePassengerCV");
 		rePassengerWaitInspectorCV[i] = new Condition(
@@ -266,6 +269,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 	inspectorWaitPassengerCV = new Condition*[security];
 	passengerWaitInspectorCV = new Condition*[security];
 	for (i = 0; i < security; i++) {
+
 		screenQueues[i] = new List;
 		securityQueues[i] = new List;
 		returnQueues[i] = new List;
