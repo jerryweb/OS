@@ -878,7 +878,7 @@ void AirportSim()
 void MainMenu()
 {
     int choice = -1;
-    while (choice < 0 || choice > 11)
+    while (choice < 0 || choice > 12)
     {
         printf("CHOOSE ONE (PLEASE ONLY ENTER A NUMBER):\n");
         printf("0:  Lock and CV test code.\n");
@@ -895,7 +895,7 @@ void MainMenu()
         printf("11: Hardcoded airport simulation.\n");
         printf("12: Full airport simulation.\n");
     
-        cin >> liaisons;
+        cin >> choice;
     }
     switch (choice)
     {
@@ -912,4 +912,5 @@ void MainMenu()
         case 10: MTest();                               break;
         case 11: ManagerTest();                         break;
         case 12: AirportSim();                          break;
+    }
 }
