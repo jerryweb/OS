@@ -38,6 +38,7 @@ Airport::Airport()
     // Check-in variables
     
     int numCheckin = numAirlines * 6;
+    finalCheckin = new bool[numCheckin];
     RequestingCheckinData= new bool[numCheckin];
     checkInStaffList = new List();
     checkinQueues = new List*[numCheckin];
@@ -57,10 +58,11 @@ Airport::Airport()
     {
         checkinQueues[i] = new List();
         checkinLock[i] = new Lock("checkinLock");
-        checkinLineCV[i] = new Condition("checkinCV");
+        checkinLineCV[i] = new Condition("checkinLineCV");
         checkinBreakCV[i] = new Condition("checkinBreakCV");
         checkinCV[i] = new Condition("checkinCV");
         checkinState[i] = CI_BUSY;
+        finalCheckin[i] = false;
         RequestingCheckinData[i] = false;
     }
 
@@ -78,6 +80,7 @@ Airport::Airport()
         cargoDataCV[i] = new Condition("cargoDataCV");
         cargoManagerCV[i] = new Condition("cargoManagerCV");
         cargoDataLock[i] = new Lock("cargoDataLock");
+        RequestingCargoData[i] = false;
     }
     aircraft = new List*[numAirlines];
     for (i = 0; i < numAirlines; i++)

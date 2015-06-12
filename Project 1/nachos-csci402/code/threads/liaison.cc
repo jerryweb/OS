@@ -136,10 +136,10 @@ void Liaison::DirectPassengers(){
             airport->liaisonManagerLock->Release();
             airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
             
-            //Wait for manager to signal that all the data has been collected
-            airport->liaisonLock[id]->Acquire();
-            printf("liaison %d has finished reporting data to manager.\n", id);
-            airport->liaisonLock[id]->Release();
+            // //Wait for manager to signal that all the data has been collected
+            // airport->liaisonLock[id]->Acquire();
+            // printf("liaison %d has finished reporting data to manager.\n", id);
+            // airport->liaisonLock[id]->Release();
             airport->RequestingLiaisonData[id] = false;
          }
     }

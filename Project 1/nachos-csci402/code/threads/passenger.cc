@@ -251,7 +251,7 @@ void Passenger::CheckIn()
         airport->checkinQueues[checkInLine]->Append((void *)this);
         airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
     // }
-    
+    airport->checkinLineLock[airline]->Acquire();
     printf("Passenger %d of Airline %d was informed to board at gate %d\n",
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();

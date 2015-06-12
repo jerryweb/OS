@@ -53,6 +53,7 @@ public:
 	LiaisonState liaisonState[7];   // Array of states for each liaison.
 									//  Index corresponds to ID.
 	// Check-in variables
+    bool* finalCheckin;
 	List** checkinQueues;           // Array of check-in queues (list of
 									//  Passengers). Index corresponds
 									//  to check-in staff ID. The executive

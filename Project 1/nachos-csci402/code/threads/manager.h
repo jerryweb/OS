@@ -35,6 +35,7 @@ class Manager {
         int* liaisonPassengerCount;	
         int* checkinPassengerCount;
         int* securityInspectorPassengerCount;
+
 };
 
 #endif
