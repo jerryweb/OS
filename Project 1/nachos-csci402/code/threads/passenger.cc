@@ -124,10 +124,10 @@ void Passenger::findShortestLiaisonLine(){
 		
 		printf("Passenger %d chose liaison %d with a line length of %d\n", 
 			getID(), myLine, airport->liaisonQueues[myLine]->Size());
-
+		airport->liaisonQueues[myLine]->Append((void *)this);
 		if(airport->liaisonState[myLine] == L_BUSY){						// If the liaison is busy
 			//Wait in line
-			airport->liaisonQueues[myLine]->Append((void *)this);			// add passenger to queue
+						// add passenger to queue
 			//printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
 			airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock);
 		}

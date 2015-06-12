@@ -102,14 +102,17 @@ void Liaison::DirectPassengers(){
         p = CheckForPassengers();
 
         airport->liaisonLock[id]->Acquire();
-        airport->liaisonLineLock->Release();
-        airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-        //Wait for passenger to give liaison information
-        airport->liaisonLock[id]->Acquire();
-
-        // This adds the statistics for # of passengers and weight of bags for each
-        // of the airlines
+        // printf("liaisonLock %d looked for passengers\n",id );
         if(p != NULL){
+            // printf("lia %d in p if statement\n", id);
+            airport->liaisonLineLock->Release();
+            airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+            //Wait for passenger to give liaison information
+            airport->liaisonLock[id]->Acquire();
+
+            // This adds the statistics for # of passengers and weight of bags for each
+            // of the airlines
+        
             passengers[p->getTicket().airline]++;
            
             List *bags = p->getLuggage();                       //Temp list for iterating through luggage
@@ -121,26 +124,36 @@ void Liaison::DirectPassengers(){
                 // bags->Append((void *)l);                 //Prevent destruction of local bags list         
                 luggageCount[p->getTicket().airline]++;
             }
+            airport->liaisonLock[id]->Release();
         }
-        airport->liaisonLock[id]->Release();
 
-    //Interaction With Manager
-        //Recieve from Manager
+        else{
+                airport->liaisonLineLock->Release();
+                // printf("Sleep liaison %d\n", id);
+                airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+         
+        } 
+        // printf("liasion %d about to try and send \n", id);
         if(airport->RequestingLiaisonData[id]){     //prevent race conditions with other liaisons
-            airport->liaisonManagerLock->Acquire();
-            printf("liaison %d is sending data.\n", id);
-           
-            //Give manager data
-            airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
-            airport->liaisonLock[id]->Acquire();
-            airport->liaisonManagerLock->Release();
-            airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-            
-            // //Wait for manager to signal that all the data has been collected
-            // airport->liaisonLock[id]->Acquire();
-            // printf("liaison %d has finished reporting data to manager.\n", id);
-            // airport->liaisonLock[id]->Release();
-            airport->RequestingLiaisonData[id] = false;
-         }
+               
+                airport->liaisonManagerLock->Acquire();
+                printf("liaison %d is sending data.\n", id);
+               
+                //Give manager data
+                airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
+                airport->liaisonLock[id]->Acquire();
+                airport->liaisonManagerLock->Release();
+                airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+                
+                // //Wait for manager to signal that all the data has been collected
+                airport->liaisonLock[id]->Acquire();
+                printf("liaison %d has finished reporting data to manager.\n", id);
+                airport->liaisonLock[id]->Release();
+                airport->RequestingLiaisonData[id] = false;
+        }
+
+        //Interaction With Manager
+        //Recieve from Manager
+        
     }
 }
