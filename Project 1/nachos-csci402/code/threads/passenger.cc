@@ -253,4 +253,5 @@ void Passenger::CheckIn()
     printf("Passenger %d of Airline %d was informed to board at gate %d\n",
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
+    
 }

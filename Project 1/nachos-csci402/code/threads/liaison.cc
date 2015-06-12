@@ -140,8 +140,9 @@ void Liaison::DirectPassengers(){
                 printf("liaison %d is sending data.\n", id);
                
                 //Give manager data
-                airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
+                
                 airport->liaisonLock[id]->Acquire();
+                airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
                 airport->liaisonManagerLock->Release();
                 airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
                 
