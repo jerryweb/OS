@@ -257,7 +257,6 @@ void ManagerTest() {
 
 	//Display initial airport data
 	StartupOutput(airport);
-	cout << "fuck" << endl;
 
 	//Fork all of the Passenger Threads from the array of passenger threads
 	for (int i = PassengerThreadArray->Size(); i > 0; i--) {
@@ -300,7 +299,7 @@ void ManagerTest() {
 	}
 
 	Thread* tM = new Thread("Manager");
-	tM->Fork(StartManager, (int) manager);
+	tM->Fork(StartManager, (int) manager);  //call MakeRounds()
 }
 
 //----------------------------------------------------------------------

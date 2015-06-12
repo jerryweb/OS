@@ -260,7 +260,7 @@ void Passenger::CheckIn()
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
 
-    /*add passengers to screening line
+    //add passengers to screening line
     airport->screenQueuesLock->Acquire();
 
 	int shortest = 0;		//shortest line's id
@@ -276,5 +276,5 @@ void Passenger::CheckIn()
 	}
 	airport->screenQueues[shortest]->Append(this);
 	SetQueueIndex(shortest);
-	airport->screenLocks[shortest]->Release();*/
+	airport->screenLocks[shortest]->Release();
 }
