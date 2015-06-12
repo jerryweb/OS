@@ -295,7 +295,7 @@ void Passenger::CheckIn() {
 	airport->screenQueues[shortest]->Append(this);
 	airport->screenQueuesLock->Release();
 
-	//Screening();
+	Screening();
 }
 
 void Passenger::IWantToFly() {
