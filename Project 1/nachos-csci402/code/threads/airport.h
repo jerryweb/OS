@@ -158,6 +158,10 @@ public:
 											 //and returnQueue is empty but still passenger being questioned
 											 //index corresponds to inspector id
 
+	Condition** liaWaitPassengerCV;
+	Condition** passengerWaitLiaCV;
+	Lock* checkinQueuesLock;
+
 	//  Manager variables
 	//Conditon to allow manager to gather data
 

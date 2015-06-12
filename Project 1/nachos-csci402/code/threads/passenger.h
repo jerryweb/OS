@@ -36,6 +36,8 @@ class Passenger {
 		void findShortestLiaisonLine();
         void CheckIn(); // Drop off luggage and get boarding pass.
 
+        void IWantToFly();    //the whole thing
+
 
 		//these are the get fucntion for the passenger's ticket
 		Ticket getTicket() { return ticket; }
