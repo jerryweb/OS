@@ -47,45 +47,47 @@ void ScreenOfficer::Screen() {
 			airport->screenQueues[myLine]->Remove();
 			airport->screenQueuesLock->Release();
 			//ending C.S.(2) to remove passenger from current line
-		}
+			//}
 
-		//starting C.S.(3) to find shortest security line and append
-		airport->securityQueuesLock->Acquire();
+			//starting C.S.(3) to find shortest security line and append
+			airport->securityQueuesLock->Acquire();
 
-		int shortest = 0;		//shortest line's id
-		int minimumSize = -1;		//for comparsion in the following loop
+			int shortest = 0;		//shortest line's id
+			int minimumSize = -1;		//for comparsion in the following loop
 
-		//find the shortest line
-		for (int i = 0; i < airport->securityInspectorList->Size(); i++) {
-			if (minimumSize < 0
-					|| minimumSize > airport->securityQueues[i]->Size()) {
-				minimumSize = airport->securityQueues[i]->Size();
-				shortest = i;
+			//find the shortest line
+			for (int i = 0; i < 3; i++) {
+				if (minimumSize < 0
+						|| minimumSize > airport->securityQueues[i]->Size()) {
+					minimumSize = airport->securityQueues[i]->Size();
+					shortest = i;
+				}
 			}
+
+			airport->securityQueues[shortest]->Append(currentPassenger);
+			//also update the queueIndex for current passenger
+			currentPassenger->SetQueueIndex(shortest);
+
+			airport->securityQueuesLock->Release();
+			//ending C.S.(3)
+
+			//signal the passenger
+			airport->passengerWaitOfficerCV[myLine]->Signal(
+					airport->screenLocks[myLine]);
+			airport->screenLocks[myLine]->Release();
+
+			//wait for passenger thread
+			airport->screenLocks[myLine]->Acquire();
+			airport->officerWaitPassengerCV[myLine]->Wait(
+					airport->screenLocks[myLine]);
+			//ending C.S.(1)
+
+			//airport->screenLocks[myLine]->Acquire();
+			//Assuming the index in securityQueues array is the same as security inspector's id
+			printf(
+					"Screening officer %d directs passenger %d to security inspector %d\n",
+					id, currentPassenger->getID(), shortest);
+			//airport->screenLocks[myLine]->Release();
 		}
-
-		airport->securityQueues[shortest]->Append(currentPassenger);
-		//also update the queueIndex for current passenger
-		currentPassenger->SetQueueIndex(shortest);
-
-		airport->securityQueuesLock->Release();
-		//ending C.S.(3)
-
-		//signal the passenger
-		airport->passengerWaitOfficerCV[myLine]->Signal(airport->screenLocks[myLine]);
-		//printf("SO Release 77\n");
-		airport->screenLocks[myLine]->Release();
-
-		//wait for passenger thread
-		airport->screenLocks[myLine]->Acquire();
-		airport->officerWaitPassengerCV[myLine]->Wait(airport->screenLocks[myLine]);
-		//ending C.S.(1)
-
-		//airport->screenLocks[myLine]->Acquire();
-		//Assuming the index in securityQueues array is the same as security inspector's id
-		printf(
-				"Screening officer %d directs passenger %d to security inspector %d\n",
-				id, currentPassenger->getID(), shortest);
-		//airport->screenLocks[myLine]->Release();
 	}
 }

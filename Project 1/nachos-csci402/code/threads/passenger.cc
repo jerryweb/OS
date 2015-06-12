@@ -8,6 +8,18 @@
 
 //#include "system.h"
 
+Passenger::Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST) {
+	id = ID;
+	queueIndex = qIndex;
+	airline = airlineCode;
+	airport = A;
+	ticket = T;
+	luggageList = bags;
+	airport = A;
+	securityPass = true;
+	inspectorList = INSPECTORLIST;
+}
+
 // Main constructor for the passenger. 
 Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A){
 	id = ID;
@@ -248,4 +260,21 @@ void Passenger::CheckIn()
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
 
+    /*add passengers to screening line
+    airport->screenQueuesLock->Acquire();
+
+	int shortest = 0;		//shortest line's id
+	int minimumSize = -1;		//for comparsion in the following loop
+
+	//find the shortest line
+	for (int i = 0; i < 3; i++) {
+		if (minimumSize < 0
+				|| minimumSize > airport->screenQueues[i]->Size()) {
+			minimumSize = airport->securityQueues[i]->Size();
+			shortest = i;
+		}
+	}
+	airport->screenQueues[shortest]->Append(this);
+	SetQueueIndex(shortest);
+	airport->screenLocks[shortest]->Release();*/
 }

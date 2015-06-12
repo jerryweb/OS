@@ -136,10 +136,14 @@ void StartupOutput(Airport* airport) {
 			airport->checkInStaffList->Size());
 	printf("Number of cargo handlers = %d\n",
 			airport->cargoHandlerList->Size());
-	printf("Number of screening officers = %d\n", screeningOfficerList->Size());
+	printf("Number of screening officers = %d\n", airport->screeningOfficerList->Size());
 	printf("Total number of passengers = %d\n", airport->passengerList->Size());
 
-	int passengersPerAirline[numAirlines] = {0};
+	int* passengersPerAirline = new int[airport->numAirlines];
+    for (int i = 0; i < airport->numAirlines; i++)
+    {
+        passengersPerAirline[i] = 0;
+    }
 	//Static counter for number of passengers per airline for 3 airlines
 	for (int i = 0; i < airport->passengerList->Size(); i++) {
 		Passenger *P = (Passenger*) airport->passengerList->Remove();
@@ -694,20 +698,29 @@ void AirportSim()
     // Menu asking for numbers:
     printf("WELCOME TO AIRPORT SIMULATOR");
     while (airlines < 3 && airlines > 6)
-    {   // 3-6 airlines (arbitrary upper limit)
+    {   // 3-6 airlines (arbitrary upper limit).
         printf("Please enter the number of airlines (3-6): ");
     }
-    while (airlines < 3 && airlines > 6)
-    {   // 3-6 airlines (arbitrary upper limit)
-        printf("Please enter the number of airlines (3-6): ");
+    while (liaisons < 5 && liaisons > 7)
+    {   // 5-7 liaisons.
+        printf("Please enter the number of liaisons (5-7): ");
     }
-    // MENU ASKING FOR NUMBERS:
-    //  - >=3 AIRLINES
-    //  - 5-7 LIAISONS
-    //  - 3-5 CHECK-IN / AIRLINE (all equal)
-    //  - 6-10 CARGO
-    //  - # SCREENERS/SECURITY
-    //  - # PASSENGERS
+    while (checkins < 3 && checkins > 5)
+    {   // 3-5 check-in staff per airline.
+        printf("Please enter the number of check-in staff per airline (3-5): ");
+    }
+    while (cargos < 6 && cargos > 10)
+    {   // 6-10 cargo handlers.
+        printf("Please enter the number of cargo handlers (6-10): ");
+    }
+    while (security < 1 && security > 10)
+    {   // 1-10 screeners/inspectors (arbitrary limits).
+        printf("Please enter the number of screening officers and security inspectors (1-10): ");
+    }
+    while (passengers < 20 && passengers > 100)
+    {   // 20-100 passengers (arbitrary upper limit).
+        printf("Please enter the number of passengers (20-100): ");
+    }
     
     // Create a new airport using given numbers.
     Airport* airport = new Airport(airlines, passengers, liaisons, checkins, security, cargos);
@@ -718,14 +731,15 @@ void AirportSim()
 	for (i = 0; i < passengers; i++)
     {
         Ticket ticket;
-        ticket->airline = rand() % airlines;
-        ticket->exec = (bool) rand() % 2;
+        int airline = rand() % airlines;
+        ticket.airline = airline;
+        ticket.executive = (bool) rand() % 2;
         int numBags = rand() % 2 + 2;
         List* bags = new List();
         for (int j = 0; j < numBags; j++)
         {
             Luggage* l = new Luggage;
-            l->airline = -1;
+            l->airlineCode = -1;
             l->weight = rand() % 30 + 30;
             bags->Append((void*) l);
         }
@@ -826,3 +840,112 @@ void AirportSim()
 
     // PROFIT
  }
+
+/*void checkinScreenTest() {
+
+	Airport* airport = new Airport();
+
+
+	Passenger** tPassenger = new Passenger*[5];
+	for (int i = 0; i < 5; i++) {
+		tPassenger[i] = new Passenger(i, 0, airport);
+
+	}
+
+	airport->checkinQueues[0]->Append(tPassenger[0]);
+	airport->checkinQueues[0]->Append(tPassenger[1]);
+	airport->checkinQueues[0]->Append(tPassenger[2]);
+	airport->checkinQueues[1]->Append(tPassenger[3]);
+	airport->checkinQueues[1]->Append(tPassenger[4]);
+
+	Passenger** dummyPassenger = new Passenger*[6];
+	for (int i = 0; i < 6; i++) {
+		dummyPassenger[i] = new Passenger(airport);
+	}
+	airport->securityQueues[0]->Append(dummyPassenger[0]);
+	airport->securityQueues[1]->Append(dummyPassenger[1]);
+	airport->securityQueues[1]->Append(dummyPassenger[2]);
+	airport->securityQueues[2]->Append(dummyPassenger[3]);
+	airport->securityQueues[2]->Append(dummyPassenger[4]);
+	airport->securityQueues[2]->Append(dummyPassenger[5]);
+
+	CheckIn** ckIn = new CheckIn*[2];
+	ckIn[0] = new CheckIn(0,0,airport);
+	ckIn[1] = new CheckIn(1,1,airport);
+
+	//declare screen officer
+	ScreenOfficer** sOfficer = new ScreenOfficer*[3];
+	for (int i=0;i<3;i++) {
+		sOfficer[i] = new ScreenOfficer(i,airport);
+	}
+
+	Thread** passengerThreads = new Thread*[5];
+	for (int i = 0; i < 5; i++) {
+		passengerThreads[i] = new Thread("Passenger");
+		passengerThreads[i]->Fork(StartScreeningTest,
+				(int(tPassenger[i])));
+	}
+
+
+
+
+	Airport* airport = new Airport(); //****************************************************
+
+	// Create passenger shells.
+	Passenger* p0 = new Passenger(0);
+	Passenger* p1 = new Passenger(1);
+	Passenger* p2 = new Passenger(2);
+
+	// Add passengers to queues.
+	airport->checkinQueues[0]->Append(p0);
+	airport->checkinQueues[1]->Append(p1);
+	airport->checkinQueues[1]->Append(p2);
+
+	// Create CIS class.
+	CheckIn* ci = new CheckIn(0, 1, airport);
+
+	// Create thread.
+	Thread* t = new Thread("CheckIn");
+
+	// Fork thread and pass CIS class.
+	t->Fork(StartCheckInTest, (int) ci);
+
+	Airport* airport = new Airport();      //**************************************
+
+	//declare passenger array
+	Passenger** screenPassenger = new Passenger*[10];
+	//declare screen officer
+	ScreenOfficer* sOfficer = new ScreenOfficer(0, airport);
+
+	for (int i = 0; i < 10; i++) {
+		screenPassenger[i] = new Passenger(i, 0, airport);
+		airport->screenQueues[0]->Append(screenPassenger[i]);
+	}
+
+	//fill the security lines with dummy passengers
+	//security line 0 has size 1
+	//security line 1 has size 2
+	//security line 2 has size 3
+	Passenger** dummyPassenger = new Passenger*[6];
+	for (int i = 0; i < 6; i++) {
+		dummyPassenger[i] = new Passenger(airport);
+	}
+	airport->securityQueues[0]->Append(dummyPassenger[0]);
+	airport->securityQueues[1]->Append(dummyPassenger[1]);
+	airport->securityQueues[1]->Append(dummyPassenger[2]);
+	airport->securityQueues[2]->Append(dummyPassenger[3]);
+	airport->securityQueues[2]->Append(dummyPassenger[4]);
+	airport->securityQueues[2]->Append(dummyPassenger[5]);
+
+	//spawning all the passenger and officer threads for the test,then fork them
+	Thread** passengerThreads = new Thread*[10];
+	for (int i = 0; i < 10; i++) {
+		passengerThreads[i] = new Thread("Passenger");
+		passengerThreads[i]->Fork(StartScreeningTest,
+				(int(screenPassenger[i])));
+	}
+
+	Thread* officerThread = new Thread("Officer");
+	officerThread->Fork(StartScreening, (int(sOfficer)));
+
+}*/
