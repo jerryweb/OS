@@ -27,12 +27,12 @@ void Cargo::StartCargo()
         airport->conveyorLock->Acquire();
         if(airport->conveyor->IsEmpty())
         {   // Conveyor is empty, go on break (sleep).
-            airport->cargoLock->Acquire();
+            airport->cargoLock[id]->Acquire();
             airport->cargoState[id] = C_BREAK;
             printf("Cargo Handler %d is going for a break\n", id);
             airport->conveyorLock->Release();
             // airport->cargoCV->Wait(airport->cargoLock);
-            airport->cargoDataCV[id]->Wait(airport->cargoLock);
+            airport->cargoDataCV[id]->Wait(airport->cargoLock[id]);
             airport->cargoState[id] = C_BUSY;
         }
         else
@@ -46,12 +46,12 @@ void Cargo::StartCargo()
             airport->conveyorLock->Release();
         }
         if(airport->RequestingCargoData[id]){
-           
             airport->CargoHandlerManagerLock->Acquire();
-
             //Give manager data
-            airport->cargoManagerCV[id]->Signal(airport->CargoHandlerManagerLock);
+           
             airport->cargoDataLock[id]->Acquire();
+            airport->cargoManagerCV[id]->Signal(airport->CargoHandlerManagerLock);
+
             airport->CargoHandlerManagerLock->Release();
             printf("Cargo Handler %d is sending data.\n", id);
             airport->cargoDataCV[id]->Wait(airport->cargoDataLock[id]);
@@ -62,5 +62,6 @@ void Cargo::StartCargo()
             airport->cargoDataLock[id]->Release();
             airport->RequestingCargoData[id] = false;
         }
+        printf("Cargo %d end loop\n", id);
     }
 }

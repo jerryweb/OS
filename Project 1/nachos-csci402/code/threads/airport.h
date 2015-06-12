@@ -90,7 +90,7 @@ public:
 									   //  Index corresponds to ID.
 
 	Condition* cargoManagerCV[10]; // Array of CVs for each cargo handler interaction
-	Lock* cargoLock;                // Lock for cargo handler break.
+	Lock* cargoLock[10];                // Lock for cargo handler break.
 	Lock* cargoDataLock[10];
 	CargoState cargoState[10];      // Array of states for each cargo
 									//  handler. Index corresponds to ID.
