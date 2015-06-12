@@ -13,18 +13,12 @@
 Passenger::Passenger(int ID, List* bags, Ticket T, Airport* A){
 	id = ID;
 	airport = A;
-	
-	// for(int i =0; i < 7; i++)
-	// 	liaisons[i] = airport->liaisonQueues[i];
-
-	// for(int i =0; i < 5; i++)
-	// 	checkInStaffList[i] = airport->checkInStaffList[i];
 
 	luggageList = bags;
 
 	ticket = T;
 	securityPass = true;
-	//boardingPass = NULL;
+	airline = -1;
 }
 // Limited constructors for tests
 Passenger::Passenger() {}

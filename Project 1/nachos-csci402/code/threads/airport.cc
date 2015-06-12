@@ -3,7 +3,6 @@
 Airport::Airport()
 {
     int i;
-    // TODO: add everything and non-hardcode it
     
     // General variables
     numAirlines = 3;
@@ -162,6 +161,133 @@ Airport::Airport()
 		lastCV[i] = new Condition("lastCV");
 	}
 
+}
+
+Airport::Airport(int airlines, int passengers, int liaisons, int checkins, int security, int cargo)
+{
+    int i;
+    
+    // General variables
+    numAirlines = airlines;
+    airlines = new Airline*[numAirlines];
+    airlineLock = new Lock*[numAirlines];
+    
+    for (i = 0; i < numAirlines; i++)
+    {
+        airlines[i] = new Airline(i, 0, 0);
+        airlineLock[i] = new Lock("airlineLock");
+    }
+    
+    //Passenger variables
+    passengerList = new List();
+
+    // Liaison variables
+    RequestingLiaisonData = new bool[7];
+    liaisonQueues = new List*[liaisons];
+    liaisonManagerLock = new Lock("liaisonManagerLock");
+    liaisonLineLock = new Lock("liaisonLineLock");
+    liaisonManagerCV = new Condition("liaisonManagerCV");
+    liaisonList = new List(); 
+    for (i = 0; i < 7; i++)
+    {
+        liaisonQueues[i] = new List();
+        liaisonLineCV[i] = new Condition("liaisonLineCV");
+        RequestingLiaisonData[i] = false;
+        liaisonCV[i] = new Condition("liaisonCV");
+        liaisonLock[i] = new Lock("liaisonLock");
+        if (i >= liaisons) liaisonState[i] = L_NONE;
+        else liaisonState[i] = L_BUSY;
+    }
+
+    // Check-in variables
+    
+    int numCheckin = numAirlines * 6;
+    finalCheckin = new bool[numCheckin];
+    RequestingCheckinData= new bool[numCheckin];
+    checkInStaffList = new List();
+    checkinQueues = new List*[numCheckin];
+    checkinLineLock = new Lock*[numAirlines];
+    checkinLock = new Lock*[numCheckin];
+    checkinLineCV = new Condition*[numCheckin];
+    checkinCV = new Condition*[numCheckin];
+    checkinBreakCV = new Condition*[numCheckin];
+    checkinState = new CheckinState[numCheckin];
+    checkinManagerLock = new Lock("checkinManagerLock");
+    checkinManagerCV = new Condition("checkinManagerCV");
+    for (i = 0; i < numAirlines; i++)
+    {
+        checkinLineLock[i] = new Lock("checkinLineLock");
+    }
+    for (i = 0; i < numCheckin; i++)
+    {
+        checkinQueues[i] = new List();
+        checkinLock[i] = new Lock("checkinLock");
+        checkinLineCV[i] = new Condition("checkinLineCV");
+        checkinBreakCV[i] = new Condition("checkinBreakCV");
+        checkinCV[i] = new Condition("checkinCV");
+        if (i >= checkins) checkinState[i] = CI_NONE;
+        else checkinState[i] = CI_BUSY;
+        finalCheckin[i] = false;
+        RequestingCheckinData[i] = false;
+    }
+
+    // Cargo variables
+    RequestingCargoData = new bool[10];
+    cargoHandlerList = new List();
+    conveyor = new List();
+    conveyorLock = new Lock("conveyorLock");
+    CargoHandlerManagerLock = new Lock("CargoHandlerManagerLock");
+    cargoCV = new Condition("cargoCV");
+    cargoLock = new Lock("cargoLock");
+    for (i = 0; i < 10; i++)
+    {
+        if (i >= cargos) cargoState[i] = C_NONE;
+        else cargoState[i] = C_BUSY;
+        cargoDataCV[i] = new Condition("cargoDataCV");
+        cargoManagerCV[i] = new Condition("cargoManagerCV");
+        cargoDataLock[i] = new Lock("cargoDataLock");
+        RequestingCargoData[i] = false;
+    }
+    aircraft = new List*[numAirlines];
+    for (i = 0; i < numAirlines; i++)
+    {
+        aircraft[i] = new List();
+    }
+
+	//Screen & Security Variables
+    screeningOfficerList = new List();
+    securityInspectorList = new List();
+	screenQueuesLock = new Lock("screenQueuesLock");
+	securityQueuesLock = new Lock("securityQueuesLock");
+	updateClearCount = new Lock("updateClearCount");
+	screenQueues = new List*[security];
+	securityQueues = new List*[security];
+	returnQueues = new List*[security];
+	screenLocks = new Lock*[security];
+	passengerWaitOfficerCV = new Condition*[security];
+	officerWaitPassengerCV = new Condition*[security];
+	securityLocks = new Lock*[security];
+	inspectorWaitRePassengerCV = new Condition*[security];
+	rePassengerWaitInspectorCV = new Condition*[security];
+	inspectorWaitPassengerCV = new Condition*[security];
+	passengerWaitInspectorCV = new Condition*[security];
+	appendReturnLineCV = new Condition*[security];
+	lastCV = new Condition*[security];
+	for (i = 0; i < security; i++) {
+		screenQueues[i] = new List;
+		securityQueues[i] = new List;
+		returnQueues[i] = new List;
+		screenLocks[i] = new Lock("screenLocks");
+		passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
+		officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
+		securityLocks[i] = new Lock("securityLocks");
+		inspectorWaitRePassengerCV[i] = new Condition("inspectorWaitRePassengerCV");
+		rePassengerWaitInspectorCV[i] = new Condition("rePassengerWaitInspectorCV");
+		inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
+		passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
+		appendReturnLineCV[i] = new Condition("appendReturnLineCV");
+		lastCV[i] = new Condition("lastCV");
+	}
 }
 
 Airport::~Airport() {

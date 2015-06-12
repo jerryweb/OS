@@ -15,6 +15,7 @@ class Airport {
 public:
 	// TODO: add constructor and destructor.
 	Airport();
+	Airport(int airlines, int passengers, int liaisons, int checkins, int security, int cargo);
 	~Airport();
 	// TODO: change to condition variables
 	int numAirlines;                // Number of airlines.

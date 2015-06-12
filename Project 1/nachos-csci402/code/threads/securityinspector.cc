@@ -9,11 +9,10 @@ SecurityInspector::SecurityInspector(int ID, Airport* AIRPORT) {
 	airport = AIRPORT;
 	hasReturned = false;
 	returnPassenger = NULL;
-	passengerCount = new int[3];
-	for (int i = 0; i < 3; i++) {
+	passengerCount = new int[airport->numAirlines];
+	for (int i = 0; i < airport->numAirlines; i++) {
 		passengerCount[i] = 0;
 	}
-	airport->securityInspectorList->Append(this);
 }
 
 SecurityInspector::~SecurityInspector() {

@@ -11,12 +11,15 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "stdlib.h"
 #include "liaison.h"
 #include "checkin.h"
 #include "cargo.h"
 #include "manager.h"
 #include "screenofficer.h"
 #include "securityinspector.h"
+
+using namespace std;
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -136,23 +139,16 @@ void StartupOutput(Airport* airport) {
 			airport->checkInStaffList->Size());
 	printf("Number of cargo handlers = %d\n",
 			airport->cargoHandlerList->Size());
-	//printf("Number of screening officers = %d\n", screeningOfficersList.Size());
+	printf("Number of screening officers = %d\n", screeningOfficerList->Size());
 	printf("Total number of passengers = %d\n", airport->passengerList->Size());
 
-	int passengersPerAirline[3] = { 0, 0, 0 };
+	int passengersPerAirline[numAirlines] = {0};
 	//Static counter for number of passengers per airline for 3 airlines
 	for (int i = 0; i < airport->passengerList->Size(); i++) {
-		Passenger *P = (Passenger*) airport->passengerList->First();
-		airport->passengerList->Remove();
+		Passenger *P = (Passenger*) airport->passengerList->Remove();
 		airport->passengerList->Append((void *) P);
 
-		if (P->getTicket().airline == 0) {
-			passengersPerAirline[0]++;
-		} else if (P->getTicket().airline == 1) {
-			passengersPerAirline[1]++;
-		} else if (P->getTicket().airline == 2) {
-			passengersPerAirline[2]++;
-		}
+        passengersPerAirline[P->getTicket().airline];
 	}
 
 	for (int h = 0; h < airport->numAirlines; h++) {
@@ -162,32 +158,27 @@ void StartupOutput(Airport* airport) {
 
 	//This prints out the number bags and their weights for each passenger 
 	for (int i = 0; i < airport->passengerList->Size(); i++) {
-		Passenger *P = (Passenger*) airport->passengerList->First();
-		airport->passengerList->Remove();
+		Passenger *P = (Passenger*) airport->passengerList->Remove();
 		airport->passengerList->Append((void *) P);	//Prevent destruction of global passenger list
 		List *bags = P->getLuggage();//Temp list for iterating through luggage
-		int tempBagWeights[3] = { 0, 0, 0 };//This helps list the weights of the bags
+        int numBags = bags->Size();
 
 		printf("Passenger %d belongs to airline %d\n", P->getID(),
 				P->getTicket().airline);
-
-		for (int j = bags->Size(); j > 0; j--) {//This calculates the weights of each of the bags
-			Luggage *l = (Luggage*) bags->First();//and puts it into a temp array to be read
-			tempBagWeights[3 - j] = l->weight;
-			bags->Remove();
-			bags->Append((void *) l);	//Prevent destruction of local bags list
-		}
-
-		printf("Passenger %d : Number of bags = %d\n", P->getID(),
-				P->getLuggage()->Size());
-		printf("Passenger %d : Weight of bags = %d, %d, %d\n", P->getID(),
-				tempBagWeights[0], tempBagWeights[1], tempBagWeights[2]);
+		printf("Passenger %d : Number of bags = %d\n", P->getID(), numBags);
+		printf("Passenger %d : Weight of bags = ", P->getID());
+        for (int j = 0; j < numBags; j++)
+        {
+            if (j != 0) printf(", ");
+            Luggage* l = (Luggage*) bags->Remove();
+            printf("%d", l->weight);
+        }
+        printf("\n");
 	}
 
 	//Prints Check-in Staff information
 	for (int k = 0; k < airport->checkInStaffList->Size(); k++) {
-		CheckIn *CIS = (CheckIn*) airport->checkInStaffList->First();
-		airport->checkInStaffList->Remove();
+		CheckIn *CIS = (CheckIn*) airport->checkInStaffList->Remove();
 		airport->checkInStaffList->Append((void *) CIS);
 		printf("Airline check-in staff %d belongs to airline %d\n",
 				CIS->getID(), CIS->getAirline());
@@ -685,25 +676,155 @@ void MTest() {
 	tM->Fork(StartManager, (int) manager);
 }
 
-/*void AirportSim()
+void AirportSim()
  {
- // MENU ASKING FOR NUMBERS:
- //  - >=3 AIRLINES
- //  - 5-7 LIAISONS
- //  - 3-5 CHECK-IN / AIRLINE (all equal)
- //  - 6-10 CARGO
- //  - # SCREENERS/SECURITY
- //  - # PASSENGERS
+    int i;
+    
+    int airlines   = 0;
+    int passengers = 0;
+    int liaisons   = 0;
+    int checkins   = 0;
+    int cargos     = 0;
+    int security   = 0;
+    List* passengerThreadList = new List();
+    List* liaisonThreadList   = new List();
+    List* checkinThreadList   = new List();
+    List* cargoThreadList     = new List();
+    List* screenerThreadList  = new List();
+    List* securityThreadList  = new List();
+    
+    // Menu asking for numbers:
+    printf("WELCOME TO AIRPORT SIMULATOR");
+    while (airlines < 3 && airlines > 6)
+    {   // 3-6 airlines (arbitrary upper limit)
+        printf("Please enter the number of airlines (3-6): ");
+    }
+    while (airlines < 3 && airlines > 6)
+    {   // 3-6 airlines (arbitrary upper limit)
+        printf("Please enter the number of airlines (3-6): ");
+    }
+    // MENU ASKING FOR NUMBERS:
+    //  - >=3 AIRLINES
+    //  - 5-7 LIAISONS
+    //  - 3-5 CHECK-IN / AIRLINE (all equal)
+    //  - 6-10 CARGO
+    //  - # SCREENERS/SECURITY
+    //  - # PASSENGERS
+    
+    // Create a new airport using given numbers.
+    Airport* airport = new Airport(airlines, passengers, liaisons, checkins, security, cargos);
 
- // CREATE NEW AIRPORT USING THOSE NUMBERS
+    srand (time(NULL));
 
- // INITIALIZE THREAD CLASSES:
- //  USE
+    // Initialize data classes and threads.
+	for (i = 0; i < passengers; i++)
+    {
+        Ticket ticket;
+        ticket->airline = rand() % airlines;
+        ticket->exec = (bool) rand() % 2;
+        int numBags = rand() % 2 + 2;
+        List* bags = new List();
+        for (int j = 0; j < numBags; j++)
+        {
+            Luggage* l = new Luggage;
+            l->airline = -1;
+            l->weight = rand() % 30 + 30;
+            bags->Append((void*) l);
+        }
+		Passenger* p = new Passenger(i, bags, ticket, airport);
+		airport->passengerList->Append((void*) p);
+		Thread* t = new Thread("Passenger");
+		passengerThreadList->Append((void*) t);
+	}
+	for (i = 0; i < liaisons; i++)
+    {
+		Liaison* l = new Liaison(i, airport);
+		airport->liaisonList->Append((void*) l);
+		Thread* t = new Thread("Liaison");
+		liaisonThreadList->Append((void*) t);
+	}
+	for (i = 0; i < airlines * 6; i++)
+    {
+        if (i % 6 != 0 && i % 6 <= checkins)
+        {
+            CheckIn* ci = new CheckIn(i/6, i, airport);
+            airport->checkInStaffList->Append((void*) ci);
+            Thread* t = new Thread("CheckIn");
+            checkinThreadList->Append((void*) t);
+        }
+	}
+	for (i = 0; i < security; i++)
+    {
+        // Screeners
+		ScreenOfficer* so = new ScreenOfficer(i, airport);
+		airport->screeningOfficerList->Append((void*) so);
+		Thread* to = new Thread("ScreenOfficer");
+		screenerThreadList->Append((void*) to);
+        // Security
+		SecurityInspector* si = new SecurityInspector(i, airport);
+		airport->securityInspectorList->Append((void*) si);
+		Thread* ti = new Thread("SecurityInspector");
+		securityThreadList->Append((void*) ti);
+	}
+	for (i = 0; i < cargos; i++)
+    {
+		Cargo* c = new Cargo(i, airport);
+		airport->cargoHandlerList->Append((void*) c);
+		Thread* t = new Thread("Cargo");
+		cargoThreadList->Append((void*) t);
+	}
+    Manager* m = new Manager(airport);
+    Thread* tm = new Thread("Manager");
+    
+	// Display initial airport data.
+	StartupOutput(airport);
+    
+    // Fork the threads.
+	while (! passengerThreadList->IsEmpty())
+    {
+		Passenger* p = (Passenger*) airport->passengerList->Remove();
+		airport->passengerList->Append((void*) p);
+		Thread* t = (Thread*) passengerThreadList->Remove();
+		t->Fork(StartFindShortestLiaisonLine, (int) p);
+	}
+	while (! liaisonThreadList->IsEmpty())
+    {
+		Liaison* l = (Liaison*) airport->liaisonList->Remove();
+		airport->liaisonList->Append((void*) l);
+		Thread* t = (Thread*) liaisonThreadList->Remove();
+		t->Fork(StartLiaisonThread, (int) l);
+	}
+	while (! checkinThreadList->IsEmpty())
+    {
+		CheckIn* ci = (CheckIn*) airport->checkInStaffList->Remove();
+		airport->checkInStaffList->Append((void*) ci);
+		Thread* t = (Thread*) checkinThreadList->Remove();
+		t->Fork(StartCheckInStaff, (int) ci);
+	}
+	while (! cargoThreadList->IsEmpty())
+    {
+		Cargo* c = (Cargo*) airport->cargoHandlerList->Remove();
+		airport->cargoHandlerList->Append((void*) c);
+		Thread* t = (Thread*) cargoThreadList->Remove();
+		t->Fork(StartCargo, (int) c);
+	}
+	while (! screenerThreadList->IsEmpty())
+    {
+		ScreenOfficer* so = (ScreenOfficer*) airport->screeningOfficerList->Remove();
+		airport->screeningOfficerList->Append((void*) so);
+		Thread* t = (Thread*) screenerThreadList->Remove();
+		t->Fork(StartScreening, (int) so);
+	}
+	while (! passengerThreadList->IsEmpty())
+    {
+		SecurityInspector* si = (SecurityInspector*) airport->securityInspectorList->Remove();
+		airport->securityInspectorList->Append((void*) si);
+		Thread* t = (Thread*) passengerThreadList->Remove();
+		t->Fork(StartInspecting, (int) si);
+	}
+	tm->Fork(StartManager, (int) m);
+    
+    // ???
 
- // FORK
-
- // ???
-
- // PROFIT
-
- }*/
+    // PROFIT
+ }
