@@ -54,9 +54,6 @@ void ThreadTest() {
 	SimpleThread(0);
 }
 
-void StartManagerTest(int arg) {
-
-}
 
 //----------------------------------------------------------------------
 // The passenger should find the shortest liaison line 

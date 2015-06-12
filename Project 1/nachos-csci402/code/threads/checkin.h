@@ -17,7 +17,6 @@ class CheckIn
 		CheckIn(int airline, int id, Airport* airport);
 		~CheckIn();
         Passenger* FindPassenger(int execLine);
-		// void Run();
         void StartCheckInStaff();
         int getID() { return id; }
         int getAirline() { return airline; }
