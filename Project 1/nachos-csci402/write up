@@ -42,10 +42,11 @@ III. Design:
 - This section is to cover your logic and ideas as to how  you are going to solve the problem presented.  This should include a description of classes, algorithms, etc.
 
     Part 1: The lock and CV algorithms were given by the professor in class. Locks contain two queues, readyQueue and waitQueue
-    - There are only 2 main funtions utilized by the lock class: Acquire and Release. 
-    - We added a Size function to the list class, which essentially returns the size of the 
+    - There are only 2 main funtions utilized by the lock class: Acquire and Release. When a lock is acquired by a thread, only that specific thread is able to use the CPU and run its critical section. However, the lock will first disable interrupts (theoritcally things such as I/O signals) and check to see if that thread is not already the lock owner and that if the lock is not already owned by someone else.
+    The tests in lockTest thoroughly test the race conditions of each of the locks it genrates. If the thread passes these checks, then it will make himself the owner of the lock 
+    - We added a Size function to the list class, which essentially returns the size of the the list. This is allowed all functions that counted or accessed the array and lists of functions throughout the code to be dynamic and avoid looking outside of the bounds of the list.
 
-    Part 2: Each component in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as states for liaisons, cargo handlers, etc. 
+    Part 2: Each component in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as states for liaisons, cargo handlers, etc.. At the start of the simulation, all the liaisons should be set to the Busy state so that the passengers will automatically enter their lines. All the passengers should be forked first, followed by liaisons, then checkin staff nd cargo handlers, then screening and security officers and finally the manager. 
 
 IV. Implementation:
 	+ Files Modified - all files are located in the threads directory except for Makefile.common, which is located in the code directory.
@@ -512,3 +513,708 @@ jerryweb 28781  0.0  0.0 6168 4840 pts/29   T 21:02:38  0:01 nachos -manager -rs
 jerryweb 29277  0.0  0.013424 6712 ?        S 21:04:43  0:00 /usr/lsd/openssh/default/sbin/sshd -R
 jerryweb 29281  0.0  0.0 3296 2512 ?        S 21:04:43  0:00 tcsh -c /usr/lsd/openssh/default/libexec/sftp-server -l QUIET
 jerryweb 29283  0.0  0.0 7392 3592 ?        S 21:04:43  0:00 /usr/lsd/openssh/default/libexec/sftp-server -l QUIET
+
+
+Notes from class:
+
+6.1.15
+    New Solution - Use a lock
+    Lock milklock;
+        algorithm
+        main()
+            milklock.Acquire();    //atomic
+            if(nomilk){         //critical secition 
+                buy milk;
+            }                   //critical secition 
+            milklock.release(); //atomic 
+
+
+
+
+Lock Implementation 
+Rule: Aquire & Release – atomic
+    Use interrupt disabling 
+    Pattern
+      Disable interrupts 
+        carryout tasks
+      restore interrupts
+
+
+
+
+Nachos Interrupt Class
+    Already exists 
+    Interrupt object
+
+Disable: IntStatus old = interrupt->SetLevel(IntOff); 
+
+Restore: interrupt->SetLevel(old);
+
+//myself represents the thread in the CPU   
+
+No Busy Waiting 
+    Approach: Sleep/wakeup
+    Sleep: A thread "state" where it cannot gain access to the CPU 
+        * on its own
+        * or by the scheduler
+    
+    Wakeup: the event a thread was waiting for has occured 
+
+    sleep Implementation:
+        for a thread to gain CPU access
+            * it must be in the ready queue
+            * in the ready State
+
+    Goal #1: Removing a thread from the ready queue
+            currentThread->Sleep();     //CurrentThread is a pointer to the thread in the CPU
+
+    Goal #2: Use a seperate queue
+            * wait queue                
+            * $pecific to each lock
+            Add a waitqueue to lock class
+            Be sure to add the currentThread to the waitqueue BEFORE currentThread->Sleep()
+
+    Wakeup Implementation 
+    1. Wakeup 1 sleepy thread - if one exists 
+    2. Give them ownership of the lock 
+    3. Put them in Ready Queue in Ready State
+        scheduler->ReadyToRun( /*thread pointer*/); 
+    Locks have 2 states
+        * FREE - available 
+        * BUSY - not available
+
+Part 1 of Project 1
+    void Lock::Aquire(){
+        disable interrupts
+        if(/*I'm the lockowner */){
+            //not a problem 
+            restore intterupts 
+            return; 
+        }
+
+        if(/*lock is available*/){
+            //I can have the lock
+            make lock BUSY 
+            make myself lock owner 
+        }   
+
+        else{//lock not available 
+            //put myself to sleep 
+            add myself to lock wait queue //the wait queue is a queue of thread pointers 
+            currentThread->Sleep();
+        }
+
+        restore interrupts
+    }
+
+    //can use the List class in Nachos 
+
+    void Lock::Release(){
+        Disable interrupts
+        if(/*I'm not the lock owner*/){
+            print an error message 
+            restore interrupts
+            return;
+        }
+
+        if(/*is any thread waiting */){
+            * Rmove 1 thread from wait Queue 
+            * call scheduler-ReadyToRun();
+            * make them the lock owner
+        }
+
+        else{
+            make lock FREE
+            remove lock ownership // set lock thread pointer back to null
+        }
+
+        retore interrupts
+    }
+
+    
+
+    Lock* l;                    
+        .                           |   .
+        .                           |   .
+        l->Aquire();                |   doit(); //this has *l->Aquire ..... l->realease 
+            doit();                 |
+
+
+
+
+
+    Solving Sequencing 
+        Semaphores 
+        Condition varibles  // there is a condition class in Nachos similar to the lock class
+
+    Condition Varibles
+        Dont have a state like locks
+        Have 3 operations 
+        Wait: put myself to sleep waiting on some condition
+        Signal: wakeup 1 sleeping thread //if there is a sleeping thread
+        Broadcast: wakeup all sleeping threads
+
+
+    void Condition::Wait(lock* Lock){
+        disable interrupts
+        if(lock==NULL){
+            print message
+            restore intterupts
+            return;
+        }
+
+        if(waitingLock == NULL){//frist thread to call wait
+            // waitingLock is for lock* tracking 
+            waitingLock = lock;
+            the lock used with this condition varible       
+        }
+
+        if(waitingLock != lock){//lock passed in doesnt match the lock already used
+            print error message 
+            restore interrupts
+            return;
+        }
+
+        lock->Release(); // exit the critical section so 
+        add myself to condition varible wait queue and go to sleep
+        lock->Aquire();
+        restore interrupts
+        return;
+    }
+
+
+    myLock->Aquire();
+        .
+        .
+        if(/* I can't proceed*/){
+            myCV->Wait(myLock); //myCV is my condition varible 
+            //don't wait in the critical section
+
+        }   
+        .
+        .
+        myLock->Release();
+
+
+    void Condition::Signal(lock* Lock){
+        disable interrupts
+        if(/*No waiting threads*/){
+            restore interrupts
+            return;
+        }
+
+        if(waitingLock != lock){
+            print error
+            restore interrupts
+            return;
+        }
+
+        //wakeup 1 waiting thread
+        remove 1 thread from the condition varible wait queue
+        scheduler->ReadyToRun
+
+        if(/*no more waiting threads*/){
+        waitingLock = NULL;
+        }
+
+        restore interrupts
+    }
+
+
+    void Condition::Broadcast(lock* Lock){
+        while(/*there ARE waiting threads*/){
+            Signal(lock);
+        }
+    }
+
+
+    Monitors 
+    * surround a critical section with a monitor 
+    * Monitors have 3 parts 
+        - 1 lock
+        - 1 or more condition varibles
+        - monitor varibles 
+            * data we use to make Sequencing desicions 
+
+    Monitor Form
+    Aquire the monitor lock
+    use/modify varibles to make Sequencing desicions
+    release monitor lock
+
+
+    Grocery Store Checkout
+    - multiple cashiers 
+    - each has their own line
+    - customer will pick the shortest line 
+        * person at the cashier is in line
+        
+        Use a Monitor
+            Lock* lineLock;
+            //Lock* lineLock = new Lock("___"); // can do this in Nachoes
+            //1 or more - cashier busy-only 1 inline
+            //0 - casheir available
+            // you need as many locks as you have cashiers
+            Condition* lineCV[5]; // Condition class does not have a default constructor 
+            int lineCount[5]; //should initialize all these to zero
+
+            Customer
+                lineLock->Aquire();
+                int ShortCount = LineCount[0];
+                int myLine = 0;
+                for(int i != 0,i<5;i++){
+                    if(LineCount[i] < ShortCount){
+                        ShortCount = LineCount[i];
+                        myLine = i;
+                    }
+                }
+                //Found a line 
+                if(ShortCount > 0){
+                    lineCV[myLine]->Wait(LineLock);
+                }
+                //my turn
+                LineLock->Release();
+                //Begin Cashier itneraction critical section
+
+
+            Cashier //have thier own variable called myLine, which is the line they are assigned to 
+                while(true){
+                    LineLock->Aquire();
+                    if(LineCount[myLine] > 0){
+                        lineCV[myLine]->Signal(LineLock);
+                    }
+                    LineLock->Release();
+                    //Begin Cashier interaction critical section
+                }
+
+6.3.15
+
+There will be a nachos synchronization problem for the airport. We will have to implement a new thread into the code
+
+
+nachos-csci402
+    |
+    |
+   code - 1st time- gmake
+   * in the code folder there should be files: threads, test, vm, filesys, network, and userprog
+   for threads: project 1 is in this... compile and run 
+
+   threads, vm, filesys, network, and userprog are nachos and the test is nachos user programs
+
+
+2 ticket-typs: economy and executive
+
+airline 1: each airline has 5 queue (example) and one executive queue, however, executive queue has priority. Each queue
+            has a count 
+            can make an array of size 6 for the monitor variable where the length of the line is in the corresponding each queue
+            and set the executive queue to index 0
+            the economy queues and the executive queue have seperate locks (2 locks in total, this is one option)
+            * more locks are good if it doesn't create a race condition 
+
+airline 2
+
+airline 3
+
+
+Passenger
+    LineLock->Aquire();
+        int myLine = 0;
+        int shortCount = LineCount[0];
+        for (){
+
+        }
+
+        if(shortCount > 0){
+            LineCV[myLine]->Wait(LineLock)
+        }
+
+    LineLock->Release();
+    //go up to check-in staff
+    cisLock[myLine]->Aquire();
+    //write ticket info to a cis specific location 
+    cisCV[myLine]->Signal(  );
+
+    cisCV[myLine]->Wait(    );
+
+    //read seat # 
+    cisCV[myLine]->Signal(  );
+    cisLock[myLine]->Release();
+
+
+
+********Wait and Signal calls MUST STAGGER (wait and signal must alternate)********
+
+Check-In Staff
+    while(true){
+        if anyone in executive queue
+            check them in
+    }
+
+    else 
+        do my economy queue
+
+    //The is the start of the 1st critical section 
+    LineLock->Aquire();
+        if(LineCount[myLine] > 0){
+            LineCV[myLine]->Signal(LineLock); //signaling doesn't give it access to the CPU right away
+        }
+
+        //could be a context switch here
+        cisLock[myLine]->Aquire(); //this must go here before you call wait in the 2nd critical section 
+    LineLock->Release();
+    //end of first critical section
+
+    //beginning of 2nd critical sectoin
+    //Wait for passenger ticket info
+    cisLock[myLine]->Wait(  );
+    //check in passenger 
+    -Give boarding pass-seat # //this info is transeferd to the passenger (can be part of the ticket info struct we create
+    cisCV[myLine]->Signal(  );
+    cisCV[myLine]->Wait(    ); //must wait for the passenger to read the data
+    //end of 2nd critical section 
+
+    cisLock[myLine]->Release();
+
+
+
+Condition::Wait(Lock* lock){
+
+
+    *lock->Release();
+    currentThread->Sleep();
+    lock->Aquire(); //Goes to sleep waiting on lock 
+        |
+        |
+        |
+    //give ticket info to Check-in Staff
+}
+
+
+
+void doit(void* myFunc){ // this is an example of function pointer passing 
+    myFunc();
+}
+
+
+for(int i=0; i < maxPassengers; i++){
+    Thread *t = new Thread("______");
+        t ->Fork(passenger/*fucnction pointer*/,i); //don't put parrentheses after the passenger function call 
+                                                //i is also the line the employee is assinged as well as the employee's ID when you are instantiating the emplyees 
+}
+
+
+void passenger(int myNumber){
+    Ticket myTicket
+
+}
+
+
+
+nachos -rs 100 -T -P2//100 is given to Srand 
+    //adding -rs will allow for context switiching preemptively, if you you get an error on a given random seed value, use the same value to fix the error
+    //test multiple values 
+    preemptive 
+
+    Part 1: Test suite
+
+
+
+
+main.cc
+int main(   ){
+    for(    ){//iterates over all command line args
+        if( -rs )
+
+        else if(/*arg is -T*/){
+            TestSuite();
+        }   
+    }
+}
+
+
+to test the that the passenger gets into the shortest line; all you need is a passenger thread and hardcoded line count values 
+
+**** for the system test, DO NOT PROMPT THE USER FOR THE NUMBER OF THREADS
+
+for each test, terminate nachos once the test is finished 
+
+
+Semaphores
+    1 mechanism for handling ...
+    have an int value 
+    0 -> positive # // no negative numbers 
+    two operations 
+        up      v //increments the value of the semaphore by 1; if some thread waiting-wake1up
+        Down    p //decrements semaphore value if > 0; if value < 1, go to sleep first
+
+
+Mutual Exclusion 
+    use a binary semaphore
+        initial value is 1
+    To enter critical section
+        do a Down 
+    To exit critical section
+        do an Up
+
+
+
+many threads all doing the same thing
+    Whil(true){
+        sem.Down();
+            |
+            |
+        sem.Up();
+            |
+            |
+
+    }
+
+
+synchronization
+    - any initial value
+    - Down or Up
+
+
+Soda Machine
+    capacity 10
+    student - take 1 Soda
+    SodaGal - add 1 Soda
+
+    -When must SodaGal wait?
+    1 - machine full    empty - start @ 10
+    Student 
+    -machine empty
+    2 full -starts @ 10
+    3 mutex
+
+
+SodaGal
+    while(true){
+        * empty.Down();
+        mutex.Down();
+        //add 1 soda
+        mutex.Up();
+        * full.Up();
+    }
+
+Student
+    * full.Down();
+    mutex.Down();
+        take 1 soad
+    mutex.Up();
+    * empty.Up();
+
+6.8.15
+
+int LiaisonState[];     //array of states for the LiaisonState
+    //2 values: busy, free
+    //initialize the array so that all the liaisons are busy 
+    //this will make sure that the passengers wait for the liaison to start his thread even if the passengers
+    //are initialized first 
+
+LineLock
+LineCV[]
+LineCount[]
+
+
+Passenger
+    int myLine
+    LineLock->Aquire();
+    for(){
+        //find a line
+    }
+    //found my line
+    if(LiaisonState[myLine] == BUSY){   //if(LineCount[myLine] > 0)
+        //Wait in line
+        lineCount[myLine]++;
+        LineCV[myLine]->Wait(   );
+        //lineCount[myLine]--;          //This is if you are not using states for the liaison to check if for the line in the above if statement 
+    }
+    
+    LineLock->Release();
+
+
+/*you will need a state variable for things that can go on break*/
+
+Liaison 
+    LineLock->Aquire();
+    //no advantage to setting the liaison to free for the first iteration
+    if(lineCount[myLine] > 0){
+        LineCV[myLine]->Signal();
+        lineCount[myLine]--;            //this does not produce a race condition because he is set to busy in the same Critical Section
+        LiaisonState[myLine] = BUSY;
+    }
+
+    else{
+        LiaisonState[myLine] = FREE;
+    }
+
+    liaisonLock[myLine]->Aquire();
+    LineLock->Release();
+    LiaisonCV[myLine]->Wait(    );
+
+
+int cisState[];
+    -   BUSY
+    -   FREE
+    -   onBREAK
+
+Check-in staff                      //start everyone off in the BUSY state
+    while(true){                    //same with cargo handlers
+        cisLineLock->Aquire();
+        bool havePassenger = false;
+        //check execline length
+        //if no exec passengers, check my econ line
+        //Theese can be handled by bool havePassenger = false;
+        if(!havePassenger){     //go on break
+            cisState[myLine] = onBREAK;
+            cisOnBreakCV[myLine]->Wait( );
+            cisState[myLine] =  BUSY;
+            cisLineLock->Release();
+            //cisLineCV[myLine]->Signal(    );
+            continue;
+        }
+
+        //if all checkin staff are asleep and there is a passenger in the executive line, then do a broadcast
+
+        cisCV[myLine]->Aquire();
+        cisLineLock->Release();
+
+
+
+
+        cisCV[myLine]->Release();
+    }
+
+
+
+    CIS 
+    -each have their own line 
+
+
+    Cargo Handlers                              -starting # of C.H.
+        -one line per airline
+        -Broadcast from mannagers to wake them up
+        -on break
+
+        if bagCount > 0 && all C.H. on break    -chonBreakCount
+            then Broadcast
+
+        chBreakCV           //can't have one CV for break; need to have an array 
+
+// Manager NEVER GOES TO SLEEP 
+Airport Manager
+    while(true){
+        lock1->Aquire();
+            //do task
+        lock1->Release();
+
+        lock2->Aquire();
+            //do task
+        lock2->Release();
+            .
+            .
+            .
+        for(int i = 0; i < 100 (or 1000); i++){ //this makes the manager give up the CPU otherwise he would hog the CPU
+            currentThread->Yield();
+        }
+    }
+
+
+
+
+
+
+
+
+
+int passSecurtiy[maxPassengers];    //only shared between the Screeing Officer and Security Inspector
+
+Screening Officer
+    
+    SO[myLine]->Aquire();
+        //Generate random PASS/FAIL
+        // -get passenger's index number (index in the array of the total number of passengers) - myPassenger
+        //find a line for this passenger w/SI
+            // -find shortest line
+            // -give that line # to passenger
+            // -give PASS/FAIL to the proper Security Inspector
+        passSecurtiy[myPassenger] = PASS/FAIL;
+
+
+    soCV[myLine]->Wait( );
+
+
+Passenger
+    while(true){
+        //start of S.I. code
+        didIPass = SIPassFail[siLine];  
+        siLock[siLine]->Release();
+        SO[soLine]->Aquire();
+            //give bag to S.O.
+        soCV[soLine]->Wait( );
+
+        //passenger waits for PASS/FAIL
+                            
+            if(!didIPass){                  //This statement is not with the Security Inspector; outside of S.I. CV
+                for(){
+                    currentThread->Yield();
+                }
+                continue;
+            }
+
+            else{
+                break;
+            }
+
+        siCV[siLine]->Wait( );
+    }
+
+
+
+Screening Inspector 
+
+    siLineLock->Aquire();
+            .
+            .
+            .
+        getPassenger #
+    //passenger fails
+        -tell them SIPassFail[myLine] = PASS/FAIL;
+        -set their PASS/FAIL to PASS
+
+
+
+Passenger version 2
+    bool didIFail;
+    while(true){
+        SiLock[mySi]->Aquire();
+            //give passenger #
+            siCV[mySi]->Signal( );
+            siCV[mySi]->Wait(   );
+
+            didIPass = SIPassFail[mySi];
+            siCV[mySi]->Signal( );
+        siLock[mySi]->Release();
+        if(!didIPass){ continue; }
+
+        else{ break; }
+    }
+
+
+
+Screening Inspector version 2
+
+    siLock[myLine]->Aquire();
+    siLineLock->Release();
+        siCV[myLine]->Wait( );          //wait for passengr #
+        //Generate PASS/FAIL
+        passSecurtiy[passNow] = PASS/FAIL;
+        SIPassFail[myLine] = PASS/FAIL;
+
+        siCV[myLine]->Signal(   );
+        siCV[myLine]->Wait(     );      //wait for passenger to read value
+        passSecurtiy[passNow] = PASS;
+        siCV[myLine]->Signal(   );
+
+
+submission: /home/scf-22/csci350/bin/
