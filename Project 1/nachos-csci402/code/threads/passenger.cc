@@ -4,7 +4,6 @@
 //for random number
 #include "stdlib.h"
 #include "time.h"
-//workaround for circular dependency
 #include "securityinspector.h"
 
 //#include "system.h"
@@ -152,8 +151,14 @@ void Passenger::findShortestLiaisonLine(){
 }
 
 void Passenger::Screening() {
+
+	//memeory the current index in screening queue
+	//since it may be updated to a different value
+	//when being assigned to security inspector
 	int oldQueueIndex = queueIndex;
+
 	//ping-pong with Screening Officer
+	//correspond to ScreenOfficer C.S.(1)
 	airport->screenLocks[queueIndex]->Acquire();
 	airport->passengerWaitOfficerCV[queueIndex]->Wait(
 			airport->screenLocks[queueIndex]);
@@ -165,53 +170,46 @@ void Passenger::Screening() {
 }
 
 void Passenger::Inspecting() {
+
+	//corresponds to SecurityInspector C.S.(1)
 	airport->securityLocks[queueIndex]->Acquire();
 	airport->passengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
 
 	if (!securityPass) {
-		printf("passenger %d 172\n",id);
+		//corresponds to SecurityInspector C.S.(4)
 		airport->securityLocks[queueIndex]->Acquire();
-		printf("passenger %d 174\n",id);
 		airport->inspectorWaitPassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
-		printf("passenger %d 176\n",id);
 		airport->securityLocks[queueIndex]->Release();
-		printf("passenger %d 178\n",id);
 
+		//yield 1-5 cycles randomly
 		srand(time(NULL));
 		int randNum = rand() % 5 + 1;
 		for (int i=0;i<randNum;i++) {
-			//airport->securityLocks[queueIndex]->Acquire();
 			currentThread->Yield();
-			//airport->securityLocks[queueIndex]->Release();
-			printf("passenger yield\n");
 		}
 
+		//signal potential inspector waiting on
+		//questioning passenger
 		airport->securityLocks[queueIndex]->Acquire();
-		airport->lastCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
+		airport->inspectorWaitQuestioningCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
 		airport->securityLocks[queueIndex]->Release();
 
-		printf("passenger %d 182\n",id);
+		//C.S. to append itself to return Queue
+		//since return queue is not shared between inspectors
+		//we don't need Condition variables here
 		airport->securityLocks[queueIndex]->Acquire();
-		//inspectorList[queueIndex]->setReturn();
-		//inspectorList[queueIndex]->setReturnPassenger(this);
-		printf("passenger 186\n");
 		airport->returnQueues[queueIndex]->Append(this);
-		printf("passenger 188\n");
 		airport->securityLocks[queueIndex]->Release();
 
-		printf("passenger 191\n");
+		//corresponds to SecurityInspector C.S.(2)
 		airport->securityLocks[queueIndex]->Acquire();
-		printf("passenger 193\n");
 		airport->rePassengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
-		printf("passenger 195\n");
 		airport->securityLocks[queueIndex]->Acquire();
-		printf("passenger 197\n");
 		airport->inspectorWaitRePassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
-		printf("passenger 199\n");
 		airport->securityLocks[queueIndex]->Release();
-		printf("passenger 201\n");
 
 	} else {
+		//corresponds to SecurityInspector C.S.(4)
 		airport->securityLocks[queueIndex]->Acquire();
 		airport->inspectorWaitPassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
 		airport->securityLocks[queueIndex]->Release();

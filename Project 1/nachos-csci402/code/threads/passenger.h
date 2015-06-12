@@ -9,7 +9,8 @@
 #include "thread.h"
 #include "list.h"
 #include "airport.h"
-//To Avoid Circular Dependency
+
+//To Avoid circular denpendcy
 class SecurityInspector;
 
 class Passenger {
