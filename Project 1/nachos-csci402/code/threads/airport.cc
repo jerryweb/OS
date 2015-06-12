@@ -1,5 +1,6 @@
 #include "airport.h"
 
+
 Airport::Airport() {
 	int i;
 	// TODO: add everything and non-hardcode it
@@ -12,6 +13,7 @@ Airport::Airport() {
 	for (i = 0; i < numAirlines; i++) {
 		airlines[i] = new Airline(i, 0, 0);
 		airlineLock[i] = new Lock("airlineLock");
+
 	}
 
 	//Passenger variables

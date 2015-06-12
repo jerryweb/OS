@@ -208,7 +208,7 @@ void ManagerTest() {
 	List* CargoHandlerTreadArray = new List();
 
 	//Generate Passengers each with seperate luggage and tickets 
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 1; i++) {
 		List* bagList = new List();
 
 		for (int j = 0; j < 3; j++) {
