@@ -62,7 +62,7 @@ void ScreenOfficer::Screen() {
 				minimumSize = airport->securityQueues[i]->Size();
 				shortest = i;
 			}
-        }
+        	}
 
 			airport->securityQueues[shortest]->Append(currentPassenger);
 			//also update the queueIndex for current passenger
@@ -74,7 +74,6 @@ void ScreenOfficer::Screen() {
 			//signal the passenger
 			airport->passengerWaitOfficerCV[myLine]->Signal(
 					airport->screenLocks[myLine]);
-			//printf("SO Release 77\n");
 			airport->screenLocks[myLine]->Release();
 
 			//wait for passenger thread

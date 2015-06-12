@@ -57,6 +57,7 @@ void ThreadTest() {
 	SimpleThread(0);
 }
 
+
 //----------------------------------------------------------------------
 // The passenger should find the shortest liaison line 
 //----------------------------------------------------------------------
@@ -712,30 +713,35 @@ void AirportSim()
     while (liaisons < 5 || liaisons > 7)
     {   // 5-7 liaisons.
         printf("Please enter the number of liaisons (5-7): ");
+
         cin >> liaisons;
         cin.get();
     }
     while (checkins < 3 || checkins > 5)
     {   // 3-5 check-in staff per airline.
         printf("Please enter the number of check-in staff per airline (3-5): ");
+
         cin >> checkins;
         cin.get();
     }
     while (cargos < 6 || cargos > 10)
     {   // 6-10 cargo handlers.
         printf("Please enter the number of cargo handlers (6-10): ");
+
         cin >> cargos;
         cin.get();
     }
     while (security < 1 || security > 10)
     {   // 1-10 screeners/inspectors (arbitrary limits).
         printf("Please enter the number of screening officers and security inspectors (1-10): ");
+
         cin >> security;
         cin.get();
     }
     while (passengers < 20 || passengers > 100)
     {   // 20-100 passengers (arbitrary upper limit).
         printf("Please enter the number of passengers (20-100): ");
+
         cin >> passengers;
         cin.get();
     }

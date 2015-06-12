@@ -226,6 +226,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     {
         if (i >= cargos) cargoState[i] = C_NONE;
         else cargoState[i] = C_BUSY;
+        cargoLock[i] = new Lock("cargoLock");
         cargoDataCV[i] = new Condition("cargoDataCV");
         cargoManagerCV[i] = new Condition("cargoManagerCV");
         cargoDataLock[i] = new Lock("cargoDataLock");

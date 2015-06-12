@@ -65,27 +65,13 @@ void Manager::MakeRounds(){
     	}
     	airport->conveyorLock->Release();
 
-    	//if(!liaisonDone){		
-    							//Delete this at the end of the project
+    	//These functions gather data from each of the thread classes
     	LiaisonDataRequest(L);
-    		//liaisonDone = true;
-    	//}
-    	// if(!CargoDone){
-    	CargoRequest(CH);
-    	// 	CargoDone = true;
-    	// }
-    	// // for(int j = 0; j < 15; j++){
 
-    	// 	if(airport->checkinState[j] == CI_BUSY){
-    	// 		ready = false;
-    	// 		break;
-    	// 	}
-    		
-    	// }
-    	 //if(!CheckinDone){//} && ready){
+    	CargoRequest(CH);
+
 		CheckinDataReuqest(C);
-			//CheckinDone = true;
-		//}
+
 	    	
 	    	
     	for(int i = 0; i < 50; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU

@@ -1,4 +1,4 @@
-Title:  Writeup for Project 1, Fall/Spring 200x
+Title:  Writeup for Project 1, Summer 2015
  Date:  06/10/15
  Group:	Name		Email				SS#
 		Jerry Webb	jerryweb@usc.edu	1288504108
@@ -7,7 +7,8 @@ Title:  Writeup for Project 1, Fall/Spring 200x
 
 
 I. Requirements:
-    Part 1: Implement locks and condition variables by filling in the empty framework provided.
+    Part 1: Implement locks and condition variables by filling in the empty framework provided. The locks and condion variables must successfully pass the test in the lockTest.cc file. There are 5 tests within that file.
+    
     Part 2: Create a multi-threaded airport simulation with the following components:
              - Passengers, who enter the airport with a ticket and luggage and proceed through the simulation until boarding their airplane.
              - Liaisons, who direct passengers to the correct check-in area.
@@ -27,27 +28,304 @@ II. Assumptions:
      - Passengers will enter a check-in line regardless of whether the staff is on break or not.
      - Each screening officer has a line, and the passenger finds the shortest one.
      - Arbitrary limit of 1-10 screeners and inspectors.
-     
+     - The range of passengers for the main simulation is 20 to 100.
+     - The range of Airport Liaisons for the main simulaiton is 5 to 7.
+     - The range of Check-in Staff for the main simulation is 3 to 5 per airline with a maximum of 15 total.
+     - The range of Cargo Handlers is 6 to 10 for the main simulation. 
+     - Once initial number of Passengers are created and the Threads are forked at the beginning of the program, no addition passengers can be added to the main simulation.
+     - The reason we are mentioning main simulation is due to the special cases for each test.
+     - The manager will never go on break during any simulation. 
+     - The notes that mentioned that are from class are included in the submission file, however, we will add them to them to this file.
+     - When promted to enter a number, the user will enter a positive integer or 0.
+
 III. Design:
 - This section is to cover your logic and ideas as to how  you are going to solve the problem presented.  This should include a description of classes, algorithms, etc.
 
-    Part 1: The lock and CV algorithms were given by the professor in class.
-    Part 2: Each component in the airport simulation has its own class; there is also an "Airport" class for public data.
+    Part 1: The lock and CV algorithms were given by the professor in class. Locks contain two queues, readyQueue and waitQueue
+    - There are only 2 main funtions utilized by the lock class: Acquire and Release. 
+    - We added a Size function to the list class, which essentially returns the size of the 
+
+    Part 2: Each component in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as states for liaisons, cargo handlers, etc. 
 
 IV. Implementation:
-	+ Files Modified
-	+ Files added
+	+ Files Modified - all files are located in the threads directory except for Makefile.common, which is located in the code directory.
+        Makefile.common
+        list.cc
+        list.h
+        main.cc
+        synch.cc
+        synch.h
+        threadtest.cc
+        system.h
+        system.cc
+
+	+ Files added - all files are located in the threads directory.
+        airline.cc
+        lockTest.cc
+        airport.cc
+        airline.cc
+        cargo.cc
+        checkin.cc
+        liaison.cc
+        manager.cc
+        passenger.cc
+        screenofficer.cc
+        securityinspector.cc
+
+        airport.h
+        passenger.h
+        airportobjects.h
+        airport.h
+        airline.h
+        cargo.h
+        checkin.h
+        liaison.h
+        screenofficer.h
+        securityinspector.h
+        manager.h
 
 	+ Data Structures added, and the file they were added to.
+        Classes: 
+            Passenger - added to passenger.h 
+            Liaison - added to liaison.h
+            Airport - added to airport.h
+            Airline - added to airline.h
+            Cargo - added to cargo.h
+            Checkin - added to checkin.h
+            Manager - added to manager.h
+            ScreenOfficer - added to screenofficer.h
+            SecurityInspector -add to securityinspector.h
+
+        Structs:
+            Luggage - added to airportobjects.h
+            Ticket - added to airportobjects.h
+            BoardingPass - added to airportobjects.h
+
+        Enums:
+            LiasionState - added to airportobjects.h
+            CheckinState - added to airportobjects.h
+            CargoState - added to airportobjects.h
+            AirlineState -added to airportobjects.h
+
+        Arrays and Lists:
+            - In manager.h:   
+                List** airlineLuggage  
+                int* liaisonBaggageCount           
+                int* cargoHandlersBaggageWeight
+                int* checkinBaggageWeight          
+                int* cargoHandlersBaggageCount
+                int* liaisonPassengerCount 
+                int* checkinPassengerCount
+                int* securityInspectorPassengerCount
+            - In cargo.h:
+                int* luggage
+                int* weight
+            - In liaison.h
+                int* passengers
+                int* luggageCount
+                int* totalLuggageWeight
+            - In airport.h
+                bool* RequestingLiaisonData
+                bool* RequestingCargoData
+                bool* RequestingCheckinData
+                Airline** airlines
+                List* airlineState[3]
+                List* passengerList
+                List* liaisonQueues[7]
+                List* liaisonList
+                List* conveyor
+                List* cargoHandlerList 
+                Lock* liaisonManagerLock
+                Lock* liaisonLineLock
+                Lock* liaisonLock[7]
+                CargoState cargoState[10] 
+                List** aircraft
+                int* clearPassengerCount 
+                List* securityInspectorList
+                List** screenQueues
+                List** securityQueues
+                List** returnQueues.
+                List* screeningOfficerList
+                LiaisonState liaisonState[7]
+                bool* finalCheckin
+                List** checkinQueues 
+                List* checkInStaffList
+                CheckinState* checkinState
+            
+            Locks
+             - In airport.h    
+                Lock** airlineLock
+                Lock** checkinLineLock
+                Lock** checkinLock
+                Lock* checkinManagerLock 
+                Lock* conveyorLock             
+                Lock* CargoHandlerManagerLock  
+                Lock* cargoLock[10]
+                Lock* cargoDataLock[10]
+                Lock** screenLocks
+                Lock* screenQueuesLock 
+                Lock** securityLocks 
+                Lock* securityQueuesLock 
+                Lock* updateClearCount
+
+            Conditions
+             - In airport.h
+                Condition* liaisonLineCV[7]
+                Condition* liaisonManagerCV
+                Condition* liaisonCV[7]
+                Condition** checkinLineCV
+                Condition** checkinCV
+                Condition** checkinBreakCV
+                Condition* checkinManagerCV
+                Condition* cargoCV             
+                Condition* cargoDataCV[10] 
+                Condition* cargoManagerCV[10]
+                Condition** inspectorWaitPassengerCV
+                Condition** passengerWaitInspectorCV
+                Condition** passengerWaitOfficerCV    
+                Condition** officerWaitPassengerCV
+                Condition** inspectorWaitRePassengerCV
+                Condition** rePassengerWaitInspectorCV
+                Condition** inspectorWaitQuestioningCV  
+
 	+ Data Structures modified, and the file they were added to.
-		-For example,
-			class Lock		-- in file threads.cc/threads.h
+			class Lock		-- in file synch.cc/synch.h
 			{
 				//. Modified fields.
+                List* waitQueue
+                List* readyQueue
+                Thread* lockOwner
+                enum State {FREE, BUSY};
+                State lockState;
 			}
 
+            class Condition -- in file synch.cc/synch.h
+            {
+                Lock* waitLock;
+                List* waitList;
+            }
+
 	+ Functions added and in which file.
+        - In Passenger.cc/Passenger.h
+            Passenger(int ID, List* bags, Ticket T, Airport* A)
+            Passenger(int ID, Ticket t, int airlineCode, Airport* a)
+            Passenger(int ID, Ticket t)
+            Passenger(int ID, Airport* a)
+            Passenger(int ID)
+            Passenger()
+            Passenger(int ID,int qIndex,Airport* AIRPORT)
+            Passenger(int ID,int qIndex,Airport* AIRPORT,int airlineCode,SecurityInspector** INSPECTORLIST)
+            Passenger(Airport* AIRPORT)
+            ~Passenger();
+            int findShortestLine(List** list, bool CISline)
+            void findShortestLiaisonLine()
+            void CheckIn()
+            Ticket getTicket()
+            List* getLuggage()
+            int getID()
+            void Screening()
+            void Inspecting()
+            void SetQueueIndex(int qIndex)
+            void SetSecurityPass(bool pnp)
+            bool GetSecurityPass()
+            BoardingPass GetBoardingPass()
+            void SetBoardingPass(BoardingPass BP)
+            int GetAirline()
+            void SetAirline(int airline_)
+
+        - In airport.cc/airport.h
+            Airport()
+            Airport(int airlines, int passengers, int liaisons, int checkins, int security, int cargo)
+            ~Airport()
+
+        - In cargo.cc/cargo.h
+            Cargo(int id, Airport* airport)
+            ~Cargo()
+            void StartCargo()
+            int getID()
+            int getLuggage(int airline)
+            int getWeight(int airline)
+
+        - In checkin.cc/checkin.h
+            CheckIn(int airline, int id, Airport* airport)
+            ~CheckIn()
+            Passenger* FindPassenger(int execLine)
+            void StartCheckInStaff()
+            int getID()
+            int getAirline()
+            int getPassengers()
+            int getLuggageCount()
+            int getLuggageWeight()
+
+        - In liaison.cc/liaison.h
+            Liaison(int ID, Airport* airport)
+            ~Liaison()
+            void DirectPassengers()
+            int getID()
+            Passenger* CheckForPassengers()
+            int getPassengers(int airline)
+            int getLuggageCount(int airline)
+            int getLuggageWeight(int airline)   
+
+        - In manager.cc/manager.h
+            Manager(Airport* airport)
+            ~Manager()
+            void MakeRounds()
+            void LiaisonDataRequest(Liaison *L)
+            void CheckinDataReuqest(CheckIn *C)
+            void CargoRequest(Cargo *CH)
+            void SecurityDataRequest()
+
+        - In main.cc/threadtest.cc
+            void MailTest(int networkID)
+            void TestSuite()
+            void ManagerTest()
+            void LiaisonTest()
+            void PassengerFindsShortestLiaisonLine()
+            void PassengerFindsCorrectCISLine()
+            void CheckInTest()
+            void CargoTest()
+            void ScreenTest()
+            void InspectTest()
+            void MTest()
+
+        - In synch.cc/synch.h
+            bool isHeldByCurrentThread()
+
+    //Need to finish adding functions to threadtest
+        - In threadtest.cc
+            void StartFindShortestLiaisonLine(int arg)
+            void StartFindCorrectCISLine(int arg)
+            void StartLiaisonTest(int arg)
+            void StartLiaisonThread(int arg)
+            void StartCargo(int arg)
+            void StartManager(int arg)
+            void StartCheckInTest(int arg)
+            void StartCheckInStaff(int arg)
+            void StartScreening(int arg)
+            void StartScreeningTest(int arg)
+            void StartInspecting(int arg)
+            void StartInspectingTest(int arg)
+            void StartupOutput(Airport* airport)
+
 	+ Functions modified and in which file.
+            class Lock      -- in file synch.cc/synch.h 
+            {
+                void Acquire()
+                void Release()
+            }
+
+            class Condition -- in file synch.cc/synch.h
+            {
+                void Wait(Lock *conditionLock)
+                void Signal(Lock *conditionLock)
+                void Broadcast(Lock *conditionLock)
+            }
+
+            int main        -- in file main.cc
+            {
+                main(int argc, char **argv)
+            }
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
@@ -73,7 +351,63 @@ V. Testing:  (For each test case, you must show)
 
 VI. Discussion:
 	+ Experiment expectation.  (What you hope will happen.)
-	+ Experiment result.  (What actually happens.)
+        For PassengerFindsShortestLiaisonLine Test:
+            This is the test to show that the passenger chooses the correct line.
+            Liaison Queues 0 through 5 are filled with dummy sizes all greater
+            than queue 6 to demonstrate passenger finding shortest queue (size 0)
+            Adds dummy passengers into the liaison queues:
+               line 0: 6
+               line 1: 5
+               line 2: 4
+               line 3: 3
+               line 4: 2
+               line 5: 1
+               line 6: 0
+            Sets liaison to busy
+              Initializes 1 passenger (id 0) and runs it.
+              Intended result:
+               Passenger 0 will go to line 6 (length 0).
+        
+        For LiaisonTest Test
+           Adds 1 passengers into liaison 0's queue:
+            id 0, ticket.airline 2
+           Initializes 1 Liaison thread (id 0) and runs it.
+           Intended result:
+            The Liaison will direct the passenger to airline 2.
+
+        For CheckInTest
+           Adds 3 passengers into the airline 0 check-in queue:
+            id 0, executive (line 0)
+            id 1, economy (line 1)
+            id 2, economy (line 1)
+           Initializes 1 CIS thread (id 1; airline 0) and runs it.
+           Intended result:
+            The CIS will choose to help the executive passenger.
+            The economy line will stay at length 2.
+	
+        For CargoTest
+           Adds 7 bags onto the conveyor:
+            airline 0, weight 30
+            airline 1, weight 42
+            airline 2, weight 54
+            airline 0, weight 30
+            airline 1, weight 45
+            airline 0, weight 45
+            airline 1, weight 60
+           Initializes 6 cargo (0-5) threads and runs them.
+           Intended result:
+            The bags will be added to the proper airplane in the
+             order in which they were added to the conveyor.
+             After all bags are finished, the cargo handlers
+             will all go on break.
+
+        For AirportSim
+            This should simulate the entire airport running from start to finish as mentioned in the guidlines. 
+
+    + Experiment result.  (What actually happens.)
+        For PassengerFindsShortestLiaisonLine Test, LiaisonTest Test, CheckInTest, and CargoTest all generate the correct output that is listed above in the experiment expectation.
+
+
 	+ Explanation
 		- Explain your experiment result.
 

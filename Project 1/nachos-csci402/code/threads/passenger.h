@@ -15,6 +15,8 @@ class SecurityInspector;
 
 class Passenger {
 	public:
+		//For full run
+		Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST);
 		Passenger(int ID, List* bags, Ticket T, Airport* A);        // For full simulation.
 		Passenger(int ID, Ticket t, int airlineCode, Airport* a);   // For PassengerFindsCorrectCISLine (test).
 		Passenger(int ID, Ticket t);                                // For LiaisonTest.
@@ -29,12 +31,12 @@ class Passenger {
 		/*this function iterates through a given array and returns the location
 		of the smallest value and the value itself*/
 		int findShortestLine(List** list, bool CISline);
-		/*This is the first version of the function for the passenger to find 
+		/*This is the first version of the function for the passenger to find
 		the shortest liaison line in the Airport.*/
 		void findShortestLiaisonLine();
         void CheckIn(); // Drop off luggage and get boarding pass.
-		
-		
+
+
 		//these are the get fucntion for the passenger's ticket
 		Ticket getTicket() { return ticket; }
 
@@ -56,7 +58,7 @@ class Passenger {
 
         int GetAirline() { return airline; }
         void SetAirline(int airline_) { airline = airline_; }
-        
+
 	private:
 
 		int id;							//This is the ID of the passenger
