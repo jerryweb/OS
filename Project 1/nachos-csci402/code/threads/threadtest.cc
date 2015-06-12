@@ -208,7 +208,7 @@ void ManagerTest() {
 	List* CargoHandlerTreadArray = new List();
 
 	//Generate Passengers each with seperate luggage and tickets 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 20; i++) {
 		List* bagList = new List();
 
 		for (int j = 0; j < 3; j++) {
@@ -265,6 +265,7 @@ void ManagerTest() {
 
 	//Display initial airport data
 	StartupOutput(airport);
+	cout << "fuck" << endl;
 
 	//Fork all of the Passenger Threads from the array of passenger threads
 	for (int i = PassengerThreadArray->Size(); i > 0; i--) {

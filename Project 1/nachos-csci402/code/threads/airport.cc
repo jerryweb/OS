@@ -1,6 +1,5 @@
 #include "airport.h"
 
-
 Airport::Airport() {
 	int i;
 	// TODO: add everything and non-hardcode it
@@ -37,31 +36,32 @@ Airport::Airport() {
 	// Check-in variables
 
 	int numCheckin = numAirlines * 6;
-	finalCheckin = new bool[numCheckin];
-	RequestingCheckinData = new bool[numCheckin];
-	checkInStaffList = new List();
-	checkinQueues = new List*[numCheckin];
-	checkinLineLock = new Lock*[numAirlines];
-	checkinLock = new Lock*[numCheckin];
-	checkinLineCV = new Condition*[numCheckin];
-	checkinCV = new Condition*[numCheckin];
-	checkinBreakCV = new Condition*[numCheckin];
-	checkinState = new CheckinState[numCheckin];
-	checkinManagerLock = new Lock("checkinManagerLock");
-	checkinManagerCV = new Condition("checkinManagerCV");
+    finalCheckin = new bool[numCheckin];
+    RequestingCheckinData= new bool[numCheckin];
+    checkInStaffList = new List();
+    checkinQueues = new List*[numCheckin];
+    checkinLineLock = new Lock*[numAirlines];
+    checkinLock = new Lock*[numCheckin];
+    checkinLineCV = new Condition*[numCheckin];
+    checkinCV = new Condition*[numCheckin];
+    checkinBreakCV = new Condition*[numCheckin];
+    checkinState = new CheckinState[numCheckin];
+    checkinManagerLock = new Lock("checkinManagerLock");
+    checkinManagerCV = new Condition("checkinManagerCV");
 	for (i = 0; i < numAirlines; i++) {
 		checkinLineLock[i] = new Lock("checkinLineLock");
 	}
-	for (i = 0; i < numCheckin; i++) {
-		checkinQueues[i] = new List();
-		checkinLock[i] = new Lock("checkinLock");
-		checkinLineCV[i] = new Condition("checkinLineCV");
-		checkinBreakCV[i] = new Condition("checkinBreakCV");
-		checkinCV[i] = new Condition("checkinCV");
-		checkinState[i] = CI_BUSY;
-		finalCheckin[i] = false;
-		RequestingCheckinData[i] = false;
-	}
+    for (i = 0; i < numCheckin; i++)
+    {
+        checkinQueues[i] = new List();
+        checkinLock[i] = new Lock("checkinLock");
+        checkinLineCV[i] = new Condition("checkinLineCV");
+        checkinBreakCV[i] = new Condition("checkinBreakCV");
+        checkinCV[i] = new Condition("checkinCV");
+        checkinState[i] = CI_BUSY;
+        finalCheckin[i] = false;
+        RequestingCheckinData[i] = false;
+    }
 
 	// Cargo variables
 	RequestingCargoData = new bool[10];
@@ -70,6 +70,7 @@ Airport::Airport() {
 	conveyorLock = new Lock("conveyorLock");
 	CargoHandlerManagerLock = new Lock("CargoHandlerManagerLock");
 	cargoCV = new Condition("cargoCV");
+<<<<<<< HEAD
 	cargoLock = new Lock*[10];
 	for (i = 0; i < 10; i++) {
 		cargoState[i] = C_BUSY;
@@ -79,6 +80,18 @@ Airport::Airport() {
 		RequestingCargoData[i] = false;
 		cargoLock[i] = new Lock("cargoLock");
 	}
+=======
+ for (i = 0; i < 10; i++)
+    {
+        cargoState[i] = C_BUSY;
+
+        cargoDataCV[i] = new Condition("cargoDataCV");
+        cargoManagerCV[i] = new Condition("cargoManagerCV");
+        cargoDataLock[i] = new Lock("cargoDataLock");
+        cargoLock[i] = new Lock("cargoLock");
+        RequestingCargoData[i] = false;
+    }
+>>>>>>> 1731a3f9e8e5c7d32022b569008a2a1177332a87
 	aircraft = new List*[numAirlines];
 	for (i = 0; i < numAirlines; i++) {
 		aircraft[i] = new List();
@@ -136,29 +149,28 @@ Airport::Airport() {
 }
 
 Airport::~Airport() {
-	// Liaison variables
-	delete liaisonLineLock;
-	delete[] liaisonQueues;
-	delete[] liaisonLineCV;
-	delete[] liaisonCV;
-	delete[] liaisonLock;
-	// Cargo variables
-	delete conveyorLock;
-	delete conveyor;
-	delete cargoCV;
-	delete[] aircraft;
-	//security variables
-	delete[] screenQueues;
-	delete[] securityQueues;
-	delete[] screenLocks;
-	delete screenQueuesLock;
-	delete[] passengerWaitOfficerCV;
-	delete[] officerWaitPassengerCV;
-	delete[] securityLocks;
-	delete securityQueuesLock;
-	delete[] passengerWaitInspectorCV;
-	delete[] inspectorWaitPassengerCV;
-	delete[] rePassengerWaitInspectorCV;
-	delete[] inspectorWaitRePassengerCV;
-	delete[] inspectorWaitQuestioningCV;
+    // Liaison variables
+    delete liaisonLineLock;
+    delete[] liaisonQueues;
+    delete[] liaisonLineCV;
+    delete[] liaisonCV;
+    delete[] liaisonLock;
+    // Cargo variables
+    delete conveyorLock;
+    delete conveyor;
+    delete cargoCV;
+    delete[] aircraft;
+    //security variables
+    delete[] screenQueues;
+    delete[] securityQueues;
+    delete[] screenLocks;
+    delete screenQueuesLock;
+    delete[] passengerWaitOfficerCV;
+    delete[] officerWaitPassengerCV;
+    delete[] securityLocks;
+    delete securityQueuesLock;
+    delete[] passengerWaitInspectorCV;
+    delete[] inspectorWaitPassengerCV;
+    delete[] rePassengerWaitInspectorCV;
+    delete[] inspectorWaitRePassengerCV;
 }

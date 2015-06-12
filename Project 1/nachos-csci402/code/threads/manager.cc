@@ -68,7 +68,7 @@ void Manager::MakeRounds(){
 
     	//if(!liaisonDone){		
     							//Delete this at the end of the project
-    	// LiaisonDataRequest(L);
+    	LiaisonDataRequest(L);
     		//liaisonDone = true;
     	//}
     	// if(!CargoDone){
@@ -84,7 +84,7 @@ void Manager::MakeRounds(){
     		
     	// }
     	 //if(!CheckinDone){//} && ready){
-		// CheckinDataReuqest(C);
+		CheckinDataReuqest(C);
 			//CheckinDone = true;
 		//}
 	    	
