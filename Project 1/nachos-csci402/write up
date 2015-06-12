@@ -20,11 +20,13 @@ I. Requirements:
 II. Assumptions:
 	For the airport simulation:
      - Each airline only has one airplane.
+     - Arbitrary upper limit of 6 airlines (requirements state >3).
      - All airlines have the same number of check-in staff.
      - Everyone who keeps track of statistics for the manager does so individually, and the manager polls everyone and adds the results to get the full picture.
      - Passengers are randomly assigned to airlines and given luggage.
      - Passengers will enter a check-in line regardless of whether the staff is on break or not.
      - Each screening officer has a line, and the passenger finds the shortest one.
+     - Arbitrary limit of 1-10 screeners and inspectors.
      
 III. Design:
 - This section is to cover your logic and ideas as to how  you are going to solve the problem presented.  This should include a description of classes, algorithms, etc.
