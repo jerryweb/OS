@@ -126,6 +126,14 @@ Airport::Airport()
 	passengerWaitInspectorCV = new Condition*[3];
 	inspectorWaitQuestioningCV = new Condition*[3];
 
+	liaWaitPassengerCV = new Condition*[7];
+	passengerWaitLiaCV = new Condition*[7];
+
+	for (i=0;i<7;i++) {
+		liaWaitPassengerCV[i] = new Condition("liaWaitPassengerCV");
+		passengerWaitLiaCV[i] = new Condition("passWaitLiaCV");
+	}
+
 	for (i = 0; i < 3; i++) {
 		screenLocks[i] = new Lock("screenLocks");
 		securityLocks[i] = new Lock("securityLocks");
@@ -184,6 +192,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     }
 
     // Check-in variables
+    checkinQueuesLock = new Lock("checkinQueuesLock");
     
     int numCheckin = numAirlines * 6;
     finalCheckin = new bool[numCheckin];

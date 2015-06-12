@@ -15,10 +15,7 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
-#include <cstdio>
-#include <iostream>
-
-using namespace std;
+#include <stdio.h>
 
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,

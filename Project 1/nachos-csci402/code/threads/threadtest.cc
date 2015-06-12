@@ -101,6 +101,11 @@ void StartCheckInStaff(int arg) {
 	ci->StartCheckInStaff();
 }
 
+void StartFlying(int arg) {
+	Passenger* p = (Passenger*) arg;
+	p->IWantToFly();
+}
+
 /********************Screen&Security************************/
 //call screen officer
 void StartScreening(int arg) {
@@ -286,6 +291,7 @@ void ManagerTest() {
 		Thread *t = (Thread*) PassengerThreadArray->First();
 		PassengerThreadArray->Remove();
 		t->Fork(StartFindShortestLiaisonLine, (int(P)));
+		//t->Fork(StartFlying, (int(P)));
 	}
 
 	//Fork all of the Liaison Threads from the array of liaison threads
@@ -308,7 +314,7 @@ void ManagerTest() {
 		tCIS->Fork(StartCheckInStaff, (int(CIS)));
 	}
 
-	//Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
+	/*Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
 	for (int m = CargoHandlerTreadArray->Size(); m > 0; m--) {
 		Cargo *CH = (Cargo*) airport->cargoHandlerList->First();
 		airport->cargoHandlerList->Remove();
@@ -316,18 +322,18 @@ void ManagerTest() {
 		Thread *tCH = (Thread*) CargoHandlerTreadArray->First();
 		CargoHandlerTreadArray->Remove();
 		tCH->Fork(StartCargo, (int(CH)));
-	}
+	}*/
 
-	//Fork all ScreenOfficer and SecurityInspector
+	/*Fork all ScreenOfficer and SecurityInspector
 	for (int i=0;i<3;i++) {
 		ScreenOfficerThreadArray[i] = new Thread("ScreenOfficer");
 		SecurityInspectorThreadArray[i] = new Thread("SecurityInspector");
 		ScreenOfficerThreadArray[i]->Fork(StartScreening,(int(sOfficers[i])));
 		SecurityInspectorThreadArray[i]->Fork(StartInspecting,(int(sInspectors[i])));
-	}
+	}*/
 
-	Thread* tM = new Thread("Manager");
-	tM->Fork(StartManager, (int) manager);  //call MakeRounds()
+	//Thread* tM = new Thread("Manager");
+	//tM->Fork(StartManager, (int) manager);  //call MakeRounds()
 }
 
 //----------------------------------------------------------------------
