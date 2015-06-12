@@ -298,6 +298,10 @@ void Passenger::CheckIn() {
 	Screening();
 }
 
+void Passenger::FindShortestScreenLine() {
+
+}
+
 void Passenger::IWantToFly() {
 	findShortestLiaisonLine();
 	//CheckIn();

@@ -332,8 +332,8 @@ void ManagerTest() {
 		SecurityInspectorThreadArray[i]->Fork(StartInspecting,(int(sInspectors[i])));
 	}*/
 
-	//Thread* tM = new Thread("Manager");
-	//tM->Fork(StartManager, (int) manager);  //call MakeRounds()
+	Thread* tM = new Thread("Manager");
+	tM->Fork(StartManager, (int) manager);  //call MakeRounds()
 }
 
 //----------------------------------------------------------------------
