@@ -60,7 +60,6 @@ void Manager::MakeRounds(){
     			for(int i = 0; i < airport->cargoHandlerList->Size(); i++){
     				airport->cargoLock[i]->Release();
     			}
-    			// airport->cargoCV->Broadcast(airport->cargoLock[i]);
     			
     		}
     	}
@@ -123,7 +122,6 @@ void Manager::LiaisonDataRequest(Liaison *L){
 
 			//Records the number of passengers per airline and stores into an array
 			for(int k = 0; k < airport->numAirlines; k++){
-				// printf("num of pass per airline: %d\n", L->getPassengers(k));
 				liaisonPassengerCount[k] += L->getPassengers(k);
 				liaisonBaggageCount[k] += L->getLuggageCount(k);
 				printf("Count for airline %d: %d\n", k, liaisonPassengerCount[k]);
@@ -150,8 +148,7 @@ void Manager::CheckinDataReuqest(CheckIn *C){
 		airport->checkInStaffList->Append((void *)C);
 		
 		if(!airport->finalCheckin[C->getID()]){
-			airport->checkinManagerLock->Acquire();			//airport->checkinCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
-			//if(airport->checkinState[C->getID()] == CI_BREAK)
+			airport->checkinManagerLock->Acquire();
 
 			airport->RequestingCheckinData[C->getID()] = true;
 			printf("Getting data from Check-In Staff %d\n", C->getID());
@@ -161,8 +158,6 @@ void Manager::CheckinDataReuqest(CheckIn *C){
 			//Waits for the signal of corresponding Liaison
 			airport->checkinLock[C->getID()]->Acquire();
 			//Records the number of passengers per airline and stores into an array
-			//(int k = 0; k < airport->numAirlines; k++){
-				// printf("num of pass per airline: %d\n", L->getPassengers(k));
 			checkinPassengerCount[C->getAirline()] += C->getPassengers();
 			checkinBaggageWeight[C->getAirline()] += C->getLuggageWeight();
 			printf("Count for airline %d: %d\n", C->getAirline(), checkinPassengerCount[C->getAirline()]);
@@ -172,11 +167,7 @@ void Manager::CheckinDataReuqest(CheckIn *C){
 			//Signals liaison that all the data has been collected
 			airport->checkinCV[C->getID()]->Signal(airport->checkinLock[C->getID()]);
 			airport->checkinLock[C->getID()]->Release();
-
-			// printf("counter: %d\n", counter);
-		}
-		// else
-		// 	printf("already made final checkin pass through\n");
+        }
 
 	}
 }
@@ -201,7 +192,6 @@ void Manager::CargoRequest(Cargo *CH){
 			//Waits for the signal of corresponding Liaison
 			airport->cargoDataLock[CH->getID()]->Acquire();
 			//Records the total weight per airline and stores into an array
-			// printf("i is: %d\n", i);
 			for(int k = 0; k < airport->numAirlines; k++){
 				cargoHandlersBaggageWeight[k] += CH->getWeight(k);
 				cargoHandlersBaggageCount[k] += CH->getLuggage(k);

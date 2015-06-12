@@ -238,34 +238,11 @@ void Passenger::CheckIn()
         printf("Passenger %d of Airline %d is waiting in the executive class line\n",
                 id, airline);
     }
-    // if( airport->checkinState[checkInLine] == CI_BUSY )
-    // {   // Wait in line if check-in staff is busy.
-        airport->checkinQueues[checkInLine]->Append((void *)this);
-        airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
-    // }
+    airport->checkinQueues[checkInLine]->Append((void *)this);
+    airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
     airport->checkinLineLock[airline]->Acquire();
     printf("Passenger %d of Airline %d was informed to board at gate %d\n",
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
 
-<<<<<<< HEAD
-    /*add passengers to screening line
-    airport->screenQueuesLock->Acquire();
-
-	int shortest = 0;		//shortest line's id
-	int minimumSize = -1;		//for comparsion in the following loop
-
-	//find the shortest line
-	for (int i = 0; i < 3; i++) {
-		if (minimumSize < 0
-				|| minimumSize > airport->screenQueues[i]->Size()) {
-			minimumSize = airport->securityQueues[i]->Size();
-			shortest = i;
-		}
-	}
-
-	airport->screenQueues[shortest]->Append(this);
-	airport->screenQueuesLock->Release();*/
-=======
->>>>>>> 1731a3f9e8e5c7d32022b569008a2a1177332a87
 }

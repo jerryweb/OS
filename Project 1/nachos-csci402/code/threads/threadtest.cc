@@ -18,8 +18,11 @@
 #include "manager.h"
 #include "screenofficer.h"
 #include "securityinspector.h"
+#include <iostream>
 
 using namespace std;
+
+extern void TestSuite();
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -177,7 +180,8 @@ void StartupOutput(Airport* airport) {
 	}
 
 	//Prints Check-in Staff information
-	for (int k = 0; k < airport->checkInStaffList->Size(); k++) {
+    int CISsize = airport->checkInStaffList->Size();
+	for (int k = 0; k < CISsize; k++) {
 		CheckIn *CIS = (CheckIn*) airport->checkInStaffList->Remove();
 		airport->checkInStaffList->Append((void *) CIS);
 		printf("Airline check-in staff %d belongs to airline %d\n",
@@ -256,7 +260,6 @@ void ManagerTest() {
 
 	//Display initial airport data
 	StartupOutput(airport);
-	cout << "fuck" << endl;
 
 	//Fork all of the Passenger Threads from the array of passenger threads
 	for (int i = PassengerThreadArray->Size(); i > 0; i--) {
@@ -679,6 +682,8 @@ void MTest() {
 
 void AirportSim()
  {
+    srand (time(NULL));
+    
     int i;
     
     int airlines   = 0;
@@ -695,52 +700,66 @@ void AirportSim()
     List* securityThreadList  = new List();
     
     // Menu asking for numbers:
-    printf("WELCOME TO AIRPORT SIMULATOR");
-    while (airlines < 3 && airlines > 6)
+    printf("============WELCOME TO AIRPORT SIMULATOR============\n");
+    printf("ENTERING ANYTHING BUT NUMBERS IS STRICTLY FORBIDDEN!\n");
+    while (airlines < 3 || airlines > 6)
     {   // 3-6 airlines (arbitrary upper limit).
         printf("Please enter the number of airlines (3-6): ");
-        scanf("%d", airlines);
+        
+        cin >> airlines;
+        cin.get();
     }
-    while (liaisons < 5 && liaisons > 7)
+    while (liaisons < 5 || liaisons > 7)
     {   // 5-7 liaisons.
         printf("Please enter the number of liaisons (5-7): ");
-        scanf("%d", liaisons);
+        cin >> liaisons;
+        cin.get();
     }
-    while (checkins < 3 && checkins > 5)
+    while (checkins < 3 || checkins > 5)
     {   // 3-5 check-in staff per airline.
         printf("Please enter the number of check-in staff per airline (3-5): ");
-        scanf("%d", checkins);
+        cin >> checkins;
+        cin.get();
     }
-    while (cargos < 6 && cargos > 10)
+    while (cargos < 6 || cargos > 10)
     {   // 6-10 cargo handlers.
         printf("Please enter the number of cargo handlers (6-10): ");
-        scanf("%d", cargos);
+        cin >> cargos;
+        cin.get();
     }
-    while (security < 1 && security > 10)
+    while (security < 1 || security > 10)
     {   // 1-10 screeners/inspectors (arbitrary limits).
         printf("Please enter the number of screening officers and security inspectors (1-10): ");
-        scanf("%d", security);
+        cin >> security;
+        cin.get();
     }
-    while (passengers < 20 && passengers > 100)
+    while (passengers < 20 || passengers > 100)
     {   // 20-100 passengers (arbitrary upper limit).
         printf("Please enter the number of passengers (20-100): ");
-        scanf("%d", passengers);
+        cin >> passengers;
+        cin.get();
     }
     
     // Create a new airport using given numbers.
     Airport* airport = new Airport(airlines, passengers, liaisons, checkins, security, cargos);
-
-    srand (time(NULL));
-
+    
     // Initialize data classes and threads.
-    int* 
+	int* passengersPerAirline = new int[airlines];
+	int* bagsPerAirline       = new int[airlines];
+    for (i = 0; i < airlines; i++)
+    {
+        passengersPerAirline[i] = 0;
+        bagsPerAirline[i]       = 0;
+    }
 	for (i = 0; i < passengers; i++)
     {
         Ticket ticket;
         int airline = rand() % airlines;
+        passengersPerAirline[airline]++;
         ticket.airline = airline;
-        ticket.exec = (bool) rand() % 2;
+        ticket.executive = (bool) rand() % 2;
         int numBags = rand() % 2 + 2;
+        bagsPerAirline[airline]++;
         List* bags = new List();
         for (int j = 0; j < numBags; j++)
         {
@@ -754,6 +773,10 @@ void AirportSim()
 		Thread* t = new Thread("Passenger");
 		passengerThreadList->Append((void*) t);
 	}
+    for (i = 0; i < airlines; i++)
+    {
+        airport->airlines[i] = new Airline(i, passengersPerAirline[i], bagsPerAirline[i]);
+    }
 	for (i = 0; i < liaisons; i++)
     {
 		Liaison* l = new Liaison(i, airport);
@@ -796,7 +819,6 @@ void AirportSim()
     
 	// Display initial airport data.
 	StartupOutput(airport);
-    
     // Fork the threads.
 	while (! passengerThreadList->IsEmpty())
     {
@@ -833,16 +855,55 @@ void AirportSim()
 		Thread* t = (Thread*) screenerThreadList->Remove();
 		t->Fork(StartScreening, (int) so);
 	}
-	while (! passengerThreadList->IsEmpty())
+	while (! securityThreadList->IsEmpty())
     {
 		SecurityInspector* si = (SecurityInspector*) airport->securityInspectorList->Remove();
 		airport->securityInspectorList->Append((void*) si);
-		Thread* t = (Thread*) passengerThreadList->Remove();
+		Thread* t = (Thread*) securityThreadList->Remove();
 		t->Fork(StartInspecting, (int) si);
 	}
 	tm->Fork(StartManager, (int) m);
     
     // ???
-
+    
     // PROFIT
- }
+}
+ 
+void MainMenu()
+{
+    int choice = -1;
+    while (choice < 0 || choice > 11)
+    {
+        printf("CHOOSE ONE (PLEASE ONLY ENTER A NUMBER):\n");
+        printf("0:  Lock and CV test code.\n");
+        printf("1:  Passenger selects the shortest line for the airport liaison.\n");
+        printf("2:  Passenger is directed by the Liaison to the correct airline counters.\n");
+        printf("3:  Economy class passengers enter the shortest line while Executive class passengers enter their correct line.\n");
+        printf("4:  Executive class passengers are given priority over the economy class passengers at the check-in kiosks.\n");
+        printf("5:  Screening officer chooses an available security inspector each time a passenger comes in.\n");
+        printf("6:  Cargo handlers choose bags from the conveyor system each time and go on a break if there are no bags.\n");
+        printf("7:  Handing over of the hand luggage by the passenger to the screening officer.\n");
+        printf("8:  Passenger returns to the same security inspector after further questioning.\n");
+        printf("9:  Baggage weights of all the passengers of a particular airline should match the weights of the bags reported by the cargo handlers.\n");
+        printf("10: Handing over of boarding pass by the passenger to the security inspector.\n");
+        printf("11: Hardcoded airport simulation.\n");
+        printf("12: Full airport simulation.\n");
+    
+        cin >> liaisons;
+    }
+    switch (choice)
+    {
+        case 0:  TestSuite();                           break;
+        case 1:  PassengerFindsShortestLiaisonLine();   break;
+        case 2:  LiaisonTest();                         break;
+        case 3:  PassengerFindsCorrectCISLine();        break;
+        case 4:  CheckInTest();                         break;
+        case 5:  ScreenTest();                          break;
+        case 6:  CargoTest();                           break;
+        case 7:  ScreenTest();                          break;
+        case 8:  InspectTest();                         break;
+        case 9:  InspectTest();                         break;
+        case 10: MTest();                               break;
+        case 11: ManagerTest();                         break;
+        case 12: AirportSim();                          break;
+}

@@ -53,21 +53,23 @@ V. Testing:  (For each test case, you must show)
 	+ How to test
         All tests are run from the code/threads folder, using the command "nachos".
         The arguments that correspond with each test are:
-         "-T":       Lock and CV test code
-         "-findL":   Passenger selects the shortest line for the airport liaison
-         "-liaison": Passenger is directed by the Liaison to the correct airline counters
-         "-findCIS": Economy class passengers enter the shortest line while Executive class passengers enter their correct line
-         "-checkin": Executive class passengers are given priority over the economy class passengers at the check-in kiosks
-         "":         Screening officer chooses an available security inspector each time a passenger comes in.
-         "-cargo":   Cargo handlers choose bags from the conveyor system each time and go on a break if there are no bags.
-         "":         Handing over of the hand luggage by the passenger to the screening officer.
-         "":         Passenger returns to the same security inspector after further questioning.
-         "":         Baggage weights of all the passengers of a particular airline should match the weights of the bags reported by the cargo handlers.
-         "":         Handing over of boarding pass by the passenger to the security inspector
-         "-airport": Full airport simulation
+         "-T":        Lock and CV test code.
+         "-findL":    Passenger selects the shortest line for the airport liaison.
+         "-liaison":  Passenger is directed by the Liaison to the correct airline counters.
+         "-findCIS":  Economy class passengers enter the shortest line while Executive class passengers enter their correct line.
+         "-checkin":  Executive class passengers are given priority over the economy class passengers at the check-in kiosks.
+         "-screen":   Screening officer chooses an available security inspector each time a passenger comes in.
+         "-cargo":    Cargo handlers choose bags from the conveyor system each time and go on a break if there are no bags.
+         "-screen":   Handing over of the hand luggage by the passenger to the screening officer.
+         "-inspect":  Passenger returns to the same security inspector after further questioning.
+         "-mtest":    Baggage weights of all the passengers of a particular airline should match the weights of the bags reported by the cargo handlers.
+         "-inspect":  Handing over of boarding pass by the passenger to the security inspector.
+         "-manager":  Hardcoded airport simulation.
+         "-airport":  Full airport simulation.
+         "-menu":     Menu allowing choice between all tests.
     + Test Output
 - Describe the testing output. You don't have to dump all the output info. Just make sure your description can exactly reflect your output.
-    
+        
 
 VI. Discussion:
 	+ Experiment expectation.  (What you hope will happen.)
