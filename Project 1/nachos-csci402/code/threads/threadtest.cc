@@ -54,10 +54,6 @@ void ThreadTest() {
 	SimpleThread(0);
 }
 
-void StartManagerTest(int arg) {
-
-}
-
 //----------------------------------------------------------------------
 // The passenger should find the shortest liaison line 
 //----------------------------------------------------------------------
@@ -139,10 +135,14 @@ void StartupOutput(Airport* airport) {
 			airport->checkInStaffList->Size());
 	printf("Number of cargo handlers = %d\n",
 			airport->cargoHandlerList->Size());
-	printf("Number of screening officers = %d\n", screeningOfficerList->Size());
+	printf("Number of screening officers = %d\n", airport->screeningOfficerList->Size());
 	printf("Total number of passengers = %d\n", airport->passengerList->Size());
 
-	int passengersPerAirline[numAirlines] = {0};
+	int* passengersPerAirline = new int[airport->numAirlines];
+    for (int i = 0; i < airport->numAirlines; i++)
+    {
+        passengersPerAirline[i] = 0;
+    }
 	//Static counter for number of passengers per airline for 3 airlines
 	for (int i = 0; i < airport->passengerList->Size(); i++) {
 		Passenger *P = (Passenger*) airport->passengerList->Remove();
@@ -697,20 +697,35 @@ void AirportSim()
     // Menu asking for numbers:
     printf("WELCOME TO AIRPORT SIMULATOR");
     while (airlines < 3 && airlines > 6)
-    {   // 3-6 airlines (arbitrary upper limit)
+    {   // 3-6 airlines (arbitrary upper limit).
         printf("Please enter the number of airlines (3-6): ");
+        scanf("%d", airlines);
     }
-    while (airlines < 3 && airlines > 6)
-    {   // 3-6 airlines (arbitrary upper limit)
-        printf("Please enter the number of airlines (3-6): ");
+    while (liaisons < 5 && liaisons > 7)
+    {   // 5-7 liaisons.
+        printf("Please enter the number of liaisons (5-7): ");
+        scanf("%d", liaisons);
     }
-    // MENU ASKING FOR NUMBERS:
-    //  - >=3 AIRLINES
-    //  - 5-7 LIAISONS
-    //  - 3-5 CHECK-IN / AIRLINE (all equal)
-    //  - 6-10 CARGO
-    //  - # SCREENERS/SECURITY
-    //  - # PASSENGERS
+    while (checkins < 3 && checkins > 5)
+    {   // 3-5 check-in staff per airline.
+        printf("Please enter the number of check-in staff per airline (3-5): ");
+        scanf("%d", checkins);
+    }
+    while (cargos < 6 && cargos > 10)
+    {   // 6-10 cargo handlers.
+        printf("Please enter the number of cargo handlers (6-10): ");
+        scanf("%d", cargos);
+    }
+    while (security < 1 && security > 10)
+    {   // 1-10 screeners/inspectors (arbitrary limits).
+        printf("Please enter the number of screening officers and security inspectors (1-10): ");
+        scanf("%d", security);
+    }
+    while (passengers < 20 && passengers > 100)
+    {   // 20-100 passengers (arbitrary upper limit).
+        printf("Please enter the number of passengers (20-100): ");
+        scanf("%d", passengers);
+    }
     
     // Create a new airport using given numbers.
     Airport* airport = new Airport(airlines, passengers, liaisons, checkins, security, cargos);
@@ -718,17 +733,19 @@ void AirportSim()
     srand (time(NULL));
 
     // Initialize data classes and threads.
+    int* 
 	for (i = 0; i < passengers; i++)
     {
         Ticket ticket;
-        ticket->airline = rand() % airlines;
-        ticket->exec = (bool) rand() % 2;
+        int airline = rand() % airlines;
+        ticket.airline = airline;
+        ticket.exec = (bool) rand() % 2;
         int numBags = rand() % 2 + 2;
         List* bags = new List();
         for (int j = 0; j < numBags; j++)
         {
             Luggage* l = new Luggage;
-            l->airline = -1;
+            l->airlineCode = -1;
             l->weight = rand() % 30 + 30;
             bags->Append((void*) l);
         }
