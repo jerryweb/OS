@@ -100,6 +100,12 @@ public:
 
 									// Screening and security variables
 
+	int* clearPassengerCount;         //array to store cleared passenger cout for each airline
+									  //used by airport manager
+
+	Lock* updateClearCount;           //Lock to update security inspector's clear passenger count
+
+
 	List* securityInspectorList;      //used by airport manager
 
 	List** screenQueues;                    // Array of screening queues (list
@@ -150,8 +156,6 @@ public:
 											 //inspector called this lock when both securityQueue
 											 //and returnQueue is empty but still passenger being questioned
 											 //index corresponds to inspector id
-
-	Lock* updateClearCount; //Lock to update security inspector's clear passenger count
 
 	//  Manager variables
 	//Conditon to allow manager to gather data

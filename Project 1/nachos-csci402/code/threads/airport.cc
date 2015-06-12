@@ -82,6 +82,11 @@ Airport::Airport() {
 	}
 
 	//Screen & Security Variables
+	clearPassengerCount = new int[3];
+	for (i = 0; i < 3; i++) {
+		clearPassengerCount[i] = 0;
+	}
+
 	updateClearCount = new Lock("updateClearCount");
 
 	screeningOfficerList = new List();

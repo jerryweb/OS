@@ -208,3 +208,9 @@ void Manager::CargoRequest(Cargo *CH){
 
 	}
 }
+
+void Manager::SecurityDataRequest() {
+	airport->updateClearCount->Acquire();
+	securityInspectorPassengerCount = airport->clearPassengerCount;
+	airport->updateClearCount->Release();
+}
