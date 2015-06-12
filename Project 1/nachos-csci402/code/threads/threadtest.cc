@@ -841,7 +841,54 @@ void AirportSim()
  }
 
 /*void checkinScreenTest() {
-	Airport* airport = new Airport(); // 3 airlines
+
+	Airport* airport = new Airport();
+
+
+	Passenger** tPassenger = new Passenger*[5];
+	for (int i = 0; i < 5; i++) {
+		tPassenger[i] = new Passenger(i, 0, airport);
+
+	}
+
+	airport->checkinQueues[0]->Append(tPassenger[0]);
+	airport->checkinQueues[0]->Append(tPassenger[1]);
+	airport->checkinQueues[0]->Append(tPassenger[2]);
+	airport->checkinQueues[1]->Append(tPassenger[3]);
+	airport->checkinQueues[1]->Append(tPassenger[4]);
+
+	Passenger** dummyPassenger = new Passenger*[6];
+	for (int i = 0; i < 6; i++) {
+		dummyPassenger[i] = new Passenger(airport);
+	}
+	airport->securityQueues[0]->Append(dummyPassenger[0]);
+	airport->securityQueues[1]->Append(dummyPassenger[1]);
+	airport->securityQueues[1]->Append(dummyPassenger[2]);
+	airport->securityQueues[2]->Append(dummyPassenger[3]);
+	airport->securityQueues[2]->Append(dummyPassenger[4]);
+	airport->securityQueues[2]->Append(dummyPassenger[5]);
+
+	CheckIn** ckIn = new CheckIn*[2];
+	ckIn[0] = new CheckIn(0,0,airport);
+	ckIn[1] = new CheckIn(1,1,airport);
+
+	//declare screen officer
+	ScreenOfficer** sOfficer = new ScreenOfficer*[3];
+	for (int i=0;i<3;i++) {
+		sOfficer[i] = new ScreenOfficer(i,airport);
+	}
+
+	Thread** passengerThreads = new Thread*[5];
+	for (int i = 0; i < 5; i++) {
+		passengerThreads[i] = new Thread("Passenger");
+		passengerThreads[i]->Fork(StartScreeningTest,
+				(int(tPassenger[i])));
+	}
+
+
+
+
+	Airport* airport = new Airport(); //****************************************************
 
 	// Create passenger shells.
 	Passenger* p0 = new Passenger(0);
@@ -862,7 +909,7 @@ void AirportSim()
 	// Fork thread and pass CIS class.
 	t->Fork(StartCheckInTest, (int) ci);
 
-	Airport* airport = new Airport();
+	Airport* airport = new Airport();      //**************************************
 
 	//declare passenger array
 	Passenger** screenPassenger = new Passenger*[10];
@@ -899,7 +946,5 @@ void AirportSim()
 
 	Thread* officerThread = new Thread("Officer");
 	officerThread->Fork(StartScreening, (int(sOfficer)));
-
-
 
 }*/
