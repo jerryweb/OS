@@ -84,7 +84,7 @@ void Manager::MakeRounds(){
     		
     	// }
     	 //if(!CheckinDone){//} && ready){
-		// CheckinDataReuqest(C);
+		CheckinDataReuqest(C);
 			//CheckinDone = true;
 		//}
 	    	
@@ -215,4 +215,10 @@ void Manager::CargoRequest(Cargo *CH){
 		}
 
 	}
+}
+
+void Manager::SecurityDataRequest() {
+	airport->updateClearCount->Acquire();
+	securityInspectorPassengerCount = airport->clearPassengerCount;
+	airport->updateClearCount->Release();
 }

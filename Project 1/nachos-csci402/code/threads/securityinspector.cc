@@ -7,10 +7,10 @@ SecurityInspector::SecurityInspector(int ID, Airport* AIRPORT) {
 	id = ID;
 	qPassengerCount = -1;
 	airport = AIRPORT;
-	passengerCount = new int[3];
+	/*passengerCount = new int[3];
 	for (int i = 0; i < 3; i++) {
 		passengerCount[i] = 0;
-	}
+	}*/
 	airport->securityInspectorList->Append(this);
 }
 
@@ -46,6 +46,13 @@ void SecurityInspector::Inspect() {
 			printf(
 					"Security inspector %d permits returning passenger %d to board\n",
 					id, currentPassenger->getID());
+
+			//starting C.S.(6) to update cleared passenger count for manager
+			//this lock shared by all the inspectors and manager
+			airport->updateClearCount->Acquire();
+			(airport->clearPassengerCount[currentPassenger->GetAirline()])++;
+			airport->updateClearCount->Release();
+			//ending C.S.(6)
 
 			//if return line is empty handle the security line
 		} else if (!(airport->securityQueues[id]->IsEmpty())) {
@@ -101,7 +108,7 @@ void SecurityInspector::Inspect() {
 
 				//starting C.S.(5) to update cleared passenger count for manager
 				airport->updateClearCount->Acquire();
-				passengerCount[id]++;
+				(airport->clearPassengerCount[currentPassenger->GetAirline()])++;
 				airport->updateClearCount->Release();
 				//ending C.S.(5)
 			}
