@@ -242,8 +242,17 @@ void Condition::Signal(Lock* conditionLock)
 }
 void Condition::Broadcast(Lock* conditionLock)
 {
-    while (! waitList->IsEmpty())
+    if (waitLock != conditionLock)
+    {   // Make sure that the caller is trying to access the right lock.
+        printf("Condition::Signal (%s): parameter conditionLock (%s) is not the same as the waitLock (%s)\n",
+                name, conditionLock->getName(), waitLock->getName());
+        return;
+    }
+    else
     {
-        Signal(conditionLock);
+        while (! waitList->IsEmpty())
+        {
+            Signal(conditionLock);
+        }
     }
 }

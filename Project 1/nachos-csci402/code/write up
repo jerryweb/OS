@@ -4,11 +4,10 @@ Title:  Writeup for Project 1, Summer 2015
 		Jerry Webb	jerryweb@usc.edu	1288504108
 		Andrew Lee	lee533@usc.edu		7540910244
 		Hao Cui		hcui@usc.edu		1454367516
-		???			???					???
 
 
 I. Requirements:
-    Part 1: Implement locks and condition variables by filling in the empty framework provided. The locks and condion variables must successfully pass the test in the lockTest.cc file. There are 5 tests within that file.
+    Part 1: Implement locks and condition variables by filling in the empty framework provided. The locks and condition variables must successfully pass the test in the lockTest.cc file. There are 5 tests within that file.
     
     Part 2: Create a multi-threaded airport simulation with the following components:
              - Passengers, who enter the airport with a ticket and luggage and proceed through the simulation until boarding their airplane.
@@ -30,24 +29,63 @@ II. Assumptions:
      - Each screening officer has a line, and the passenger finds the shortest one.
      - Arbitrary limit of 1-10 screeners and inspectors.
      - The range of passengers for the main simulation is 20 to 100.
-     - The range of Airport Liaisons for the main simulaiton is 5 to 7.
+     - The range of Airport Liaisons for the main simulation is 5 to 7.
      - The range of Check-in Staff for the main simulation is 3 to 5 per airline with a maximum of 15 total.
      - The range of Cargo Handlers is 6 to 10 for the main simulation. 
      - Once initial number of Passengers are created and the Threads are forked at the beginning of the program, no addition passengers can be added to the main simulation.
      - The reason we are mentioning main simulation is due to the special cases for each test.
-     - The manager will never go on break during any simulation. 
-     - The notes that mentioned that are from class are included in the submission file, however, we will add them to them to this file.
-     - When promted to enter a number, the user will enter a positive integer or 0.
+     - The manager will never go on break during any simulation.
+     - When prompted to enter a number, the user will enter a positive integer or 0.
 
 III. Design:
 - This section is to cover your logic and ideas as to how  you are going to solve the problem presented.  This should include a description of classes, algorithms, etc.
 
-    Part 1: The lock and CV algorithms were given by the professor in class. Locks contain two queues, readyQueue and waitQueue
-    - There are only 2 main funtions utilized by the lock class: Acquire and Release. When a lock is acquired by a thread, only that specific thread is able to use the CPU and run its critical section. However, the lock will first disable interrupts (theoritcally things such as I/O signals) and check to see if that thread is not already the lock owner and that if the lock is not already owned by someone else.
-    The tests in lockTest thoroughly test the race conditions of each of the locks it genrates. If the thread passes these checks, then it will make himself the owner of the lock 
-    - We added a Size function to the list class, which essentially returns the size of the the list. This is allowed all functions that counted or accessed the array and lists of functions throughout the code to be dynamic and avoid looking outside of the bounds of the list.
+    Part 1: 
+    - Locks contain two queues, readyQueue and waitQueue, and a state which can be BUSY or FREE. There are 2 main functions utilized by the lock class: Acquire and Release. When a lock is acquired by a thread, only that specific thread is able to use the CPU and run its critical section. Once the critical section is completed, the thread releases the lock.
+        acquire()
+        {
+            disable interrupts
+            if current thread owns lock, restore interrupts and return
+            if lock is FREE, make lock BUSY and make self owner
+            else, add self to lock wait queue and sleep
+            restore interrupts
+        }
+        release()
+        {
+            disable interrupts
+            if current thread does not own lock, print error message, restore interrupts and return
+            if there is a thread waiting, remove a thread from wait queue, call scheduler->ReadyToRun on that thread, and make them lock owner
+            else, make lock FREE and set lock owner to NULL
+            restore interrupts
+        }
+    - The CV class has 3 functions (Wait, Signal, and Broadcast; each takes in a lock), a waitList, and a waitLock. When a thread waits on a CV, it adds itself to the CV's wait list and goes to sleep. Another thread can wake a sleeping thread by signalling the first thread in the wait list or broadcasting to wake all threads in the list.
+        wait
+        {
+            disable interrupts
+            if passed-in lock is not valid, print error, restore interrupts, return
+            if wait lock is null (first thread to call wait), use passed-in lock as wait lock
+            if wait lock is not the same as passed-in lock, print error, restore interrupts, return
+            release passed-in lock
+            add self to CV wait queue and go to sleep
+            restore interrupts
+        }
+        signal
+        {
+            disable interrupts
+            if no waiting threads, restore interrupts and return
+            if wait lock is not the same as passed-in lock, print error, restore interrupts, return
+            remove one thread from CV wait queue, run scheduler->ReadyToRun for that thread
+            if no more waiting threads, set wait lock to null
+            restore interrupts
+        }
+        broadcast
+        {
+            if wait lock is not the same as passed-in lock, print error and return
+            while there are still waiting threads, signal using the passed-in lock
+        }
+    - We added a Size() function to the list class, which essentially returns the size of the the list. This is allowed all functions that counted or accessed the array and lists of functions throughout the code to be dynamic and avoid looking outside of the bounds of the list. We also added a First() function, which returns the first element of the list without removing it.
 
-    Part 2: Each component in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as states for liaisons, cargo handlers, etc.. At the start of the simulation, all the liaisons should be set to the Busy state so that the passengers will automatically enter their lines. All the passengers should be forked first, followed by liaisons, then checkin staff nd cargo handlers, then screening and security officers and finally the manager. 
+    Part 2: Each component in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as locks, lists, and states for liaisons, cargo handlers, etc. At the start of the simulation, all the liaisons should be set to the Busy state so that the passengers will automatically enter their lines. All the passengers should be forked first, followed by liaisons, then check-in staff and cargo handlers, then screening and security officers and finally the manager. 
 
 IV. Implementation:
 	+ Files Modified - all files are located in the threads directory except for Makefile.common, which is located in the code directory.
@@ -436,7 +474,7 @@ VI. Discussion:
         	    
 
         For AirportSim
-            This should simulate the entire airport running from start to finish as mentioned in the guidlines. 
+            This should simulate the entire airport running from start to finish as mentioned in the guidelines. 
 
     + Experiment result.  (What actually happens.)
         For PassengerFindsShortestLiaisonLine Test, LiaisonTest Test, CheckInTest, and CargoTest all generate the correct output that is listed above in the experiment expectation.
@@ -447,7 +485,7 @@ VI. Discussion:
 
 	+ Explanation
 		- Explain your experiment result.
-            As mentioned in the previous section, our simulation will not completely finish due to the fact that the two portions (screening officer and passenger interaction along with manager screeing officer interaction and once the passenger is directed to the gate) are not connect. All of these funtions, however, do work seperately within different tests. All functions not concerning the security officer and screening officer will work in one simulation including the collection of data by the manager from checkin staff, liaisons, and cargo handlers. However due to the inability of the passengers to fully board the plane, the output will not show the correct values. This is due to this specific loop:
+            As mentioned in the previous section, our simulation will not completely finish due to the fact that the two portions (screening officer and passenger interaction along with manager screening officer interaction and once the passenger is directed to the gate) are not connect. All of these functions, however, do work separately within different tests. All functions not concerning the security officer and screening officer will work in one simulation including the collection of data by the manager from check-in staff, liaisons, and cargo handlers. However due to the inability of the passengers to fully board the plane, the output will not show the correct values. This is due to this specific loop:
                 for(int i = 0; i < airport->numAirlines; i++){ 
                     liaisonPassengerCount[i] = 0;
                     liaisonBaggageCount[i] = 0;
