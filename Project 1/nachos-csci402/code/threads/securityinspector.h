@@ -22,7 +22,6 @@ private:
 							//++ when sent passenger to questionsing
 							//-- when returned
 	Airport* airport;
-	//int* passengerCount;          //array storing cleared passenger number for each airline
 };
 
 #endif

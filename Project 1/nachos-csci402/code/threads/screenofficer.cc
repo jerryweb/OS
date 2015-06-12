@@ -74,7 +74,6 @@ void ScreenOfficer::Screen() {
 			//signal the passenger
 			airport->passengerWaitOfficerCV[myLine]->Signal(
 					airport->screenLocks[myLine]);
-			//printf("SO Release 77\n");
 			airport->screenLocks[myLine]->Release();
 
 			//wait for passenger thread
