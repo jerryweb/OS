@@ -699,32 +699,26 @@ void AirportSim()
     while (airlines < 3 && airlines > 6)
     {   // 3-6 airlines (arbitrary upper limit).
         printf("Please enter the number of airlines (3-6): ");
-        scanf("%d", airlines);
     }
     while (liaisons < 5 && liaisons > 7)
     {   // 5-7 liaisons.
         printf("Please enter the number of liaisons (5-7): ");
-        scanf("%d", liaisons);
     }
     while (checkins < 3 && checkins > 5)
     {   // 3-5 check-in staff per airline.
         printf("Please enter the number of check-in staff per airline (3-5): ");
-        scanf("%d", checkins);
     }
     while (cargos < 6 && cargos > 10)
     {   // 6-10 cargo handlers.
         printf("Please enter the number of cargo handlers (6-10): ");
-        scanf("%d", cargos);
     }
     while (security < 1 && security > 10)
     {   // 1-10 screeners/inspectors (arbitrary limits).
         printf("Please enter the number of screening officers and security inspectors (1-10): ");
-        scanf("%d", security);
     }
     while (passengers < 20 && passengers > 100)
     {   // 20-100 passengers (arbitrary upper limit).
         printf("Please enter the number of passengers (20-100): ");
-        scanf("%d", passengers);
     }
     
     // Create a new airport using given numbers.
@@ -733,13 +727,12 @@ void AirportSim()
     srand (time(NULL));
 
     // Initialize data classes and threads.
-    int* 
 	for (i = 0; i < passengers; i++)
     {
         Ticket ticket;
         int airline = rand() % airlines;
         ticket.airline = airline;
-        ticket.exec = (bool) rand() % 2;
+        ticket.executive = (bool) rand() % 2;
         int numBags = rand() % 2 + 2;
         List* bags = new List();
         for (int j = 0; j < numBags; j++)

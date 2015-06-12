@@ -248,7 +248,6 @@ void Passenger::CheckIn()
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
 
-<<<<<<< HEAD
     /*add passengers to screening line
     airport->screenQueuesLock->Acquire();
 
@@ -266,6 +265,4 @@ void Passenger::CheckIn()
 
 	airport->screenQueues[shortest]->Append(this);
 	airport->screenQueuesLock->Release();*/
-=======
->>>>>>> 1731a3f9e8e5c7d32022b569008a2a1177332a87
 }

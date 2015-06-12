@@ -84,8 +84,6 @@ Airport::Airport()
 	conveyorLock = new Lock("conveyorLock");
 	CargoHandlerManagerLock = new Lock("CargoHandlerManagerLock");
 	cargoCV = new Condition("cargoCV");
-<<<<<<< HEAD
-	cargoLock = new Lock*[10];
 	for (i = 0; i < 10; i++) {
 		cargoState[i] = C_BUSY;
 		cargoDataCV[i] = new Condition("cargoDataCV");
@@ -94,18 +92,6 @@ Airport::Airport()
 		RequestingCargoData[i] = false;
 		cargoLock[i] = new Lock("cargoLock");
 	}
-=======
- for (i = 0; i < 10; i++)
-    {
-        cargoState[i] = C_BUSY;
-
-        cargoDataCV[i] = new Condition("cargoDataCV");
-        cargoManagerCV[i] = new Condition("cargoManagerCV");
-        cargoDataLock[i] = new Lock("cargoDataLock");
-        cargoLock[i] = new Lock("cargoLock");
-        RequestingCargoData[i] = false;
-    }
->>>>>>> 1731a3f9e8e5c7d32022b569008a2a1177332a87
 	aircraft = new List*[numAirlines];
 	for (i = 0; i < numAirlines; i++) {
 		aircraft[i] = new List();
@@ -162,18 +148,18 @@ Airport::Airport()
 
 }
 
-Airport::Airport(int airlines, int passengers, int liaisons, int checkins, int security, int cargo)
+Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int security, int cargos)
 {
     int i;
     
     // General variables
-    numAirlines = airlines;
+    numAirlines = airlineNum;
     airlines = new Airline*[numAirlines];
     airlineLock = new Lock*[numAirlines];
     
     for (i = 0; i < numAirlines; i++)
     {
-        airlines[i] = new Airline(i, 0, 0);
+        airlines[i] = new Airline(i, NULL, 0);
         airlineLock[i] = new Lock("airlineLock");
     }
     
@@ -182,7 +168,6 @@ Airport::Airport(int airlines, int passengers, int liaisons, int checkins, int s
 
     // Liaison variables
     RequestingLiaisonData = new bool[7];
-    liaisonQueues = new List*[liaisons];
     liaisonManagerLock = new Lock("liaisonManagerLock");
     liaisonLineLock = new Lock("liaisonLineLock");
     liaisonManagerCV = new Condition("liaisonManagerCV");
@@ -237,11 +222,11 @@ Airport::Airport(int airlines, int passengers, int liaisons, int checkins, int s
     conveyorLock = new Lock("conveyorLock");
     CargoHandlerManagerLock = new Lock("CargoHandlerManagerLock");
     cargoCV = new Condition("cargoCV");
-    cargoLock = new Lock("cargoLock");
     for (i = 0; i < 10; i++)
     {
         if (i >= cargos) cargoState[i] = C_NONE;
         else cargoState[i] = C_BUSY;
+        cargoLock[i] = new Lock("cargoLock");
         cargoDataCV[i] = new Condition("cargoDataCV");
         cargoManagerCV[i] = new Condition("cargoManagerCV");
         cargoDataLock[i] = new Lock("cargoDataLock");
@@ -270,8 +255,6 @@ Airport::Airport(int airlines, int passengers, int liaisons, int checkins, int s
 	rePassengerWaitInspectorCV = new Condition*[security];
 	inspectorWaitPassengerCV = new Condition*[security];
 	passengerWaitInspectorCV = new Condition*[security];
-	appendReturnLineCV = new Condition*[security];
-	lastCV = new Condition*[security];
 	for (i = 0; i < security; i++) {
 		screenQueues[i] = new List;
 		securityQueues[i] = new List;
@@ -284,8 +267,6 @@ Airport::Airport(int airlines, int passengers, int liaisons, int checkins, int s
 		rePassengerWaitInspectorCV[i] = new Condition("rePassengerWaitInspectorCV");
 		inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
 		passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
-		appendReturnLineCV[i] = new Condition("appendReturnLineCV");
-		lastCV[i] = new Condition("lastCV");
 	}
 }
 
