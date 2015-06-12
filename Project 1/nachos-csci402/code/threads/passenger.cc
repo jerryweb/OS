@@ -254,5 +254,21 @@ void Passenger::CheckIn()
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
 
-    //airport->screen
+    /*add passengers to screening line
+    airport->screenQueuesLock->Acquire();
+
+	int shortest = 0;		//shortest line's id
+	int minimumSize = -1;		//for comparsion in the following loop
+
+	//find the shortest line
+	for (int i = 0; i < 3; i++) {
+		if (minimumSize < 0
+				|| minimumSize > airport->screenQueues[i]->Size()) {
+			minimumSize = airport->securityQueues[i]->Size();
+			shortest = i;
+		}
+	}
+
+	airport->screenQueues[shortest]->Append(this);
+	airport->screenQueuesLock->Release();*/
 }

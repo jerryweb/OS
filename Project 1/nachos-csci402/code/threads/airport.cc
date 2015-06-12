@@ -70,13 +70,14 @@ Airport::Airport() {
 	conveyorLock = new Lock("conveyorLock");
 	CargoHandlerManagerLock = new Lock("CargoHandlerManagerLock");
 	cargoCV = new Condition("cargoCV");
-	cargoLock = new Lock("cargoLock");
+	cargoLock = new Lock*[10];
 	for (i = 0; i < 10; i++) {
 		cargoState[i] = C_BUSY;
 		cargoDataCV[i] = new Condition("cargoDataCV");
 		cargoManagerCV[i] = new Condition("cargoManagerCV");
 		cargoDataLock[i] = new Lock("cargoDataLock");
 		RequestingCargoData[i] = false;
+		cargoLock[i] = new Lock("cargoLock");
 	}
 	aircraft = new List*[numAirlines];
 	for (i = 0; i < numAirlines; i++) {
