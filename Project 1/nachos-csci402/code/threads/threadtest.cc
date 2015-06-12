@@ -203,6 +203,20 @@ void ManagerTest() {
 	List* CheckInStaffThreadArray = new List();
 	List* CargoHandlerTreadArray = new List();
 
+	Thread** ScreenOfficerThreadArray = new Thread*[3];
+	Thread** SecurityInspectorThreadArray = new Thread*[3];
+
+	//s&s************************************************
+	ScreenOfficer** sOfficers = new ScreenOfficer*[3];
+	SecurityInspector** sInspectors = new SecurityInspector*[3];
+
+	for (int i=0;i<3;i++) {
+		sOfficers[i] = new ScreenOfficer(i,airport);
+		sInspectors[i] = new SecurityInspector(i,airport);
+	}
+
+
+
 	//Generate Passengers each with seperate luggage and tickets 
 	for (int i = 0; i < 20; i++) {
 		List* bagList = new List();
@@ -224,7 +238,9 @@ void ManagerTest() {
 		// else
 			ticket.executive = false;
 
-		Passenger *p = new Passenger(i, bagList, ticket, airport);
+		//Passenger *p = new Passenger(i, bagList, ticket, airport);
+			//Passenger(int ID, Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST)
+		Passenger *p = new Passenger(i,ticket,bagList,airport,sInspectors);
 		airport->passengerList->Append((void *) p);
 		Thread *t = new Thread("Passenger");
 		PassengerThreadArray->Append((void *) t);
@@ -300,6 +316,14 @@ void ManagerTest() {
 		Thread *tCH = (Thread*) CargoHandlerTreadArray->First();
 		CargoHandlerTreadArray->Remove();
 		tCH->Fork(StartCargo, (int(CH)));
+	}
+
+	//Fork all ScreenOfficer and SecurityInspector
+	for (int i=0;i<3;i++) {
+		ScreenOfficerThreadArray[i] = new Thread("ScreenOfficer");
+		SecurityInspectorThreadArray[i] = new Thread("SecurityInspector");
+		ScreenOfficerThreadArray[i]->Fork(StartScreening,(int(sOfficers[i])));
+		SecurityInspectorThreadArray[i]->Fork(StartInspecting,(int(sInspectors[i])));
 	}
 
 	Thread* tM = new Thread("Manager");

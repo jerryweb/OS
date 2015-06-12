@@ -16,7 +16,7 @@ class SecurityInspector;
 class Passenger {
 	public:
 		//For full run
-		Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST);
+		Passenger(int ID,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST);
 		Passenger(int ID, List* bags, Ticket T, Airport* A);        // For full simulation.
 		Passenger(int ID, Ticket t, int airlineCode, Airport* a);   // For PassengerFindsCorrectCISLine (test).
 		Passenger(int ID, Ticket t);                                // For LiaisonTest.

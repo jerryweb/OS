@@ -8,12 +8,12 @@
 
 //#include "system.h"
 
-Passenger::Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST) {
+Passenger::Passenger(int ID,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST) {
 	id = ID;
-	queueIndex = qIndex;
-	airline = airlineCode;
+	queueIndex = 0;
 	airport = A;
 	ticket = T;
+	airline = T.airline;
 	luggageList = bags;
 	airport = A;
 	securityPass = true;
