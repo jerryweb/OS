@@ -56,7 +56,7 @@ void ScreenOfficer::Screen(){
 
 			//need to change
 			for(int i = 0; i < 3; i++){
-				printf("minValue %d\n");
+				//printf("minValue %d\n");
 				//printf("Size: %d\n", securityQueues[i]->Size());
 				if(minValue > airport->securityQueues[i]->Size()){
 					minValue = airport->securityQueues[i]->Size();
@@ -89,7 +89,7 @@ void ScreenOfficer::Screen(){
 			airport->screenCV[id]->Signal(airport->screenLocks[id]);
 			printf("Screening officer %d directs passenger %d to security inspector %d\n",
 				id, p->getID(), location );
-			airport->securitlineCV[location]->Signal(airport->securityQueuesLock);
+			airport->securitylineCV[location]->Signal(airport->securityQueuesLock);
 			//Allow passenger, then inspector to attempt to aquire the locks 
 			airport->screenLocks[id]->Release();
 			airport->securityQueuesLock->Release();

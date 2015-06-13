@@ -10,6 +10,7 @@ Manager::Manager(Airport* airport_){
     liaisonPassengerCount = new int[airport->numAirlines];	
     checkinPassengerCount = new int[airport->numAirlines];
     securityInspectorPassengerCount = new int[airport->numAirlines];
+
     //Prevent Garbage values
 }
 
@@ -76,14 +77,14 @@ void Manager::MakeRounds(){
         SecurityDataRequest(SI);
         
         // check for boarding announcement
-        for(int a = 0; a < numAirlines; a++)
+        for(int a = 0; a < airport->numAirlines; a++)
         {
             airport->airlineLock[a]->Acquire();
             if (airport->airlines[a]->seatsAssigned >= airport->airlines[a]->ticketsIssued &&
                 liaisonPassengerCount[a]            >= airport->airlines[a]->ticketsIssued &&
                 checkinPassengerCount[a]            >= airport->airlines[a]->ticketsIssued &&
                 securityInspectorPassengerCount[a]  >= airport->airlines[a]->ticketsIssued &&
-                boardingList[a]->Size()             >= airport->airlines[a]->ticketsIssued &&
+                airport->boardingQueue[a]->Size()             >= airport->airlines[a]->ticketsIssued &&
                 liaisonBaggageCount[a]              >= airport->airlines[a]->totalBagCount &&
                 cargoHandlersBaggageCount[a]        >= airport->airlines[a]->totalBagCount &&
                 airport->aircraft[a]->Size()        >= airport->airlines[a]->totalBagCount)

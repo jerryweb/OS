@@ -122,6 +122,7 @@ printf("security\n");
 	liaWaitPassengerCV = new Condition*[7];
     screenlineCV = new Condition*[3];
 	passengerWaitLiaCV = new Condition*[7];
+    securitylineCV = new Condition*[3];
 
 	for (i=0;i<7;i++) {
 		liaWaitPassengerCV[i] = new Condition("liaWaitPassengerCV");
@@ -143,6 +144,7 @@ printf("security\n");
 		// passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
 		// officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
         screenlineCV[i] = new Condition("screenlineCV");
+        securitylineCV[i] = new Condition("securitylineCV");
 		// inspectorWaitRePassengerCV[i] = new Condition(
 		// 		"inspectorWaitRePassengerCV");
 		// rePassengerWaitInspectorCV[i] = new Condition(
@@ -264,6 +266,8 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 	rePassengerWaitInspectorCV = new Condition*[security];
 	inspectorWaitPassengerCV = new Condition*[security];
 	passengerWaitInspectorCV = new Condition*[security];
+    securitylineCV = new Condition*[security];
+    screenlineCV = new Condition*[security];
 	for (i = 0; i < security; i++) {
 
 		screenQueues[i] = new List;
@@ -277,6 +281,8 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 		rePassengerWaitInspectorCV[i] = new Condition("rePassengerWaitInspectorCV");
 		inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
 		passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
+                screenlineCV[i] = new Condition("screenlineCV");
+        securitylineCV[i] = new Condition("securitylineCV");
 	}
 }
 

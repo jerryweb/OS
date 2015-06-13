@@ -146,6 +146,7 @@ public:
 									//should be used when determining which line is the shortest
 
     Condition** screenlineCV;
+    Condition** securitylineCV;
     Condition** screenCV;
 
 	Condition** inspectorWaitPassengerCV; //Array of C.V. used in inspector waiting passenger
