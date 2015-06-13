@@ -696,6 +696,7 @@ VI. Discussion:
 
         These functions prevent double and multi-counting of data when the manager requests data from each thread. A final boarding call and confirmation to the manager that all passengers have boarded would eliminate this problem because the final call would only allow the manager to gather data from all parties one last time before displaying the data at the end. Instead the simulation will run in an infinite loop, as the manager will keep asking for data. 
 
+        For the Screening Officer, we think it may be a physical memory issue due to the bus errors we recieve whenever we try to aquire the screenLocks[id]. As mentioned ealier, when attempting to acquire a single lock, such as screenlineLock, we recieve a segmentation fault. Upon debugging we found that this fault happens after the Passenger thread sleeps and trnasfers the CPU to the Screening Officer's thread, which has led us to believe that it may be an memory issue with this specific class. The passenger is able to acquire the same lock the the screening officer is not. 
 
 VIII. Miscellaneous:
 

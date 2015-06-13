@@ -140,18 +140,9 @@ Airport::Airport(){
         securityQueues[i] = new List();
 		returnQueues[i] = new List();
 
-		// passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
-		// officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
         screenlineCV[i] = new Condition("screenlineCV");
         securitylineCV[i] = new Condition("securitylineCV");
-		// inspectorWaitRePassengerCV[i] = new Condition(
-		// 		"inspectorWaitRePassengerCV");
-		// rePassengerWaitInspectorCV[i] = new Condition(
-		// 		"rePassengerWaitInspectorCV");
-		// inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
-		// passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
-		// inspectorWaitQuestioningCV[i] = new Condition(
-		// 		"inspectorWaitQuestioningCV");
+	
 	}
 
 }

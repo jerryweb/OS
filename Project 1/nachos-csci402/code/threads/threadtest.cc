@@ -653,6 +653,7 @@ void ScreenTest(){
 		
 		Passenger* P = new Passenger(0,airport);
 		Thread *t = new Thread("Passenger");
+		airport->passengerList->Append((void *) P);
 		//1st queue is the shortest
 		int tempVariable = 4;
 		for(int i = 0; i < 3; i++){
@@ -674,9 +675,7 @@ void ScreenTest(){
 
 		airport->screeningOfficerList->Append((void *)SO);
 		Thread* tSO = new Thread("ScreeningOfficer");
-ScreenOfficer *SOw = (ScreenOfficer*)airport->screeningOfficerList->Remove();
-		airport->screeningOfficerList->Append((void *)SOw);
-		printf("myline %d\n",SOw->getID());
+
 		t->Fork(FindScreeningOfficer,(int)P);
 		tSO->Fork(StartScreening,(int)tSO);
 }
