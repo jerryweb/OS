@@ -1,4 +1,4 @@
-// threadtest.cc 
+/// threadtest.cc 
 //	Simple test case for the threads assignment.
 //
 //	Create two threads, and have them context switch
@@ -99,6 +99,11 @@ void StartCheckInTest(int arg) {
 void StartCheckInStaff(int arg) {
 	CheckIn* ci = (CheckIn*) arg;
 	ci->StartCheckInStaff();
+}
+
+void StartFlying(int arg) {
+	Passenger* p = (Passenger*) arg;
+	p->IWantToFly();
 }
 
 /********************Screen&Security************************/
@@ -202,6 +207,23 @@ void ManagerTest() {
 	List* LiaisonThreadArray = new List();
 	List* CheckInStaffThreadArray = new List();
 	List* CargoHandlerTreadArray = new List();
+	List* SecurityInspectorThreadArray = new List();
+	List* ScreenOfficerThreadArray = new List();
+
+
+	// Thread** ScreenOfficerThreadArray = new Thread*[3];
+	// Thread** SecurityInspectorThreadArray = new Thread*[3];
+
+	//s&s************************************************
+	// ScreenOfficer** sOfficers = new ScreenOfficer*[3];
+	// SecurityInspector** sInspectors = new SecurityInspector*[3];
+
+	// for (int i=0;i<3;i++) {
+	// 	sOfficers[i] = new ScreenOfficer(i,airport);
+	// 	sInspectors[i] = new SecurityInspector(i,airport);
+	// }
+
+
 
 	//Generate Passengers each with seperate luggage and tickets 
 	for (int i = 0; i < 20; i++) {
@@ -224,7 +246,9 @@ void ManagerTest() {
 		// else
 			ticket.executive = false;
 
-		Passenger *p = new Passenger(i, bagList, ticket, airport);
+		//Passenger *p = new Passenger(i, bagList, ticket, airport);
+			//Passenger(int ID, Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST)
+		Passenger *p = new Passenger(i,ticket,bagList,airport,sInspectors);
 		airport->passengerList->Append((void *) p);
 		Thread *t = new Thread("Passenger");
 		PassengerThreadArray->Append((void *) t);
@@ -256,6 +280,13 @@ void ManagerTest() {
 		CargoHandlerTreadArray->Append((void *) tCH);
 	}
 
+	for(int s = 0; s < 3; s++){
+		ScreenOfficer* SO = new ScreenOfficer(s, airport);
+		airport->screeningOfficerList->Append((void *)SO);
+		Thread* tSO = new Thread("Screening Officer");
+		ScreenOfficerThreadArray->Append((void *)tSO);
+	}
+
 	//Generates an Airport Manager
 	Manager* manager = new Manager(airport);
 
@@ -270,6 +301,7 @@ void ManagerTest() {
 		Thread *t = (Thread*) PassengerThreadArray->First();
 		PassengerThreadArray->Remove();
 		t->Fork(StartFindShortestLiaisonLine, (int(P)));
+		//t->Fork(StartFlying, (int(P)));
 	}
 
 	//Fork all of the Liaison Threads from the array of liaison threads
@@ -302,8 +334,23 @@ void ManagerTest() {
 		tCH->Fork(StartCargo, (int(CH)));
 	}
 
-	Thread* tM = new Thread("Manager");
-	tM->Fork(StartManager, (int) manager);  //call MakeRounds()
+	for(int p = ScreenOfficerThreadArray->Size(); p > 0; p--){
+		ScreenOfficer *SO = (ScreenOfficer*)airport->screeningOfficerList->Remove();
+		airport->screeningOfficerList->Append((void *)SO);
+		Thread* tSO = (Thread*)screeningOfficerList->Remove();
+		tSO->Fork(StartScreening,(int(SO)));	
+	}
+
+	/*Fork all ScreenOfficer and SecurityInspector
+	for (int i=0;i<3;i++) {
+		ScreenOfficerThreadArray[i] = new Thread("ScreenOfficer");
+		SecurityInspectorThreadArray[i] = new Thread("SecurityInspector");
+		ScreenOfficerThreadArray[i]->Fork(StartScreening,(int(sOfficers[i])));
+		SecurityInspectorThreadArray[i]->Fork(StartInspecting,(int(sInspectors[i])));
+	}*/
+
+	//Thread* tM = new Thread("Manager");
+	//tM->Fork(StartManager, (int) manager);  //call MakeRounds()
 }
 
 //----------------------------------------------------------------------
