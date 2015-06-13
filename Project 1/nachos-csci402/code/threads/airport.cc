@@ -3,18 +3,7 @@
 Airport::Airport(){
     int i;
     
-    // General variables
-    numAirlines = 3;
 
-    printf("hey\n");
-    for (i = 0; i < numAirlines; i++)
-    {
-        airlines[i] = new Airline(i, 0, 0);
-        airlineLock[i] = new Lock("airlineLock");
-    }
-    printf("hey\n");
-    //Passenger variables
-    passengerList = new List();
 
 	// General variables
 	numAirlines = 3;
@@ -105,19 +94,18 @@ printf("security\n");
 
 	screeningOfficerList = new List();
 	securityInspectorList = new List();
-printf("hey\n");
+
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
-
+    screenLineLock = new Lock("screenLineLock");
     //securityLineLock = new Lock("securityLineLock")
-printf("hey\n");
+
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
-
+    screenState = new ScreenState[3];
 	screenQueues = new List*[3];
 	securityQueues = new List*[3];
 	returnQueues = new List*[3];
-
 	passengerWaitOfficerCV = new Condition*[3];
 	officerWaitPassengerCV = new Condition*[3];
 	inspectorWaitRePassengerCV = new Condition*[3];
@@ -125,8 +113,8 @@ printf("hey\n");
 	inspectorWaitPassengerCV = new Condition*[3];
 	passengerWaitInspectorCV = new Condition*[3];
 	inspectorWaitQuestioningCV = new Condition*[3];
-
 	liaWaitPassengerCV = new Condition*[7];
+    screenlineCV = new Condition*[3];
 	passengerWaitLiaCV = new Condition*[7];
 
 	for (i=0;i<7;i++) {
@@ -136,25 +124,28 @@ printf("hey\n");
 
 	for (i = 0; i < 3; i++) {
 		screenLocks[i] = new Lock("screenLocks");
+       
 		securityLocks[i] = new Lock("securityLocks");
+        
+
         screenState[i] = SO_BUSY;   // Array of states for each liaison.
-		screenQueues[i] = new List;
-		securityQueues[i] = new List;
+
+        screenQueues[i] = new List;
+        securityQueues[i] = new List;
 		returnQueues[i] = new List;
 
-		passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
-		officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
+		// passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
+		// officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
         screenlineCV[i] = new Condition("screenlineCV");
-		inspectorWaitRePassengerCV[i] = new Condition(
-				"inspectorWaitRePassengerCV");
-		rePassengerWaitInspectorCV[i] = new Condition(
-				"rePassengerWaitInspectorCV");
-		inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
-		passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
-		inspectorWaitQuestioningCV[i] = new Condition(
-				"inspectorWaitQuestioningCV");
+		// inspectorWaitRePassengerCV[i] = new Condition(
+		// 		"inspectorWaitRePassengerCV");
+		// rePassengerWaitInspectorCV[i] = new Condition(
+		// 		"rePassengerWaitInspectorCV");
+		// inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
+		// passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
+		// inspectorWaitQuestioningCV[i] = new Condition(
+		// 		"inspectorWaitQuestioningCV");
 	}
-printf("hey\n");
 }
 
 Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int security, int cargos)

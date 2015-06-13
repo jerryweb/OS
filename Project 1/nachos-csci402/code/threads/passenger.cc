@@ -112,7 +112,9 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline){//, 
 	}
 
 	else {
+		printf("size: %d\n", list[0]->Size());
 		for(int i = 0; i < airport->screeningOfficerList->Size(); i++){
+			
 			if(minValue > list[i]->Size()){
 				minValue = list[i]->Size();
 				location = i;
@@ -171,13 +173,15 @@ void Passenger::Screening() {
 	airport->screenQueuesLock->Acquire();
 		myLine = findShortestLine(airport->screenQueues,false, true);
 		printf("Passenger %d is joining Screening officer's %d queue with length of %d\n",
-		 id, myLine,airport->screenQueues[myLine]);
+		 id, myLine,airport->screenQueues[myLine]->Size());
 
 		airport->screenQueues[myLine]->Append((void *)this);
+
 		if(airport->screenState[myLine] == SO_BUSY){
+			
 			airport->screenlineCV[myLine]->Wait(airport->screenQueuesLock);
 		}
-
+		
 		airport->screenLocks[myLine]->Acquire();
 
 		//Give bag to officer

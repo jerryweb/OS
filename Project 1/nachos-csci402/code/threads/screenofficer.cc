@@ -13,8 +13,8 @@ ScreenOfficer::~ScreenOfficer() {
 }
 
 Passenger* ScreenOfficer::CheckForPassengers(){
-	Passenger* P;
-    if (airport->screenQueues[id]->Size() > 0){
+	Passenger* P;printf("hey\n");
+    if (airport->screenQueues[id]->Size() > 0){printf("hey\n");
     	 airport->screenlineCV[id]->Signal(airport->screenQueuesLock);
         P = (Passenger*)airport->screenQueues[id]->Remove();
 
@@ -33,16 +33,17 @@ Passenger* ScreenOfficer::CheckForPassengers(){
 void ScreenOfficer::Screen(){
 	Passenger* p = NULL;
 	int location = 0;
-	 int randNum = rand() % 100 + 1;
+	 int randNum = rand() % (101);
 	bool luggageTest = true;
 	while(true){
-		
-		airport->screenQueuesLock->Acquire();
+		printf("hey %p\n", airport->screenLineLock);
+		airport->screenLineLock->Acquire();
+		printf("hey\n");
 		p = CheckForPassengers();
 		airport->screenLocks[id]->Acquire();
 		 
 		 if(p != NULL){
-		 	airport->screenQueuesLock->Release();
+		 	airport->screenLineLock->Release();
 		 	airport->screenCV[id]->Wait(airport->screenLocks[id]);
 		 	//Wait for passenger to acknowledge so that he can direct to proper line
 
@@ -50,9 +51,12 @@ void ScreenOfficer::Screen(){
 		 	//Find the shortest inspector line 
 		 	airport->securityQueuesLock->Acquire();
 			//this is the size and location of the smallest line 
+			
 			int minValue = airport->securityQueues[0]->Size();
 
-			for(int i = 0; i < airport->securityInspectorList->Size(); i++){
+			//need to change
+			for(int i = 0; i < 3; i++){
+				printf("minValue %d\n");
 				//printf("Size: %d\n", securityQueues[i]->Size());
 				if(minValue > airport->securityQueues[i]->Size()){
 					minValue = airport->securityQueues[i]->Size();
@@ -93,7 +97,7 @@ void ScreenOfficer::Screen(){
 		 }
 
 		 else{
-		 	airport->screenQueuesLock->Release();
+		 	airport->screenLineLock->Release();
 		 	airport->screenCV[id]->Wait(airport->screenLocks[id]);
 		 }
 

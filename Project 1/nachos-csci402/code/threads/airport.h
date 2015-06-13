@@ -122,6 +122,7 @@ public:
 									   // of Passenger). Index corresponds
 									   //  to security ID.
 	List* screeningOfficerList;
+    Lock* screenLineLock;
 
     //Lock* screenLineLock;
 

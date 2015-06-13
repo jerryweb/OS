@@ -648,15 +648,32 @@ void CargoTest() {
 
 //This tests the screeing officer's two interactions
 void ScreenTest(){
-		printf("hey\n");
+
 		Airport* airport = new Airport();
-		printf("hey\n");
+		
 		Passenger* P = new Passenger(0,airport);
 		Thread *t = new Thread("Passenger");
-		printf("yo\n");
+		//3rd queue is the shortest
+
+		
+
+		for(int i = 0; i < 3; i++){
+
+			for(int j = 2; j > 0; j--){
+				airport->securityQueues[i]->Append((void *)4);
+				// printf("size: %d\n", airport->securityQueues[i]->Size());
+
+				// airport->screenQueues[i]->Append((void *)4);
+				// printf("size: %d\n", airport->screenQueues[i]->Size());
+			}
+			
+		}
+
 		ScreenOfficer* SO = new ScreenOfficer(0, airport);
+
+		airport->screeningOfficerList->Append((void *)SO);
 		Thread* tSO = new Thread("Screening Officer");
-		printf("whats up\n");
+
 		t->Fork(FindScreeningOfficer, (int) P);
 		tSO->Fork(StartScreening, (int) tSO);
 }
