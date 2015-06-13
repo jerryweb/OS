@@ -43,8 +43,8 @@ Passenger* Liaison::CheckForPassengers()
 }
 
 //----------------------------------------------------------------------
-//  This Function handels the interaction between the Liaison and the Passengers
-//  First the Liaison will aquire the lock and see if there are any Passengers 
+//  This Function handles the interaction between the Liaison and the Passengers
+//  First the Liaison will acquire the lock and see if there are any Passengers 
 //  waiting in his respective queue. The liaison will tell the passenger which 
 // airline check-in counter to go to, then remove that passenger from the liaison's 
 // queue
@@ -58,8 +58,8 @@ void Liaison::DirectPassengers(){
         p = CheckForPassengers();
 
         airport->liaisonLock[id]->Acquire();
+        airport->liaisonLineLock->Release();
         if(p != NULL){
-            airport->liaisonLineLock->Release();
             airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
             //Wait for passenger to give liaison information
             airport->liaisonLock[id]->Acquire();
@@ -78,14 +78,12 @@ void Liaison::DirectPassengers(){
         }
 
         else{
-                airport->liaisonLineLock->Release();
                 airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
          
         } 
         if(airport->RequestingLiaisonData[id]){     //prevent race conditions with other liaisons
                
                 airport->liaisonManagerLock->Acquire();
-                printf("liaison %d is sending data.\n", id);
                
                 //Give manager data
                 
@@ -93,16 +91,9 @@ void Liaison::DirectPassengers(){
                 airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
                 airport->liaisonManagerLock->Release();
                 airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-                
                 // //Wait for manager to signal that all the data has been collected
-                airport->liaisonLock[id]->Acquire();
-                printf("liaison %d has finished reporting data to manager.\n", id);
-                airport->liaisonLock[id]->Release();
                 airport->RequestingLiaisonData[id] = false;
         }
-
-        //Interaction With Manager
-        //Recieve from Manager
         
     }
 }

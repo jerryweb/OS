@@ -6,7 +6,6 @@ Cargo::Cargo(int id_, Airport* airport_)
     airport = airport_;
     luggage = new int[airport->numAirlines];
     weight = new int[airport->numAirlines];
-    // airport->RequestingCargoData[id] = false;
     for(int i = 0; i < airport->numAirlines; i++){
         luggage[i] = 0;
         weight[i] = 0;
@@ -33,6 +32,7 @@ void Cargo::StartCargo()
             airport->conveyorLock->Release();
             // airport->cargoCV->Wait(airport->cargoLock);
             airport->cargoDataCV[id]->Wait(airport->cargoLock[id]);
+            printf("Cargo Handler %d returned from break\n", id);
             airport->cargoState[id] = C_BUSY;
         }
         else
@@ -53,15 +53,9 @@ void Cargo::StartCargo()
             airport->cargoManagerCV[id]->Signal(airport->CargoHandlerManagerLock);
 
             airport->CargoHandlerManagerLock->Release();
-            printf("Cargo Handler %d is sending data.\n", id);
             airport->cargoDataCV[id]->Wait(airport->cargoDataLock[id]);
-
             //Wait for manager to signal that all the data has been collected
-            airport->cargoDataLock[id]->Acquire();
-            printf("Cargo Handler %d has finished reporting data to manager.\n", id);
-            airport->cargoDataLock[id]->Release();
             airport->RequestingCargoData[id] = false;
         }
-        printf("Cargo %d end loop\n", id);
     }
 }

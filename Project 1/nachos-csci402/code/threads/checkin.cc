@@ -93,10 +93,8 @@ void CheckIn::StartCheckInStaff()
             // Check if all passengers are processed, close if done.
         }    
             
-            printf("ID: %d awake\n", id);
         if(airport->RequestingCheckinData[id]){
             airport->checkinManagerLock->Acquire();
-            printf("check-in staff %d is sending data.\n", id);
 
             // Give manager data
 
@@ -106,11 +104,7 @@ void CheckIn::StartCheckInStaff()
             airport->checkinManagerLock->Release();
 
             airport->checkinCV[id]->Wait(airport->checkinLock[id]);
-
             //Wait for manager to signal that all the data has been collected
-            airport->checkinLock[id]->Acquire();
-            printf("check-in staff %d has finished reporting data to manager.\n", id);
-            airport->checkinLock[id]->Release();
             airport->RequestingCheckinData[id] = false;
         }
         
@@ -120,7 +114,6 @@ void CheckIn::StartCheckInStaff()
             airport->checkinLock[id]->Acquire();
             airport->checkinState[id] = CI_CLOSED;
             airport->airlineLock[airline]->Release();
-            printf("ID: %d real sleep\n", id);
             airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
             printf("Airline check-in staff %d is closing the counter\n", id);
             airport->airlineLock[airline]->Acquire();
