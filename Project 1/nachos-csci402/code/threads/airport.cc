@@ -1,7 +1,6 @@
 #include "airport.h"
 
-Airport::Airport()
-{
+Airport::Airport(){
     int i;
     
     // General variables
@@ -111,7 +110,7 @@ Airport::Airport()
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
 
-    securityLineLock = new Lock("securityLineLock")
+    //securityLineLock = new Lock("securityLineLock")
 
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];

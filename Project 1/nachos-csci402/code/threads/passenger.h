@@ -30,7 +30,7 @@ class Passenger {
 
 		/*this function iterates through a given array and returns the location
 		of the smallest value and the value itself*/
-		int findShortestLine(List** list, bool CISline);
+		int findShortestLine(List** list, bool CISline, bool Screenline);
 		/*This is the first version of the function for the passenger to find
 		the shortest liaison line in the Airport.*/
 		void findShortestLiaisonLine();

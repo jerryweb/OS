@@ -116,7 +116,7 @@ public:
 	List** securityQueues;                  // Array of security queues (list
 											//  of Passengers). Index corresponds
 											//  to security ID.
-    ScreenState screenState[3];   // Array of states for each liaison.
+    ScreenState* screenState;   // Array of states for each liaison.
 	
     List** returnQueues;               //Array of returning security queues(list
 									   // of Passenger). Index corresponds
@@ -137,7 +137,10 @@ public:
 	Lock* securityQueuesLock;       //Lock for all the security lines as a whole
 									//should be used when determining which line is the shortest
 
-    Condition** screenlineCV[3];
+    Condition** screenlineCV;
+    Condition** screenCV;
+
+    Condition** securitlineCV;
 
 	Condition** inspectorWaitPassengerCV; //Array of C.V. used in inspector waiting passenger
 										  //index corresponds to inspector id

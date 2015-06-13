@@ -83,11 +83,11 @@ Passenger::~Passenger(){
 // of the smallest value and the value itself to the location and 
 // minValue variables that are passed in
 //----------------------------------------------------------------------
-int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, int *minValue){
+int Passenger::findShortestLine(List** list, bool CISline, bool Screenline){//, //int *location, int *minValue){
 	int location = 0;
 	int minValue = 0;				//this is the size and location of the smallest line 
 	
-	if(!CISline){
+	if(!CISline && !Screenline){
 		minValue = list[0]->Size();
 
 		for(int i = 0; i < 7; i++){
@@ -100,7 +100,7 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 		return location;						//Found a line
 	}
 
-	else {
+	else if (CISline && !Screenline) {
         int CIS_ID = airline * 6 + 1;
 		minValue = airport->passengerList->Size();
 		for(int i = CIS_ID; i < CIS_ID + 5; i++){
@@ -109,6 +109,16 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 				location = i;			}
 		}
 		return location;						//Found a line
+	}
+
+	else {
+		for(int i = 0; i < airport->screeningOfficerList->Size(); i++){
+			if(minValue > list[i]->Size()){
+				minValue = list[i]->Size();
+				location = i;
+			}
+		}
+		return location;
 	}
 
 }
@@ -125,10 +135,10 @@ int Passenger::findShortestLine(List** list, bool CISline){//, //int *location, 
 void Passenger::findShortestLiaisonLine(){
 	int myLine = 0;
 	airport->liaisonLineLock->Acquire();																					
-		myLine = findShortestLine(airport->liaisonQueues, false);				// passenger will find shortest line
+		myLine = findShortestLine(airport->liaisonQueues, false, false);				// passenger will find shortest line
 		
 		printf("Passenger %d chose liaison %d with a line length of %d\n", 
-			getID(), myLine, airport->liaisonQueues[myLine]->Size());
+			id, myLine, airport->liaisonQueues[myLine]->Size());
 		airport->liaisonQueues[myLine]->Append((void *)this);
 		if(airport->liaisonState[myLine] == L_BUSY){						// If the liaison is busy
 			//Wait in line
@@ -157,22 +167,40 @@ void Passenger::findShortestLiaisonLine(){
 }
 
 void Passenger::Screening() {
+	int myLine = 0;
+	airport->screenQueuesLock->Acquire();
+		myLine = findShortestLine(airport->screenQueues,false, true);
+		printf("Passenger %d is joining Screening officer's %d queue with length of %d\n",
+		 id, myLine,airport->screenQueues[myLine]);
+
+		airport->screenQueues[myLine]->Append((void *)this);
+		if(airport->screenState[myLine] == SO_BUSY){
+			airport->screenlineCV[myLine]->Wait(airport->screenQueuesLock);
+		}
+
+		airport->screenLocks[myLine]->Acquire();
+
+		//Give bag to officer
+		printf("Passenger %d gives the hand-luggage to screening officer %d\n",id, myLine);
+		airport->screenCV[myLine]->Wait(airport->screenLocks[myLine]);
 
 	//memeory the current index in screening queue
 	//since it may be updated to a different value
 	//when being assigned to security inspector
-	int oldQueueIndex = queueIndex;
+	// int oldQueueIndex = queueIndex;
 
 	//ping-pong with Screening Officer
 	//correspond to ScreenOfficer C.S.(1)
-	airport->screenLocks[queueIndex]->Acquire();
-	airport->passengerWaitOfficerCV[queueIndex]->Wait(
-			airport->screenLocks[queueIndex]);
-	//maybe do something here, at the moment nothing
-	airport->screenLocks[oldQueueIndex]->Acquire();
-	airport->officerWaitPassengerCV[oldQueueIndex]->Signal(
-			airport->screenLocks[oldQueueIndex]);
-	airport->screenLocks[oldQueueIndex]->Release();
+	// airport->screenLocks[queueIndex]->Acquire();
+	// airport->passengerWaitOfficerCV[queueIndex]->Wait(
+	// 		airport->screenLocks[queueIndex]);
+	// //maybe do something here, at the moment nothing
+	// airport->screenLocks[oldQueueIndex]->Acquire();
+	// airport->officerWaitPassengerCV[oldQueueIndex]->Signal(
+	// 		airport->screenLocks[oldQueueIndex]);
+	// airport->screenLocks[oldQueueIndex]->Release();
+		if(airport->securityInspectorList->Size() > 0)
+			Inspecting();
 }
 
 void Passenger::Inspecting() {
@@ -241,7 +269,7 @@ void Passenger::CheckIn()
 	int checkInLine = airline * 6;
 	if ( ! ticket.executive )
     {
-		checkInLine = findShortestLine(airport->checkinQueues, true);
+		checkInLine = findShortestLine(airport->checkinQueues, true, false);;
 		printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n", 
                 id, airline, checkInLine, airport->checkinQueues[checkInLine]->Size());
 	}
@@ -256,4 +284,7 @@ void Passenger::CheckIn()
     printf("Passenger %d of Airline %d was informed to board at gate %d\n",
             id, airline, boardingPass.gate);
     airport->checkinLineLock[airline]->Release();
+
+    if(airport->screeningOfficerList->Size() > 0)
+		Screening();
 }

@@ -5,13 +5,14 @@
 ScreenOfficer::ScreenOfficer(int ID, Airport* AIRPORT) {
 	id = ID;
 	airport = AIRPORT;
+	screenState[id] = SO_BUSY;
 }
 
 ScreenOfficer::~ScreenOfficer() {
 	
 }
 
-Passenger* ScreenOfficer::CheckForPassengers(){
+Passenger* ScreenOfficer::CheckForPassengers(bool* test){
 	Passenger* P;
     if (airport->screenQueues[id]->Size() > 0){
     	 airport->screenlineCV[id]->Signal(airport->screenQueuesLock);
@@ -20,7 +21,8 @@ Passenger* ScreenOfficer::CheckForPassengers(){
 
         int randNum = rand() % 100 + 1;
         if (randNum > 0 && randNum < 21) {
-				P->SetSecurityPass(false);
+				// P->SetSecurityPass(false);
+        		*test = false
 				printf("Screening officer %d is suspicious of the hand luggage of passenger %d\n",
 						id, P->getID());
 		} else {
@@ -40,89 +42,135 @@ Passenger* ScreenOfficer::CheckForPassengers(){
 
 void ScreenOfficer::Screen(){
 	Passenger* p = NULL;
+	int location = 0;
+	bool luggageTest = true;
 	while(true){
+		
 		airport->screenQueuesLock->Acquire();
-		p = 
-	}
-}
+		p = CheckForPassengers(*luggageTest);
+		airport->screenLocks[id]->Acquire();
+		 
+		 if(p != NULL){
+		 	airport->screenQueuesLock->Release();
+		 	airport->screenCV[id]->Wait(airport->screenLocks[id]);
+		 	//Wait for passenger to acknowledge so that he can direct to proper line
 
-void ScreenOfficer::Screen() {
-	//initialize random seed
-	srand(time(NULL));
-	//keep checking his own line
-	while (true) {
-		//the index in C.S. parenthesis is for this file only
+		 	airport->screenLocks[id]->Acquire();
+		 	//Find the shortest inspector line 
+		 	airport->securityQueuesLock->Acquire();
+			//this is the size and location of the smallest line 
+			int minValue = securityQueues[0]->Size();
 
-		//start C.S.(1) between passenger
-		//assuming officer ID is the same as his index in screenLocks array
-		int myLine = id;
-		airport->screenLocks[myLine]->Acquire();
-		Passenger* currentPassenger;
-
-		if ((airport->screenQueues[myLine]->Size()) != 0) {
-			currentPassenger = (Passenger*) airport->screenQueues[id]->First();
-
-			//assume 20% chance fail the screening
-			int randNum = rand() % 100 + 1;
-			if (randNum > 0 && randNum < 21) {
-				P->SetSecurityPass(false);
-				printf(
-						"Screening officer %d is suspicious of the hand luggage of passenger %d\n",
-						id, currentPassenger->getID());
-			} else {
-				printf(
-						"Screening officer %d is not suspicious of the hand luggage of passenger %d\n",
-						id, currentPassenger->getID());
-			}
-
-			//remove the passenger in current line
-
-			//starting C.S.(2) to remove passenger from current line
-			airport->screenQueuesLock->Acquire();
-			airport->screenQueues[myLine]->Remove();
-			airport->screenQueuesLock->Release();
-			//ending C.S.(2) to remove passenger from current line
-			//}
-
-			//starting C.S.(3) to find shortest security line and append
-			airport->securityQueuesLock->Acquire();
-
-			int shortest = 0;		//shortest line's id
-			int minimumSize = -1;		//for comparsion in the following loop
-
-			//find the shortest line
-			for (int i = 0; i < 3; i++) {
-				if (minimumSize < 0
-						|| minimumSize > airport->securityQueues[i]->Size()) {
-					minimumSize = airport->securityQueues[i]->Size();
-					shortest = i;
+			for(int i = 0; i < securityInspectorList->Size(); i++){
+				//printf("Size: %d\n", securityQueues[i]->Size());
+				if(minValue > securityQueues[i]->Size()){
+					minValue = securityQueues[i]->Size();
+					location = i;
 				}
 			}
 
-			airport->securityQueues[shortest]->Append(currentPassenger);
-			//also update the queueIndex for current passenger
-			currentPassenger->SetQueueIndex(shortest);
-
+			//add passenger to the line
+			airport->securityQueues[location]->Append((void *)p);
+			//printf("%s\n", );
+			//add luggage test report to the list 
+			airport->securityQueues[location]->AppendBool(luggageTest);
+			//Notify passenger of inspector line and add him to the ready queue
+			airport->screenCV[id]->Signal(airport->screenLocks[id]);
+			printf("Screening officer %d directs passenger %d to security inspector %d\n",
+				id, p->getID(), location );
+			airport->securitlineCV[location]->Signal(airport->securityQueuesLock);
+			//Allow passenger, then inspector to attempt to aquire the locks 
+			airport->screenLocks[id]->Release();
 			airport->securityQueuesLock->Release();
-			//ending C.S.(3)
 
-			//signal the passenger
-			airport->passengerWaitOfficerCV[myLine]->Signal(
-					airport->screenLocks[myLine]);
-			airport->screenLocks[myLine]->Release();
+		 }
 
-			//wait for passenger thread
-			airport->screenLocks[myLine]->Acquire();
-			airport->officerWaitPassengerCV[myLine]->Wait(
-					airport->screenLocks[myLine]);
-			//ending C.S.(1)
+		 else{
+		 	airport->screenQueuesLock->Release();
+		 	airport->screenCV[id]->Wait(airport->screenLocks[id]);
+		 }
 
-			//airport->screenLocks[myLine]->Acquire();
-			//Assuming the index in securityQueues array is the same as security inspector's id
-			printf(
-					"Screening officer %d directs passenger %d to security inspector %d\n",
-					id, currentPassenger->getID(), shortest);
-			//airport->screenLocks[myLine]->Release();
-		}
+
 	}
 }
+
+// void ScreenOfficer::Screen() {
+// 	//initialize random seed
+// 	srand(time(NULL));
+// 	//keep checking his own line
+// 	while (true) {
+// 		//the index in C.S. parenthesis is for this file only
+
+// 		//start C.S.(1) between passenger
+// 		//assuming officer ID is the same as his index in screenLocks array
+// 		int myLine = id;
+// 		airport->screenLocks[myLine]->Acquire();
+// 		Passenger* currentPassenger;
+
+// 		if ((airport->screenQueues[myLine]->Size()) != 0) {
+// 			currentPassenger = (Passenger*) airport->screenQueues[id]->First();
+
+// 			//assume 20% chance fail the screening
+// 			int randNum = rand() % 100 + 1;
+// 			if (randNum > 0 && randNum < 21) {
+// 				currentPassenger->SetSecurityPass(false);
+// 				printf(
+// 						"Screening officer %d is suspicious of the hand luggage of passenger %d\n",
+// 						id, currentPassenger->getID());
+// 			} else {
+// 				printf(
+// 						"Screening officer %d is not suspicious of the hand luggage of passenger %d\n",
+// 						id, currentPassenger->getID());
+// 			}
+
+// 			//remove the passenger in current line
+
+// 			//starting C.S.(2) to remove passenger from current line
+// 			airport->screenQueuesLock->Acquire();
+// 			airport->screenQueues[myLine]->Remove();
+// 			airport->screenQueuesLock->Release();
+// 			//ending C.S.(2) to remove passenger from current line
+// 			//}
+
+// 			//starting C.S.(3) to find shortest security line and append
+// 			airport->securityQueuesLock->Acquire();
+
+// 			int shortest = 0;		//shortest line's id
+// 			int minimumSize = -1;		//for comparsion in the following loop
+
+// 			//find the shortest line
+// 			for (int i = 0; i < 3; i++) {
+// 				if (minimumSize < 0
+// 						|| minimumSize > airport->securityQueues[i]->Size()) {
+// 					minimumSize = airport->securityQueues[i]->Size();
+// 					shortest = i;
+// 				}
+// 			}
+
+// 			airport->securityQueues[shortest]->Append(currentPassenger);
+// 			//also update the queueIndex for current passenger
+// 			currentPassenger->SetQueueIndex(shortest);
+
+// 			airport->securityQueuesLock->Release();
+// 			//ending C.S.(3)
+
+// 			//signal the passenger
+// 			airport->passengerWaitOfficerCV[myLine]->Signal(
+// 					airport->screenLocks[myLine]);
+// 			airport->screenLocks[myLine]->Release();
+
+// 			//wait for passenger thread
+// 			airport->screenLocks[myLine]->Acquire();
+// 			airport->officerWaitPassengerCV[myLine]->Wait(
+// 					airport->screenLocks[myLine]);
+// 			//ending C.S.(1)
+
+// 			//airport->screenLocks[myLine]->Acquire();
+// 			//Assuming the index in securityQueues array is the same as security inspector's id
+// 			printf(
+// 					"Screening officer %d directs passenger %d to security inspector %d\n",
+// 					id, currentPassenger->getID(), shortest);
+// 			//airport->screenLocks[myLine]->Release();
+// 		}
+// 	}
+// }
