@@ -34,6 +34,15 @@ public:
 	Lock** airlineLock;             // Array of locks to handle airline
 									//  seating and passenger checking.
 									//  Index corresponds to airline ID.
+    List** boardingQueue;           // Array of lists of passengers who
+                                    //  have reached each boarding area. 
+                                    //  ID corresponds to airline.
+    Condition** boardingCV;         // Array of CVs for passengers who have
+                                    //  reached boarding area. ID
+                                    //  corresponds to airline.
+    Lock** boardingLock;            // Array of locks for boardingCVs. ID
+                                    //  corresponds to airline.
+    
 	// Passenger variables
 	List* passengerList;            // List of passengers in the sim.
 	// Liaison variables
@@ -124,8 +133,6 @@ public:
 	List* screeningOfficerList;
     Lock* screenLineLock;
 
-    //Lock* screenLineLock;
-
 	Lock** screenLocks; //Array of locks for screening lines (each officer has a lock)
 						//index corresponds to officer id
 
@@ -140,8 +147,6 @@ public:
 
     Condition** screenlineCV;
     Condition** screenCV;
-
-    Condition** securitlineCV;
 
 	Condition** inspectorWaitPassengerCV; //Array of C.V. used in inspector waiting passenger
 										  //index corresponds to inspector id
@@ -172,7 +177,7 @@ public:
 	Lock* checkinQueuesLock;
 
 	//  Manager variables
-	//Conditon to allow manager to gather data
+    
 
 };
 

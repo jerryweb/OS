@@ -2,18 +2,22 @@
 
 Airport::Airport(){
     int i;
-    
 
 
 	// General variables
 	numAirlines = 3;
 	airlines = new Airline*[numAirlines];
 	airlineLock = new Lock*[numAirlines];
+    boardingQueue = new List*[numAirlines];
+    boardingCV = new Condition*[numAirlines];
+    boardingLock = new Lock*[numAirlines];
 
 	for (i = 0; i < numAirlines; i++) {
 		airlines[i] = new Airline(i, 0, 0);
 		airlineLock[i] = new Lock("airlineLock");
-
+        boardingQueue[i] = new List();
+        boardingCV[i] = new Condition("boardingCV");
+        boardingLock[i] = new Lock("boardingLock");
 	}
 
 	//Passenger variables
@@ -97,8 +101,10 @@ printf("security\n");
 
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
+
     screenLineLock = new Lock("screenLineLock");
     //securityLineLock = new Lock("securityLineLock")
+
 
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
@@ -146,6 +152,7 @@ printf("security\n");
 		// inspectorWaitQuestioningCV[i] = new Condition(
 		// 		"inspectorWaitQuestioningCV");
 	}
+
 }
 
 Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int security, int cargos)

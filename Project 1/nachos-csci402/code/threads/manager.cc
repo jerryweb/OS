@@ -34,6 +34,7 @@ void Manager::MakeRounds(){
     Liaison* L = NULL;
     Cargo* CH = NULL;
     CheckIn* C = NULL;
+    SecurityInspector* SI = NULL;
     while(true){
     	//keeps track of how many cargo handlers are on break
 
@@ -70,9 +71,29 @@ void Manager::MakeRounds(){
 
     	CargoRequest(CH);
 
-		CheckinDataReuqest(C);
+		CheckinDataRequest(C);
 
-	    	
+        SecurityDataRequest(SI);
+        
+        // check for boarding announcement
+        for(int a = 0; a < numAirlines; a++)
+        {
+            airport->airlineLock[a]->Acquire();
+            if (airport->airlines[a]->seatsAssigned >= airport->airlines[a]->ticketsIssued &&
+                liaisonPassengerCount[a]            >= airport->airlines[a]->ticketsIssued &&
+                checkinPassengerCount[a]            >= airport->airlines[a]->ticketsIssued &&
+                securityInspectorPassengerCount[a]  >= airport->airlines[a]->ticketsIssued &&
+                boardingList[a]->Size()             >= airport->airlines[a]->ticketsIssued &&
+                liaisonBaggageCount[a]              >= airport->airlines[a]->totalBagCount &&
+                cargoHandlersBaggageCount[a]        >= airport->airlines[a]->totalBagCount &&
+                airport->aircraft[a]->Size()        >= airport->airlines[a]->totalBagCount)
+            {   // Everything matches up.
+                printf("Airport manager gives a boarding call to airline %d\n", a);
+                airport->boardingCV[a]->Broadcast(airport->boardingLock[a]);
+            }
+            airport->airlineLock[a]->Release();
+        }
+        
 	    	
     	for(int i = 0; i < 50; i++) 		//this makes the manager give up the CPU otherwise he would hog the CPU
 			currentThread->Yield();
@@ -118,7 +139,7 @@ void Manager::LiaisonDataRequest(Liaison *L){
 	}
 }
 
-void Manager::CheckinDataReuqest(CheckIn *C){
+void Manager::CheckinDataRequest(CheckIn *C){
 	//Gather data from liaisons 
 	for(int i = 0; i < airport->numAirlines; i++){			//prevents multicounting 
     	checkinPassengerCount[i] = 0;
@@ -182,8 +203,6 @@ void Manager::CargoRequest(Cargo *CH){
 	}
 }
 
-void Manager::SecurityDataRequest() {
-	airport->updateClearCount->Acquire();
-	securityInspectorPassengerCount = airport->clearPassengerCount;
-	airport->updateClearCount->Release();
+void Manager::SecurityDataRequest(SecurityInspector *SI) {
+	
 }
