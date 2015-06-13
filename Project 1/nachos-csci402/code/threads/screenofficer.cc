@@ -1,6 +1,5 @@
 #include "screenofficer.h"
-#include "stdlib.h"
-#include "time.h"
+
 
 ScreenOfficer::ScreenOfficer(int ID, Airport* AIRPORT) {
 	id = ID;
@@ -13,8 +12,8 @@ ScreenOfficer::~ScreenOfficer() {
 }
 
 Passenger* ScreenOfficer::CheckForPassengers(){
-	Passenger* P;printf("hey\n");
-    if (airport->screenQueues[id]->Size() > 0){printf("hey\n");
+	Passenger* P;
+    if (!airport->screenQueues[id]->IsEmpty()){
     	 airport->screenlineCV[id]->Signal(airport->screenQueuesLock);
         P = (Passenger*)airport->screenQueues[id]->Remove();
 
@@ -33,12 +32,13 @@ Passenger* ScreenOfficer::CheckForPassengers(){
 void ScreenOfficer::Screen(){
 	Passenger* p = NULL;
 	int location = 0;
-	 int randNum = rand() % (101);
+	int randNum = rand() % (101);
 	bool luggageTest = true;
+	
 	while(true){
-		printf("hey %p\n", airport->screenLineLock);
+		
 		airport->screenLineLock->Acquire();
-		printf("hey\n");
+		printf("hey %p\n", airport->screenLineLock);
 		p = CheckForPassengers();
 		airport->screenLocks[id]->Acquire();
 		 

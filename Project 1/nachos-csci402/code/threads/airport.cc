@@ -37,7 +37,7 @@ Airport::Airport(){
 		liaisonLock[i] = new Lock("liaisonLock");
 		liaisonState[i] = L_BUSY;
 	}
-printf("onto checkin\n");
+
 	// Check-in variables
 
 	int numCheckin = numAirlines * 6;
@@ -67,7 +67,7 @@ printf("onto checkin\n");
         finalCheckin[i] = false;
         RequestingCheckinData[i] = false;
     }
-printf("cargo\n");
+
 	// Cargo variables
 	RequestingCargoData = new bool[10];
 	cargoHandlerList = new List();
@@ -87,7 +87,7 @@ printf("cargo\n");
 	for (i = 0; i < numAirlines; i++) {
 		aircraft[i] = new List();
 	}
-printf("security\n");
+
 	//Screen & Security Variables
 	clearPassengerCount = new int[3];
 	for (i = 0; i < 3; i++) {
@@ -103,9 +103,6 @@ printf("security\n");
 	securityQueuesLock = new Lock("securityQueuesLock");
 
     screenLineLock = new Lock("screenLineLock");
-    //securityLineLock = new Lock("securityLineLock")
-
-
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
     screenState = new ScreenState[3];
@@ -139,9 +136,9 @@ printf("security\n");
         screenState[i] = SO_BUSY;   // Array of states for each liaison.
         securityState[i] = SC_BUSY;
 
-        screenQueues[i] = new List;
-        securityQueues[i] = new List;
-		returnQueues[i] = new List;
+        screenQueues[i] = new List();
+        securityQueues[i] = new List();
+		returnQueues[i] = new List();
 
 		// passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
 		// officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
@@ -257,6 +254,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
 	updateClearCount = new Lock("updateClearCount");
+        screenLineLock = new Lock("screenLineLock");
 	screenQueues = new List*[security];
 	securityQueues = new List*[security];
 	returnQueues = new List*[security];

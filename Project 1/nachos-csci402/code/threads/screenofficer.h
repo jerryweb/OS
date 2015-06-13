@@ -7,12 +7,15 @@
 #include "airportobjects.h"
 #include "passenger.h"
 #include "securityinspector.h"
+#include "stdlib.h"
+#include "time.h"
 
 class ScreenOfficer {
 public:
 	ScreenOfficer(int ID, Airport* AIRPORT);
 	~ScreenOfficer();
 	void Screen();
+	int getID() {return id;}
 	Passenger* CheckForPassengers();
 
 private:

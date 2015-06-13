@@ -176,40 +176,28 @@ void Passenger::findShortestLiaisonLine(){
 
 void Passenger::Screening() {
 	int myLine = 0;
-	airport->screenQueuesLock->Acquire();
+		airport->screenLineLock->Acquire();
 		myLine = findShortestLine(airport->screenQueues,false, true);
 		printf("Passenger %d is joining Screening officer's %d queue with length of %d\n",
 		 id, myLine,airport->screenQueues[myLine]->Size());
 
 		airport->screenQueues[myLine]->Append((void *)this);
-
+		
 		if(airport->screenState[myLine] == SO_BUSY){
 			
-			airport->screenlineCV[myLine]->Wait(airport->screenQueuesLock);
+			airport->screenlineCV[myLine]->Wait(airport->screenLineLock);
 		}
+		else
+			airport->screenLineLock->Release();
 		
+		printf("asdfasfasd\n");
 		airport->screenLocks[myLine]->Acquire();
 
 		//Give bag to officer
 		printf("Passenger %d gives the hand-luggage to screening officer %d\n",id, myLine);
 		airport->screenCV[myLine]->Wait(airport->screenLocks[myLine]);
 
-	//memeory the current index in screening queue
-	//since it may be updated to a different value
-	//when being assigned to security inspector
-	// int oldQueueIndex = queueIndex;
-
-	//ping-pong with Screening Officer
-	//correspond to ScreenOfficer C.S.(1)
-	// airport->screenLocks[queueIndex]->Acquire();
-	// airport->passengerWaitOfficerCV[queueIndex]->Wait(
-	// 		airport->screenLocks[queueIndex]);
-	// //maybe do something here, at the moment nothing
-	// airport->screenLocks[oldQueueIndex]->Acquire();
-	// airport->officerWaitPassengerCV[oldQueueIndex]->Signal(
-	// 		airport->screenLocks[oldQueueIndex]);
-	// airport->screenLocks[oldQueueIndex]->Release();
-		if(airport->securityInspectorList->Size() > 0)
+		if(!airport->securityInspectorList->IsEmpty())
 			Inspecting();
 }
 

@@ -174,8 +174,29 @@ III. Design:
                 confirm closed status to manager
             release airline's airlineLock
                 
-        ScreenOfficer:
-            
+        ScreenOfficer (Main Loop):
+            acquire screenLineLock
+            if his queue of passangers is not empty
+                signal the passenger waiting in his queue and remove the passenger from the queue
+                set state to BUSY
+            else
+                set state to FREE
+            acquire screenLocks[id of the Screening Officer]
+            if he had a passneger in his queue
+                release screenLineLock
+                wait on the officer's screenCV for screenLocks[id]
+                //passenger will respond releasing the lock
+                acquire screenLocks[id]
+                acquire securityQueuesLock // This is the lock that is also used by the Security inspector to get passengers from his queue 
+                find which inspector is available or atleast has the shortest queue 
+                append passenger to the shortest Security Inspector queue
+                randomly generate a PASS/FAIL report and give it to the inspector
+                signal passenger using the screenCV with screenLocks[id] 
+                signal the selected security inspector using the securitylineCV[location of the shortest line] with the securityQueuesLock
+                release both locks
+            else
+                release screenLineLock
+                wait on the screenCV for the screenLocks[id]
         
         SecurityInspector:
             
@@ -493,6 +514,13 @@ IV. Implementation:
         - In synch.cc/synch.h
             bool isHeldByCurrentThread()
 
+        - In screenofficer.cc/screenofficer.h
+            ScreenOfficer(int ID, Airport* AIRPORT)
+            ~ScreenOfficer()
+            int getID()
+            void Screen()
+            Passenger* CheckForPassengers()
+
     //Need to finish adding functions to threadtest
         - In threadtest.cc
             void StartFindShortestLiaisonLine(int arg)
@@ -642,6 +670,7 @@ VI. Discussion:
 
         A final boarding call and confirmation to the manager that all passengers have boarded would eliminate this problem because the final call would only allow the manager to gather data from all parties one last time before displaying the data at the end. Instead the simulation will run in an infinite loop, as the manager will keep asking for data. 
         
+        The Screening Officer runs into a segmentation fault once it attempts to aquire the screenLineLock. We were unable to determine the cause, however, we also noticed that the address of the screenLocks[id] did not exist. This issue only occured with the Screening Officer. 
 
 
 	+ Explanation

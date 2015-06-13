@@ -119,10 +119,10 @@ void FindScreeningOfficer(int arg){
 }
 
 //call passenger
-void StartScreeningTest(int arg) {
-	Passenger* p = (Passenger*) arg;
-	p->Screening();
-}
+// void StartScreeningTest(int arg) {
+// 	Passenger* p = (Passenger*) arg;
+// 	p->Screening();
+// }
 
 //call inspector
 void StartInspecting(int arg) {
@@ -653,29 +653,32 @@ void ScreenTest(){
 		
 		Passenger* P = new Passenger(0,airport);
 		Thread *t = new Thread("Passenger");
-		//3rd queue is the shortest
-
-		
-
+		//1st queue is the shortest
+		int tempVariable = 4;
 		for(int i = 0; i < 3; i++){
-
+			
 			for(int j = 2; j > 0; j--){
-				airport->securityQueues[i]->Append((void *)4);
+				airport->securityQueues[i]->Append((void *)tempVariable);
 				// printf("size: %d\n", airport->securityQueues[i]->Size());
 
-				// airport->screenQueues[i]->Append((void *)4);
+				 // airport->screenQueues[i]->Append((void *)4);
 				// printf("size: %d\n", airport->screenQueues[i]->Size());
 			}
 			
 		}
 
+		airport->screenQueues[1]->Append((void *)tempVariable);
+		airport->screenQueues[2]->Append((void *)tempVariable);
+
 		ScreenOfficer* SO = new ScreenOfficer(0, airport);
 
 		airport->screeningOfficerList->Append((void *)SO);
-		Thread* tSO = new Thread("Screening Officer");
-
-		t->Fork(FindScreeningOfficer, (int) P);
-		tSO->Fork(StartScreening, (int) tSO);
+		Thread* tSO = new Thread("ScreeningOfficer");
+ScreenOfficer *SOw = (ScreenOfficer*)airport->screeningOfficerList->Remove();
+		airport->screeningOfficerList->Append((void *)SOw);
+		printf("myline %d\n",SOw->getID());
+		t->Fork(FindScreeningOfficer,(int)P);
+		tSO->Fork(StartScreening,(int)tSO);
 }
 
 void InspectTest() {

@@ -88,7 +88,7 @@ THREAD_S = ../threads/switch.s
 
 THREAD_O =main.o list.o lockTest.o scheduler.o synch.o synchlist.o system.o thread.o \
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o passenger.o airport.o \
-	airline.o cargo.o checkin.o liaison.o screenofficer.o securityinspector.o manager.o 
+	airline.o cargo.o checkin.o liaison.o screenofficer.o securityinspector.o manager.o \
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\
