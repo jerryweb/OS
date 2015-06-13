@@ -101,10 +101,32 @@ III. Design:
             if ticket is executive, go to executive line
             else, find the shortest economy line
             add self to line, wait on line's checkinLineCV (airline's checkinLineLock) // allows check-in staff to give information
-            acquire airline's checkinLineLock
-            release airline's checkinLineLock
+            (acquire airline's checkinLineLock)
+            (print statement)
+            (release airline's checkinLineLock)
             // screener interaction
             // security interaction
+            // final interaction
+        
+        Liaison:
+            
+        
+        CheckIn (main loop):
+            acquire airline's checkinLineLock
+            
+        
+        ScreenOfficer:
+            
+        
+        SecurityInspector:
+            
+        
+        Cargo:
+            
+        
+        Manager:
+            
+        
 
 IV. Implementation:
 	+ Files Modified - all files are located in the threads directory except for Makefile.common, which is located in the code directory.

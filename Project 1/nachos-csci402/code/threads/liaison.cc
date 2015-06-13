@@ -2,7 +2,7 @@
 
 Liaison::Liaison(int id_, Airport* airport_)
 {
-    id = id_;
+	id = id_;
     airport = airport_;
     passengers = new int[airport->numAirlines];
     luggageCount = new int[airport->numAirlines];
@@ -106,4 +106,3 @@ void Liaison::DirectPassengers(){
         
     }
 }
-
