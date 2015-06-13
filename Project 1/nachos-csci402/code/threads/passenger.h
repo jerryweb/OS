@@ -26,6 +26,7 @@ class Passenger {
 		Passenger(int ID,int qIndex,Airport* AIRPORT);                                      //For Screening Test
 		Passenger(int ID,int qIndex,Airport* AIRPORT,int airlineCode,SecurityInspector** INSPECTORLIST);    //For Security Test
 		Passenger(Airport* AIRPORT);                                                        //For Screening Test(produce dummy passenger to fill arrays)
+		Passenger(int ID,Airport* A, BoardingPass bp);              //For security test
         ~Passenger();
 
 		/*this function iterates through a given array and returns the location

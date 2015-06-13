@@ -679,18 +679,22 @@ void ScreenTest(){
 }
 
 void InspectTest() {
+	printf("Starting Security Inspector Test:\n\n");
 	Airport* airport = new Airport();
 
 	//declare passenger array
-	Passenger** inspectPassenger = new Passenger*[5];
+	Passenger** inspectPassenger = new Passenger*[3];
 
 	//declare a single inspector
 	SecurityInspector** sInspector = new SecurityInspector*[1];
 	sInspector[0] = new SecurityInspector(0, airport);
 	airport->securityInspectorList->Append((void *)sInspector[0]);
 
-	for (int i = 0; i < 5; i++) {
-		inspectPassenger[i] = new Passenger(i, 0, airport,0, sInspector);
+	for (int i = 0; i < 3; i++) {
+		BoardingPass bP;
+		bP.gate = i;
+		bP.seatNum = i*5;
+		inspectPassenger[i] = new Passenger(i, airport,bP);
 		airport->securityQueues[0]->Append(inspectPassenger[i]);
 	}
 

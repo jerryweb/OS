@@ -109,6 +109,7 @@ printf("security\n");
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
     screenState = new ScreenState[3];
+    securityState = new SecurityState[3];
 	screenQueues = new List*[3];
 	securityQueues = new List*[3];
 	returnQueues = new List*[3];
@@ -136,6 +137,7 @@ printf("security\n");
         
 
         screenState[i] = SO_BUSY;   // Array of states for each liaison.
+        securityState[i] = SC_BUSY;
 
         screenQueues[i] = new List;
         securityQueues[i] = new List;

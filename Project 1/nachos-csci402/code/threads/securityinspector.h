@@ -13,17 +13,18 @@ class SecurityInspector {
 public:
 	SecurityInspector(int ID, Airport* AIRPORT);
 	~SecurityInspector();
+	Passenger* CheckForPassengers();
 	void Inspect();
+	void AppendBool(bool* b);
 	int getID();
-	void AppendBool(bool report);
 
 private:
 	int id;
-	List* reportList;
-	int qPassengerCount;  //initialize to 0
-							//++ when sent passenger to questionsing
-							//-- when returned
+	bool isBoarding;
+	int* clearCount;   //Array for clear passenger count
 	Airport* airport;
+	List* reportList;   //array of bool
+	List* boardingPassList;
 };
 
 #endif

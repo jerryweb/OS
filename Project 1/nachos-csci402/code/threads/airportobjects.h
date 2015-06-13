@@ -37,5 +37,6 @@ enum CheckinState {CI_FREE, CI_BUSY, CI_BREAK, CI_CLOSED, CI_NONE};
 enum CargoState   {C_BUSY, C_BREAK, C_NONE};
 enum AirlineState {BOARDING, BOARDED};
 enum ScreenState  {SO_BUSY, SO_FREE};
+enum SecurityState  {SC_BUSY, SC_FREE};
 
 #endif

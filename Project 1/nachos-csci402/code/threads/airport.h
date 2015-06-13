@@ -125,7 +125,9 @@ public:
 	List** securityQueues;                  // Array of security queues (list
 											//  of Passengers). Index corresponds
 											//  to security ID.
-    ScreenState* screenState;   // Array of states for each liaison.
+
+    ScreenState* screenState;   // Array of states for each screen officers
+    SecurityState* securityState; //Array of states for each security inspector
 	
     List** returnQueues;               //Array of returning security queues(list
 									   // of Passenger). Index corresponds

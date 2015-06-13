@@ -75,6 +75,12 @@ Passenger::Passenger(Airport* AIRPORT) {
 	airport = AIRPORT;
 }
 
+Passenger::Passenger(int ID,Airport* A, BoardingPass bp) {
+	id = ID;
+	airport = A;
+	boardingPass = bp;
+}
+
 Passenger::~Passenger(){
 }
 
@@ -208,49 +214,42 @@ void Passenger::Screening() {
 }
 
 void Passenger::Inspecting() {
+	srand(time(NULL));
+	int myLine = 0;
+	airport->securityQueuesLock->Acquire();
+	myLine = findShortestLine(airport->securityQueues, false,true);
 
-	//corresponds to SecurityInspector C.S.(1)
-	airport->securityLocks[queueIndex]->Acquire();
-	airport->passengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
+	printf("Passenger %d chose security %d with a line length of %d\n", id,
+			myLine, airport->securityQueues[myLine]->Size());
+	airport->securityQueues[myLine]->Append((void *) this);
 
-	if (!securityPass) {
-		//corresponds to SecurityInspector C.S.(4)
-		airport->securityLocks[queueIndex]->Acquire();
-		airport->inspectorWaitPassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
-		airport->securityLocks[queueIndex]->Release();
+	if (airport->securityState[myLine] == SC_BUSY) {
+		airport->securitylineCV[myLine]->Wait(airport->securityQueuesLock);
+	} else
+		airport->securityQueuesLock->Release();
 
-		//yield 1-5 cycles randomly
-		srand(time(NULL));
+	airport->securityLocks[myLine]->Acquire();
+	if (securityPass) {
+		//give security information
+		airport->securitylineCV[myLine]->Signal(airport->securityLocks[myLine]);
+		airport->securityLocks[myLine]->Release();
+	} else {
+		//yield random cycles
 		int randNum = rand() % 5 + 1;
-		for (int i=0;i<randNum;i++) {
+		for (int i = 0; i < randNum; i++) {
 			currentThread->Yield();
 		}
+		airport->securityQueuesLock->Acquire();
+		airport->returnQueues[myLine]->Append((void*) this);
 
-		//signal potential inspector waiting on
-		//questioning passenger
-		airport->securityLocks[queueIndex]->Acquire();
-		airport->inspectorWaitQuestioningCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
-		airport->securityLocks[queueIndex]->Release();
+		if (airport->securityState[myLine] == SC_BUSY) {
+			airport->securitylineCV[myLine]->Wait(airport->securityQueuesLock);
+		} else
+			airport->securityQueuesLock->Release();
 
-		//C.S. to append itself to return Queue
-		//since return queue is not shared between inspectors
-		//we don't need Condition variables here
-		airport->securityLocks[queueIndex]->Acquire();
-		airport->returnQueues[queueIndex]->Append(this);
-		airport->securityLocks[queueIndex]->Release();
-
-		//corresponds to SecurityInspector C.S.(2)
-		airport->securityLocks[queueIndex]->Acquire();
-		airport->rePassengerWaitInspectorCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
-		airport->securityLocks[queueIndex]->Acquire();
-		airport->inspectorWaitRePassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
-		airport->securityLocks[queueIndex]->Release();
-
-	} else {
-		//corresponds to SecurityInspector C.S.(4)
-		airport->securityLocks[queueIndex]->Acquire();
-		airport->inspectorWaitPassengerCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
-		airport->securityLocks[queueIndex]->Release();
+		//give security information
+		airport->securitylineCV[myLine]->Signal(airport->securityLocks[myLine]);
+		airport->securityLocks[myLine]->Release();
 	}
 }
 
