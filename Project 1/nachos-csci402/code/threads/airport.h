@@ -123,7 +123,7 @@ public:
 									   //  to security ID.
 	List* screeningOfficerList;
 
-    Lock screenLineLock;
+    //Lock* screenLineLock;
 
 	Lock** screenLocks; //Array of locks for screening lines (each officer has a lock)
 						//index corresponds to officer id

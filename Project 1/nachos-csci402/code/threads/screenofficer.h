@@ -6,12 +6,14 @@
 #include "list.h"
 #include "airportobjects.h"
 #include "passenger.h"
+#include "securityinspector.h"
 
 class ScreenOfficer {
 public:
 	ScreenOfficer(int ID, Airport* AIRPORT);
 	~ScreenOfficer();
 	void Screen();
+	Passenger* CheckForPassengers();
 
 private:
 	int id;

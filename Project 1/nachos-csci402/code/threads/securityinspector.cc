@@ -7,12 +7,15 @@ SecurityInspector::SecurityInspector(int ID, Airport* AIRPORT) {
 	id = ID;
 	qPassengerCount = -1;
 	airport = AIRPORT;
+	reportList = new List();
 }
 
 SecurityInspector::~SecurityInspector() {
 
 }
-
+void SecurityInspector::AppendBool(bool report){
+	reportList->Append((void *)report);
+}
 void SecurityInspector::Inspect() {
 	//initialize random seed
 	srand(time(NULL));

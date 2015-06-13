@@ -15,9 +15,11 @@ public:
 	~SecurityInspector();
 	void Inspect();
 	int getID();
+	void AppendBool(bool report);
 
 private:
 	int id;
+	List* reportList;
 	int qPassengerCount;  //initialize to 0
 							//++ when sent passenger to questionsing
 							//-- when returned

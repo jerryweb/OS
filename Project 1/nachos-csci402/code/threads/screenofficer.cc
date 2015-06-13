@@ -5,33 +5,23 @@
 ScreenOfficer::ScreenOfficer(int ID, Airport* AIRPORT) {
 	id = ID;
 	airport = AIRPORT;
-	screenState[id] = SO_BUSY;
+	airport->screenState[id] = SO_BUSY;
 }
 
 ScreenOfficer::~ScreenOfficer() {
 	
 }
 
-Passenger* ScreenOfficer::CheckForPassengers(bool* test){
+Passenger* ScreenOfficer::CheckForPassengers(){
 	Passenger* P;
     if (airport->screenQueues[id]->Size() > 0){
     	 airport->screenlineCV[id]->Signal(airport->screenQueuesLock);
-        P = (Passenger*)airport->screenQueuesLock[id]->Remove();
-        airport->screenState[id] = SO_BUSY; 
+        P = (Passenger*)airport->screenQueues[id]->Remove();
 
-        int randNum = rand() % 100 + 1;
-        if (randNum > 0 && randNum < 21) {
-				// P->SetSecurityPass(false);
-        		*test = false
-				printf("Screening officer %d is suspicious of the hand luggage of passenger %d\n",
-						id, P->getID());
-		} else {
-			printf("Screening officer %d is not suspicious of the hand luggage of passenger %d\n",
-					id, P->getID());
-		}
+			        airport->screenState[id] = SO_BUSY; 
     }
     else {
-    	p = NULL;
+    	P = NULL;
     	airport->screenState[id] = SO_FREE;
     }
 
@@ -43,11 +33,12 @@ Passenger* ScreenOfficer::CheckForPassengers(bool* test){
 void ScreenOfficer::Screen(){
 	Passenger* p = NULL;
 	int location = 0;
+	 int randNum = rand() % 100 + 1;
 	bool luggageTest = true;
 	while(true){
 		
 		airport->screenQueuesLock->Acquire();
-		p = CheckForPassengers(*luggageTest);
+		p = CheckForPassengers();
 		airport->screenLocks[id]->Acquire();
 		 
 		 if(p != NULL){
@@ -59,12 +50,12 @@ void ScreenOfficer::Screen(){
 		 	//Find the shortest inspector line 
 		 	airport->securityQueuesLock->Acquire();
 			//this is the size and location of the smallest line 
-			int minValue = securityQueues[0]->Size();
+			int minValue = airport->securityQueues[0]->Size();
 
-			for(int i = 0; i < securityInspectorList->Size(); i++){
+			for(int i = 0; i < airport->securityInspectorList->Size(); i++){
 				//printf("Size: %d\n", securityQueues[i]->Size());
-				if(minValue > securityQueues[i]->Size()){
-					minValue = securityQueues[i]->Size();
+				if(minValue > airport->securityQueues[i]->Size()){
+					minValue = airport->securityQueues[i]->Size();
 					location = i;
 				}
 			}
@@ -72,8 +63,24 @@ void ScreenOfficer::Screen(){
 			//add passenger to the line
 			airport->securityQueues[location]->Append((void *)p);
 			//printf("%s\n", );
+
+			if (randNum > 0 && randNum < 21) {
+				// P->SetSecurityPass(false);
+        		luggageTest = false;
+				printf("Screening officer %d is suspicious of the hand luggage of passenger %d\n",
+						id, p->getID());
+			} else {
+				printf("Screening officer %d is not suspicious of the hand luggage of passenger %d\n",
+						id, p->getID());
+			}
+
 			//add luggage test report to the list 
-			airport->securityQueues[location]->AppendBool(luggageTest);
+			// for (int i = 0; i < airport->securityInspectorList->Size(); i++) {
+			// 	SecurityInspector *S = (SecurityInspector*) airport->securityInspectorList->Remove();
+			// 	airport->securityInspectorList->Append((void *) S);
+			// 	S->AppendBool(luggageTest);
+			// }
+			//airport->securityQueues[location]->AppendBool(luggageTest);
 			//Notify passenger of inspector line and add him to the ready queue
 			airport->screenCV[id]->Signal(airport->screenLocks[id]);
 			printf("Screening officer %d directs passenger %d to security inspector %d\n",

@@ -648,14 +648,15 @@ void CargoTest() {
 
 //This tests the screeing officer's two interactions
 void ScreenTest(){
+		printf("hey\n");
 		Airport* airport = new Airport();
-
+		printf("hey\n");
 		Passenger* P = new Passenger(0,airport);
 		Thread *t = new Thread("Passenger");
-
+		printf("yo\n");
 		ScreenOfficer* SO = new ScreenOfficer(0, airport);
 		Thread* tSO = new Thread("Screening Officer");
-
+		printf("whats up\n");
 		t->Fork(FindScreeningOfficer, (int) P);
 		tSO->Fork(StartScreening, (int) tSO);
 }
