@@ -1,0 +1,42 @@
+// 	This is the Manager class that will hold all of the major functions associated with
+//	the airport manager.
+
+#ifndef MANAGER_H
+#define MANAGER_H
+
+#include "copyright.h"
+#include "system.h"
+#include "thread.h"
+#include "list.h"
+#include "airport.h"
+#include "liaison.h"
+#include "cargo.h"
+#include "checkin.h"
+#include "securityinspector.h"
+
+
+class Manager {
+	public:
+		Manager(Airport* airport);
+		~Manager();
+		void MakeRounds();
+		void LiaisonDataRequest(Liaison *L);
+		void CheckinDataRequest(CheckIn *C);
+		void CargoRequest(Cargo *CH);
+		void SecurityDataRequest(SecurityInspector *SI);
+	private:
+        Airport* airport;
+        //Baggage Data   									// "Airport" construct, containing all public data.
+        List** airlineLuggage;				//Holds the list of bags for each airline
+        int* liaisonBaggageCount;			//For the weights just calculate in print function
+		int* cargoHandlersBaggageWeight;
+		int* checkinBaggageWeight;			
+		int* cargoHandlersBaggageCount;
+		//Passenger Data
+        int* liaisonPassengerCount;	
+        int* checkinPassengerCount;
+        int* securityInspectorPassengerCount;
+
+};
+
+#endif

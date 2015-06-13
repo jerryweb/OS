@@ -660,10 +660,7 @@ void ScreenTest(){
 			
 			for(int j = 2; j > 0; j--){
 				airport->securityQueues[i]->Append((void *)tempVariable);
-				// printf("size: %d\n", airport->securityQueues[i]->Size());
 
-				 // airport->screenQueues[i]->Append((void *)4);
-				// printf("size: %d\n", airport->screenQueues[i]->Size());
 			}
 			
 		}
