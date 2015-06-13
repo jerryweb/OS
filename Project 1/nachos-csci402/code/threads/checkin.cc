@@ -111,8 +111,7 @@ void CheckIn::StartCheckInStaff()
             airport->checkinLock[id]->Acquire();
             printf("check-in staff %d has finished reporting data to manager.\n", id);
             airport->checkinLock[id]->Release();
-            airport->RequestingCheckinData[id] = false;  
-       
+            airport->RequestingCheckinData[id] = false;
         }
         
         airport->airlineLock[airline]->Acquire();

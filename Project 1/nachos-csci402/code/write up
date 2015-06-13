@@ -85,7 +85,26 @@ III. Design:
         }
     - We added a Size() function to the list class, which essentially returns the size of the the list. This is allowed all functions that counted or accessed the array and lists of functions throughout the code to be dynamic and avoid looking outside of the bounds of the list. We also added a First() function, which returns the first element of the list without removing it.
 
-    Part 2: Each component in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as locks, lists, and states for liaisons, cargo handlers, etc. At the start of the simulation, all the liaisons should be set to the Busy state so that the passengers will automatically enter their lines. All the passengers should be forked first, followed by liaisons, then check-in staff and cargo handlers, then screening and security officers and finally the manager. 
+    Part 2: Each component (passenger, liaison, CIS, etc.) in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as locks, lists, and states for liaisons, cargo handlers, etc. At the start of the simulation, all the liaisons should be set to the Busy state so that the passengers will automatically enter their lines. All the passengers should be forked first, followed by liaisons, then check-in staff and cargo handlers, then screening and security officers and finally the manager. 
+    
+        Passenger:
+            // liaison interaction
+            acquire liaisonLineLock
+            find shortest line, add self to line
+            if liaison l is BUSY, wait on liaisonLineCV (liaisonLineLock)
+            else, release liaisonLineLock
+            acquire liaison's liaisonLock
+            signal liaison's liaisonCV (liaison's liaisonLock) // simulates giving liaison information
+            release liaison's liaisonLock // allows liaison to give information
+            // check-in interaction
+            acquire airline's checkinLineLock
+            if ticket is executive, go to executive line
+            else, find the shortest economy line
+            add self to line, wait on line's checkinLineCV (airline's checkinLineLock) // allows check-in staff to give information
+            acquire airline's checkinLineLock
+            release airline's checkinLineLock
+            // screener interaction
+            // security interaction
 
 IV. Implementation:
 	+ Files Modified - all files are located in the threads directory except for Makefile.common, which is located in the code directory.

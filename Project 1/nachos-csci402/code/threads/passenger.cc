@@ -274,28 +274,11 @@ void Passenger::CheckIn()
         airport->checkinQueues[checkInLine]->Append((void *)this);
         airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
     // }
-    airport->checkinLineLock[airline]->Acquire();
+    //airport->checkinLineLock[airline]->Acquire();
     printf("Passenger %d of Airline %d was informed to board at gate %d\n",
             id, airline, boardingPass.gate);
-    airport->checkinLineLock[airline]->Release();
+    //airport->checkinLineLock[airline]->Release();
 
     if(airport->screeningOfficerList->Size() > 0)
     	Screening();
-    /*add passengers to screening line
-    airport->screenQueuesLock->Acquire();
-
-	int shortest = 0;		//shortest line's id
-	int minimumSize = -1;		//for comparsion in the following loop
-
-	//find the shortest line
-	for (int i = 0; i < 3; i++) {
-		if (minimumSize < 0
-				|| minimumSize > airport->screenQueues[i]->Size()) {
-			minimumSize = airport->securityQueues[i]->Size();
-			shortest = i;
-		}
-	}
-	airport->screenQueues[shortest]->Append(this);
-	SetQueueIndex(shortest);
-	airport->screenLocks[shortest]->Release();*/
 }
