@@ -153,6 +153,7 @@ void DestroyLock(/**/);
 
 void DestroyCondition(/**/);
 
+
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */
