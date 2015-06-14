@@ -29,6 +29,12 @@
 
 using namespace std;
 
+//this holds the pointer to the lock
+struct sysCondtion {
+  Lock* conditionLock;
+  Condition* sysCondtion;
+};
+
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
     // Return the number of bytes so read, or -1 if an error occors.
@@ -250,7 +256,8 @@ void Exit_Syscall(int status)
 }
 void Acquire_Syscall(int id)
 {
-  
+  //Needs to be corrected 
+  sysLockArray[id]->Acquire();
     
 }
 void Release_Syscall(int id)
@@ -275,7 +282,15 @@ int CreateLock_Syscall(char* name)
 }
 int CreateCondition_Syscall(char* name)
 {
-   Condition sysCondition = new Condition(name);
+  Condition c = new Condition(name);
+  Lock* L = new Lock(name);
+  sysCondtion* conditionSyscall = new sysCondtion();
+
+  conditionSyscall->Condition = c;
+  conditionSyscall->Lock = L;
+
+  //This array needs to be defined with a max size somewhere
+
 }
 void DestroyLock_Syscall(int id)
 {
@@ -283,7 +298,7 @@ void DestroyLock_Syscall(int id)
 }
 void DestroyCondition_Syscall(int id)
 {
-    //delete 
+    //delete conditionSyscallArray[id];
 }
 
 void ExceptionHandler(ExceptionType which) {

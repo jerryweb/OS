@@ -90,7 +90,7 @@ Memory Management
 		memory is divided into pages
 		memory manager allocates memory 1 page at a time
 
-		To gert the executable contents into memory, we copy 1 page worth of contents to memory at a time
+		To get the executable contents into memory, we copy 1 page worth of contents to memory at a time
 			- to an unused page
 		*The OS must keep track of used/unused pages & process owner
 		*The Virtual address space can be mapped to any physical address space
