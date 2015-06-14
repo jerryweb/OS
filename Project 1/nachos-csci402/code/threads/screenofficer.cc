@@ -76,11 +76,11 @@ void ScreenOfficer::Screen(){
 			}
 
 			//add luggage test report to the list 
-			for (int i = 0; i < airport->securityInspectorList->Size(); i++) {
-				SecurityInspector *S = (SecurityInspector*) airport->securityInspectorList->Remove();
-				airport->securityInspectorList->Append((void *) S);
-				S->AppendBool(luggageTest);
-			}
+			// for (int i = 0; i < airport->securityInspectorList->Size(); i++) {
+			// 	SecurityInspector *S = (SecurityInspector*) airport->securityInspectorList->Remove();
+			// 	airport->securityInspectorList->Append((void *) S);
+			// 	S->AppendBool(luggageTest);
+			// }
 			//Notify passenger of inspector line and add him to the ready queue
 			airport->screenCV[id]->Signal(airport->screenLocks[id]);
 			printf("Screening officer %d directs passenger %d to security inspector %d\n",

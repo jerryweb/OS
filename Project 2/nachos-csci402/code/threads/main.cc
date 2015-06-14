@@ -60,7 +60,18 @@ extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
-
+extern void TestSuite();
+extern void ManagerTest();
+extern void LiaisonTest();
+extern void PassengerFindsShortestLiaisonLine();
+extern void PassengerFindsCorrectCISLine();
+extern void CheckInTest();
+extern void CargoTest();
+extern void ScreenTest();
+extern void InspectTest();
+extern void MTest();
+extern void AirportSim();
+extern void MainMenu();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -80,16 +91,70 @@ main(int argc, char **argv)
 {
     int argCount;			// the number of arguments 
 					// for a particular command
-
+	
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
+    argCount = 1;
+	for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
     
-#ifdef THREADS
-    ThreadTest();
-#endif
+//#ifdef THREADS
+    if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
+		TestSuite();
+	} 
 
-    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-	argCount = 1;
+	if (!strcmp(*argv, "-manager")) {	// Manager and full simulation test
+		ManagerTest();
+	}
+
+	if (!strcmp(*argv, "-mtest")) {	// Manager and full simulation test
+		MTest();
+	}  
+
+	if(!strcmp(*argv, "-findCIS"))
+    {	// Tests if passengers go the the correct CIS line.
+		PassengerFindsCorrectCISLine();
+	}
+
+	if (!strcmp(*argv, "-findL")) {				//Tests to see if the passenger goes to the shortest line
+		PassengerFindsShortestLiaisonLine();
+	}
+    
+	if (!strcmp(*argv, "-liaison"))
+    {   // Tests if liaison directs customer to correct check-in area.
+		LiaisonTest();
+	}
+    
+	if (!strcmp(*argv, "-checkin"))
+    {   // Tests if check-in prioritizes executive line.
+		CheckInTest();
+	}
+    
+	if (!strcmp(*argv, "-cargo"))
+    {   // Tests if cargo handler functions.
+		CargoTest();
+	}
+
+	if (!strcmp(*argv, "-screen")) {
+		ScreenTest();
+	}
+
+	if (!strcmp(*argv, "-inspect")) {
+		InspectTest();
+	}
+    
+	if (!strcmp(*argv, "-airport"))
+    {   // Runs the full airport simulation.
+		AirportSim();
+	}
+    
+	if (!strcmp(*argv, "-menu"))
+    {   // Runs the full airport simulation.
+		MainMenu();
+	}
+
+	
+//#endif
+
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
 #ifdef USER_PROGRAM
@@ -129,7 +194,7 @@ main(int argc, char **argv)
             fileSystem->Print();
 	} else if (!strcmp(*argv, "-t")) {	// performance test
             PerformanceTest();
-	}
+	} 
 #endif // FILESYS
 #ifdef NETWORK
         if (!strcmp(*argv, "-o")) {

@@ -161,6 +161,40 @@ List::IsEmpty()
 }
 
 //----------------------------------------------------------------------
+// List::Size
+//      Returns the number of elements in the list.
+//----------------------------------------------------------------------
+
+int
+List::Size()
+{ 
+    ListElement* ptr = first;
+    if (ptr == NULL)
+        return 0;
+    int size = 1;
+    while (ptr->next != NULL)
+    {
+        size++;
+        ptr = ptr->next;
+    }
+    return size;
+}
+
+//-----------------------------------------------------------------------
+// List::First
+//     Returns the pointer of the first element in the list
+//-----------------------------------------------------------------------
+
+void *
+List::First()
+{
+    if (IsEmpty())
+	return NULL;
+
+    return first->item;
+}
+
+//----------------------------------------------------------------------
 // List::SortedInsert
 //      Insert an "item" into a list, so that the list elements are
 //	sorted in increasing order by "sortKey".

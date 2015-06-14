@@ -68,7 +68,7 @@ class Lock {
     Lock(char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
     char* getName() { return name; }	// debugging assist
-
+    
     void Acquire(); // these are the only operations on a lock
     void Release(); // they are both *atomic*
 
@@ -78,8 +78,13 @@ class Lock {
 					// Condition variable ops below.
 
   private:
-    char* name;				// for debugging
-    // plus some other stuff you'll need to define
+    char* name;				        // for debugging
+    Thread* lockOwner;              // the current thread that holds the lock
+    List* waitQueue;                // list of threads waiting to wake up (not available to the scheduler)
+    List* readyQueue;               // threads that are ready to be used by the scheduler 
+    enum State {FREE, BUSY};        // the two states that the lock can take 
+    State lockState;
+    
 };
 
 // The following class defines a "condition variable".  A condition
@@ -131,6 +136,7 @@ class Condition {
 
   private:
     char* name;
-    // plus some other stuff you'll need to define
+    Lock* waitLock;
+    List* waitList;
 };
 #endif // SYNCH_H
