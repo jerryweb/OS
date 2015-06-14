@@ -250,6 +250,7 @@ void Exit_Syscall(int status)
 }
 void Acquire_Syscall(int id)
 {
+  
     
 }
 void Release_Syscall(int id)
@@ -270,19 +271,19 @@ void Broadcast_Syscall(int id)
 }
 int CreateLock_Syscall(char* name)
 {
-    
+    Lock sysLock = new Lock(name);
 }
 int CreateCondition_Syscall(char* name)
 {
-    
+   Condition sysCondition = new Condition(name);
 }
 void DestroyLock_Syscall(int id)
 {
-    
+     delete sysLockArray[id];
 }
 void DestroyCondition_Syscall(int id)
 {
-    
+    //delete 
 }
 
 void ExceptionHandler(ExceptionType which) {
