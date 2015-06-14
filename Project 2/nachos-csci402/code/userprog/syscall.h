@@ -135,23 +135,23 @@ void Fork(void (*func)());
  */
 void Yield();
 
-void Acquire(/**/);
+void Acquire(int id);
 
-void Release(/**/);
+void Release(int id);
 
-void Wait(/**/);
+void Wait(int id);
 
-void Signal(/**/);
+void Signal(int id);
 
-void Broadcast(/**/);
+void Broadcast(int id);
 
 int CreateLock(char* name);
 
 int CreateCondition(char* name);
 
-void DestroyLock(/**/);
+void DestroyLock(int id);
 
-void DestroyCondition(/**/);
+void DestroyCondition(int id);
 
 
 #endif /* IN_ASM */
