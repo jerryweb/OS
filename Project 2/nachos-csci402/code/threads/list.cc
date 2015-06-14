@@ -212,7 +212,7 @@ List::GetElement(int index)
         currI++;
         ptr = ptr->next;
     }
-    return ptr;
+    return ptr->item;
 }
 
 //----------------------------------------------------------------------
