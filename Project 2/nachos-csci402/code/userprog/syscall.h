@@ -133,7 +133,13 @@ void Yield();
 
 void Acquire();
 
-void Release();		
+void Release();
+
+void Wait();
+
+void Signal();
+
+void Broadcast();		
 
 #endif /* IN_ASM */
 
