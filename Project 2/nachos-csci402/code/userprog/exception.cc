@@ -232,11 +232,11 @@ void Close_Syscall(int fd) {
 }
 
 // NEW SYSCALLS BELOW
-void Fork_Syscall(/**/)
+void Fork_Syscall(void* func)
 {
     
 }
-void Exec_Syscall(/**/)
+void Exec_Syscall(char* filename)
 {
     
 }
@@ -244,7 +244,7 @@ void Yield_Syscall()
 {
     currentThread->Yield();
 }
-void Exit_Syscall()
+void Exit_Syscall(int status)
 {
     
 }
@@ -324,19 +324,19 @@ void ExceptionHandler(ExceptionType which) {
         // NEW SYSCALLS BELOW
 	    case SC_Fork:
 		DEBUG('a', "Fork syscall.\n");
-        Fork_Syscall(/**/);
+        Fork_Syscall(machine->ReadRegister(4));
 		break;
 	    case SC_Exec:
 		DEBUG('a', "Exec syscall.\n");
-        Exec_Syscall(/**/);
+        Exec_Syscall(machine->ReadRegister(4));
 		break;
 	    case SC_Yield:
 		DEBUG('a', "Yield syscall.\n");
-        Yield_Syscall(/**/);
+        Yield_Syscall();
 		break;
 	    case SC_Exit:
 		DEBUG('a', "Exit syscall.\n");
-        Exit_Syscall(/**/);
+        Exit_Syscall(machine->ReadRegister(4));
 		break;
 	    case SC_Acquire:
 		DEBUG('a', "Acquire syscall.\n");
