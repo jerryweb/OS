@@ -267,6 +267,34 @@ void ExceptionHandler(ExceptionType which) {
 		DEBUG('a', "Close syscall.\n");
 		Close_Syscall(machine->ReadRegister(4));
 		break;
+        // NEW SYSCALLS BELOW
+	    case SC_Acquire:
+		DEBUG('a', "Acquire syscall.\n");
+		break;
+	    case SC_Release:
+		DEBUG('a', "Release syscall.\n");
+		break;
+	    case SC_Wait:
+		DEBUG('a', "Wait syscall.\n");
+		break;
+	    case SC_Signal:
+		DEBUG('a', "Signal syscall.\n");
+		break;
+	    case SC_Broadcast:
+		DEBUG('a', "Broadcast syscall.\n");
+		break;
+	    case SC_CreateLock:
+		DEBUG('a', "CreateLock syscall.\n");
+		break;
+	    case SC_CreateCondition:
+		DEBUG('a', "CreateCondition syscall.\n");
+		break;
+	    case SC_DestroyLock:
+		DEBUG('a', "DestroyLock syscall.\n");
+		break;
+	    case SC_DestroyCondition:
+		DEBUG('a', "DestroyCondition syscall.\n");
+		break;
 	}
 
 	// Put in the return value and increment the PC
