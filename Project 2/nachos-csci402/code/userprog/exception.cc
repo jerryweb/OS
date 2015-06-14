@@ -29,6 +29,10 @@
 
 using namespace std;
 
+int ArrayMaxSize = 20;
+//Max size can be changed 
+void** lockAndConditionArray = new void*[ArrayMaxSize]();
+
 //this holds the pointer to the lock and the condition
 struct sysCondtion {
   Lock* conditionLock;
@@ -284,8 +288,13 @@ int CreateLock_Syscall(char* name)
   // lockAndConditionArray->Appent((void *)sysLock);
   //This finds the location of the condition and lock just added to 
   //the list
-  while(lockAndConditionArray > index){
-    index++;
+  while(ArrayMaxSize > index){
+    if(lockAndConditionArray[index] == NULL){
+      lockAndConditionArray[index] = sysLock;
+      break;
+    }
+    else
+      index++;
   }
   return index;
 }
@@ -299,31 +308,43 @@ int CreateCondition_Syscall(char* name)
 
   conditionSyscall->Condition = c;
   conditionSyscall->Lock = L;
-
-  //This array needs to be defined with a max size somewhere
   
   // lockAndConditionArray->Appent((void *)conditionSyscall);
 
   //This finds the location of the condition and lock just added to 
   //the list
-  while(lockAndConditionArray->Size() > index){
-    index++;
+  while(ArrayMaxSize > index){
+    if(lockAndConditionArray[index] == NULL){
+      lockAndConditionArray[index] = conditionSyscall;
+      break;
+    }
+    else
+      index++;
   }
   return index;
 
 }
 void DestroyLock_Syscall(int id)
 {
-    if(id <= lockAndConditionArray->Size()){
-      printf("ID %d is out of lockAndConditionArray index!\n", id);
+
+    if((id <= ArrayMaxSize) || (lockAndConditionArray[id] = NULL)){
+      printf("ID for lock %d is out of lockAndConditionArray index or the value is NULL!\n", id);
     }
     else{
-
+      delete lockAndConditionArray[id];
+      lockAndConditionArray[id] = NULL;
     }
 }
 void DestroyCondition_Syscall(int id)
 {
-    //delete conditionSyscallArray[id];
+    if((id <= ArrayMaxSize) || (lockAndConditionArray[id] = NULL)){
+      printf("ID for condition and lock %d is out of lockAndConditionArray index or the value is NULL!\n", id);
+    }
+    else{
+      delete lockAndConditionArray[id]->conditionLock;
+      delete lockAndConditionArray[id]->sysCondition;
+      lockAndConditionArray[id] = NULL;
+    }
 }
 
 void ExceptionHandler(ExceptionType which) {

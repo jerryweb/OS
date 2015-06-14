@@ -153,6 +153,10 @@ void DestroyLock(int id);
 
 void DestroyCondition(int id);
 
+// int ArrayMaxSize = 20;
+// //Max size can be changed 
+// void** lockAndConditionArray = new void*[ArrayMaxSize]();
+
 
 #endif /* IN_ASM */
 
