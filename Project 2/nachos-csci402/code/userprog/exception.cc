@@ -29,7 +29,7 @@
 
 using namespace std;
 
-//this holds the pointer to the lock
+//this holds the pointer to the lock and the condition
 struct sysCondtion {
   Lock* conditionLock;
   Condition* sysCondtion;
@@ -279,10 +279,20 @@ void Broadcast_Syscall(int id)
 }
 int CreateLock_Syscall(char* name)
 {
-    Lock sysLock = new Lock(name);
+  int index = 0;
+  Lock* sysLock = new Lock(name);
+  // lockAndConditionArray->Appent((void *)sysLock);
+  //This finds the location of the condition and lock just added to 
+  //the list
+  while(lockAndConditionArray > index){
+    index++;
+  }
+  return index;
 }
+
 int CreateCondition_Syscall(char* name)
 {
+  int index = 0;
   Condition c = new Condition(name);
   Lock* L = new Lock(name);
   sysCondtion* conditionSyscall = new sysCondtion();
@@ -291,10 +301,25 @@ int CreateCondition_Syscall(char* name)
   conditionSyscall->Lock = L;
 
   //This array needs to be defined with a max size somewhere
+  
+  // lockAndConditionArray->Appent((void *)conditionSyscall);
+
+  //This finds the location of the condition and lock just added to 
+  //the list
+  while(lockAndConditionArray->Size() > index){
+    index++;
+  }
+  return index;
+
 }
 void DestroyLock_Syscall(int id)
 {
-    delete sysLockArray[id];
+    if(id <= lockAndConditionArray->Size()){
+      printf("ID %d is out of lockAndConditionArray index!\n", id);
+    }
+    else{
+
+    }
 }
 void DestroyCondition_Syscall(int id)
 {
