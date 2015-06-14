@@ -250,12 +250,11 @@ void Exit_Syscall(int status)
 }
 void Acquire_Syscall(int id)
 {
-  
-    
+    sysLockArray[id]->Acquire();
 }
 void Release_Syscall(int id)
 {
-    
+    sysLockArray[id]->Release();
 }
 void Wait_Syscall(int id)
 {
@@ -275,11 +274,11 @@ int CreateLock_Syscall(char* name)
 }
 int CreateCondition_Syscall(char* name)
 {
-   Condition sysCondition = new Condition(name);
+    Condition sysCondition = new Condition(name);
 }
 void DestroyLock_Syscall(int id)
 {
-     delete sysLockArray[id];
+    delete sysLockArray[id];
 }
 void DestroyCondition_Syscall(int id)
 {
