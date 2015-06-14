@@ -231,6 +231,60 @@ void Close_Syscall(int fd) {
     }
 }
 
+// NEW SYSCALLS BELOW
+void Fork_Syscall(/**/)
+{
+    
+}
+void Exec_Syscall(/**/)
+{
+    
+}
+void Yield_Syscall()
+{
+    currentThread->Yield();
+}
+void Exit_Syscall()
+{
+    
+}
+void Acquire_Syscall(/**/)
+{
+    
+}
+void Release_Syscall(/**/)
+{
+    
+}
+void Wait_Syscall(/**/)
+{
+    
+}
+void Signal_Syscall(/**/)
+{
+    
+}
+void Broadcast_Syscall(/**/)
+{
+    
+}
+int CreateLock_Syscall(char* name)
+{
+    
+}
+int CreateCondition_Syscall(char* name)
+{
+    
+}
+void DestroyLock_Syscall(/**/)
+{
+    
+}
+void DestroyCondition_Syscall(/**/)
+{
+    
+}
+
 void ExceptionHandler(ExceptionType which) {
     int type = machine->ReadRegister(2); // Which syscall?
     int rv=0; 	// the return value from a syscall
@@ -268,32 +322,57 @@ void ExceptionHandler(ExceptionType which) {
 		Close_Syscall(machine->ReadRegister(4));
 		break;
         // NEW SYSCALLS BELOW
+	    case SC_Fork:
+		DEBUG('a', "Fork syscall.\n");
+        Fork_Syscall(/**/);
+		break;
+	    case SC_Exec:
+		DEBUG('a', "Exec syscall.\n");
+        Exec_Syscall(/**/);
+		break;
+	    case SC_Yield:
+		DEBUG('a', "Yield syscall.\n");
+        Yield_Syscall(/**/);
+		break;
+	    case SC_Exit:
+		DEBUG('a', "Exit syscall.\n");
+        Exit_Syscall(/**/);
+		break;
 	    case SC_Acquire:
 		DEBUG('a', "Acquire syscall.\n");
+        Acquire_Syscall(/**/);
 		break;
 	    case SC_Release:
 		DEBUG('a', "Release syscall.\n");
+        Release_Syscall(/**/);
 		break;
 	    case SC_Wait:
 		DEBUG('a', "Wait syscall.\n");
+        Wait_Syscall(/**/);
 		break;
 	    case SC_Signal:
 		DEBUG('a', "Signal syscall.\n");
+        Signal_Syscall(/**/);
 		break;
 	    case SC_Broadcast:
 		DEBUG('a', "Broadcast syscall.\n");
+        Broadcast_Syscall(/**/);
 		break;
 	    case SC_CreateLock:
 		DEBUG('a', "CreateLock syscall.\n");
+        rv = CreateLock_Syscall(machine->ReadRegister(4));
 		break;
 	    case SC_CreateCondition:
 		DEBUG('a', "CreateCondition syscall.\n");
+        rv = SC_CreateCondition_Syscall(machine->ReadRegister(4));
 		break;
 	    case SC_DestroyLock:
 		DEBUG('a', "DestroyLock syscall.\n");
+        SC_DestroyLock_Syscall(/**/);
 		break;
 	    case SC_DestroyCondition:
 		DEBUG('a', "DestroyCondition syscall.\n");
+        SC_DestroyCondition_Syscall(/**/);
 		break;
 	}
 

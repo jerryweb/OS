@@ -133,25 +133,25 @@ void Fork(void (*func)());
 /* Yield the CPU to another runnable thread, whether in this address space 
  * or not. 
  */
-void Yield();
+void Yield(/**/);
 
-void Acquire();
+void Acquire(/**/);
 
-void Release();
+void Release(/**/);
 
-void Wait();
+void Wait(/**/);
 
-void Signal();
+void Signal(/**/);
 
-void Broadcast();
+void Broadcast(/**/);
 
 int CreateLock(char* name);
 
 int CreateCondition(char* name);
 
-void DestroyLock();
+void DestroyLock(/**/);
 
-void DestroyCondition();
+void DestroyCondition(/**/);
 
 #endif /* IN_ASM */
 
