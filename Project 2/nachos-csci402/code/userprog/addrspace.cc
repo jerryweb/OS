@@ -41,7 +41,7 @@ Table::~Table() {
 }
 
 void *Table::Get(int i) {
-    // Return the element associated with the given if, or 0 if
+    // Return the element associated with the given i, or 0 if
     // there is none.
 
     return (i >=0 && i < size && map.Test(i)) ? table[i] : 0;
