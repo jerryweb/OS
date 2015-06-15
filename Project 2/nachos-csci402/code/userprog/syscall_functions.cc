@@ -1,6 +1,7 @@
 //This file holds all the function definitions used in exception.cc for syscalls 
 #include "syscall.h"
 #include "../threads/synch.h"
+#include "system.h"
 #include "../threads/thread.h"
 #include "table.h"
 
@@ -234,7 +235,7 @@ void DestroyCondition_Syscall(int id)
 
 void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
 {char *buf = new char[len+1];	// Kernel buffer: name
-
+    int param3 = 0;
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateCondition\n");
