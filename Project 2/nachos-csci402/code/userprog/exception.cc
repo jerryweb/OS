@@ -300,15 +300,6 @@ int CreateLock_Syscall(char* name)
       index++;
   }
   return index;
-    // int index = 0;
-    // Lock* sysLock = new Lock(name);
-  
-    // while (lockAndConditionArray[i] != NULL)
-    // {
-    //     index++;
-    // }
-    // lockAndConditionArray[i] = (void*) sysLock;
-    // return index;
 }
 
 int CreateCondition_Syscall(char* name)
@@ -321,27 +312,6 @@ int CreateCondition_Syscall(char* name)
   conditionSyscall->sysCondition = c;
   conditionSyscall->conditionLock = L;
   
-  // lockAndConditionArray->Appent((void *)conditionSyscall);
-
-  //This finds the location of the condition and lock just added to 
-  //the list
-  // while(ArrayMaxSize > index){
-  //   if(lockAndConditionArray[index] == NULL){
-  //     lockAndConditionArray[index] = conditionSyscall;
-  //     break;
-  //   }
-  //   else
-  //     index++;
-  // }
-  // return index;
-
-  //   int index = 0;
-  //   Condition* c = new Condition(name);
-  //   Lock* l = new Lock(name);
-  //   SysCondition* conditionSyscall = new SysCondition;
-
-  //   conditionSyscall->sysCondition = c;
-  //   conditionSyscall->conditionLock = l;
     while(ArrayMaxSize > index){
       if(lockAndConditionArray[index] == NULL){
         lockAndConditionArray[index] = (void*) conditionSyscall;
