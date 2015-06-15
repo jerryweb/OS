@@ -3,16 +3,6 @@
 
 using namespace std;
 
-int ArrayMaxSize = 20;
-//Max size can be changed 
-void** lockAndConditionArray = new void*[ArrayMaxSize]();
-
-//this holds the pointer to the lock and the condition
-struct SysCondition {
-  Lock*      conditionLock;
-  Condition* sysCondition;
-};
-
 struct kernelLock
 {
 	Lock* Lock;
@@ -41,8 +31,9 @@ void Exit_Syscall(int status)
 
 void Acquire_Syscall(int id)
 {
-	//if(lockTable[value /*from user*/].lock->owner == NULL){}
+	if(lockTable[id].lock->owner == NULL){
 	    Lock* sysLock = (Lock*)lockAndConditionArray[id];
+
 	    if (sysLock != NULL) sysLock->Acquire();
 }
 

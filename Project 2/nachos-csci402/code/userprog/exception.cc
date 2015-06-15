@@ -24,7 +24,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-#include "syscallFunctions.cc"
+#include "syscall_functions.cc"
 #include "../threads/synch.h"
 #include <stdio.h>
 #include <iostream>

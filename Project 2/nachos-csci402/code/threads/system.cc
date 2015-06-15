@@ -85,13 +85,33 @@ Initialize(int argc, char **argv)
     //Create the lock and CV tables
     
 
-/*TODO: add the lock and condition tables here*/
+/*TODO: add the Process tables here*/
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
     int maxNumLocks = 20;
     int maxNumCV = 20;
     lockTable = new Table*[maxNumLocks]();
     CVTable = new Table*[maxNumCV]();
+
+    //Generates lock table and adds dummy kernelLocks for later use
+    for(int i = 0; i < maxNumLocks; i++){
+        kernelLock *KC = new kernelLock;
+        //Lock *dummyLock = new Lock("NoLock");
+        KC->Lock = NULL; 
+        KC->owner = NULL;
+        KC->isToBeDeleted = false;
+        lockTable[i] = KC;
+    }
+
+    //Generates CV table and adds dummy kernelLocks for later use
+    for(int i = 0; i < maxNumLocks; i++){
+        kernelCondtion *CC = new kernelCondtion;
+        //Lock *dummyCondition = new Condition("NoCondition");
+        CC->Condition = NULL; 
+        CC->owner = NULL;
+        CC->isToBeDeleted = false;
+        CVTable[i] = CC;
+    }
     //Lock* lockTableLock = new Lock("");
 
 #endif

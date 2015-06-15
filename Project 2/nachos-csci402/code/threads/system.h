@@ -35,7 +35,7 @@ extern Timer *timer;				// the hardware alarm clock
 #include "machine.h"
 #include "addrspace.h"
 extern Machine* machine;	// user program memory and registers
-extern Table** lockTable;
+extern Table** lockTable;	// Tables for the CVs and Locks
 extern Table** CVTable;
 #endif
 
