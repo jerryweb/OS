@@ -18,24 +18,9 @@ struct KernelCondition
 	bool isToBeDeleted;
 };
 
-void Fork_Syscall(unsigned int vaddr, int len)
+void Fork_Syscall(unsigned int vaddr)
 {
-    char *buf = new char[len+1];	// Kernel buffer: func
-
-    if (! buf)
-    {
-        printf("%s","Can't allocate kernel buffer in Fork\n");
-        return;
-    }
-
-    if( copyin(vaddr, len, buf) == -1 )
-    {
-        printf("%s","Bad pointer passed to Fork\n");
-        delete[] buf;
-        return;
-    }
-
-    buf[len]='\0';
+    void* func = (void*) vaddr; 
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
