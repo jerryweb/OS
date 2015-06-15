@@ -1,11 +1,11 @@
 //This file holds all the function definitions used in exception.cc for syscalls 
 #include "syscall.h"
 #include "../threads/synch.h"
+#include "system.h"
 
 using namespace std;
 
-
-struct kernelLock
+struct KernelLock
 {
 	Lock* lock;
 	AddrSpace* owner;
@@ -18,6 +18,35 @@ struct KernelCondition
 	AddrSpace* owner;
 	bool isToBeDeleted;
 };
+
+int copyin(unsigned int vaddr, int len, char *buf) {
+    // Copy len bytes from the current thread's virtual address vaddr.
+    // Return the number of bytes so read, or -1 if an error occors.
+    // Errors can generally mean a bad virtual address was passed in.
+    bool result;
+    int n=0;            // The number of bytes copied in
+    int *paddr = new int;
+
+    while ( n >= 0 && n < len) {
+      result = machine->ReadMem( vaddr, 1, paddr );
+      while(!result) // FALL 09 CHANGES
+      {
+            result = machine->ReadMem( vaddr, 1, paddr ); // FALL 09 CHANGES: TO HANDLE PAGE FAULT IN THE ReadMem SYS CALL
+      } 
+      
+      buf[n++] = *paddr;
+     
+      if ( !result ) {
+    //translation failed
+    return -1;
+      }
+
+      vaddr++;
+    }
+
+    delete paddr;
+    return len;
+}
 
 void Fork_Syscall(unsigned int vaddr, int len)
 {
@@ -46,14 +75,14 @@ int Exec_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in Exec\n");
-        return;
+        return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to Exec\n");
         delete[] buf;
-        return;
+        return -1;
     }
 
     buf[len]='\0';
@@ -183,14 +212,14 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateLock\n");
-        return;
+        return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to CreateLock\n");
         delete[] buf;
-        return;
+        return -1;
     }
 
     buf[len]='\0';
@@ -213,20 +242,20 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateCondition\n");
-        return;
+        return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to CreateCondition\n");
         delete[] buf;
-        return;
+        return -1;
     }
 
     buf[len]='\0';
     
-    KernelLock* kCond = new KernelCondition;
-    kCond->lock = new Condition(buf);
+    KernelCondition* kCond = new KernelCondition;
+    kCond->condition = new Condition(buf);
     kCond->owner = currentThread->space;
     kCond->isToBeDeleted = false;
     
@@ -245,7 +274,7 @@ void DestroyCondition_Syscall(int id)
 
 void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
 {char *buf = new char[len+1];	// Kernel buffer: name
-
+    int param3 = 0;
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateCondition\n");
