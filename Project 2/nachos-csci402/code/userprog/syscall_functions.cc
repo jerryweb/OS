@@ -19,6 +19,7 @@ struct KernelCondition
 	bool isToBeDeleted;
 };
 
+
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
     // Return the number of bytes so read, or -1 if an error occors.
@@ -50,22 +51,7 @@ int copyin(unsigned int vaddr, int len, char *buf) {
 
 void Fork_Syscall(unsigned int vaddr, int len)
 {
-    char *buf = new char[len+1];	// Kernel buffer: func
-
-    if (! buf)
-    {
-        printf("%s","Can't allocate kernel buffer in Fork\n");
-        return;
-    }
-
-    if( copyin(vaddr, len, buf) == -1 )
-    {
-        printf("%s","Bad pointer passed to Fork\n");
-        delete[] buf;
-        return;
-    }
-
-    buf[len]='\0';
+    void* func = (void*) vaddr; 
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)

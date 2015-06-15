@@ -532,8 +532,7 @@ void ExceptionHandler(ExceptionType which) {
         // NEW SYSCALLS BELOW
 	    case SC_Fork:
             DEBUG('a', "Fork syscall.\n");
-            Fork_Syscall(machine->ReadRegister(4),
-                         machine->ReadRegister(5));
+            Fork_Syscall(machine->ReadRegister(4));
             break;
 	    case SC_Exec:
             DEBUG('a', "Exec syscall.\n");
