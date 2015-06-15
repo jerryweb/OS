@@ -83,8 +83,11 @@ Initialize(int argc, char **argv)
     char* debugArgs = "";
     bool randomYield = FALSE;
 
+/*TODO: add the lock and condition tables here*/
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
+    //Lock* lockTableLock = new Lock("");
+
 #endif
 #ifdef FILESYS_NEEDED
     bool format = FALSE;	// format disk

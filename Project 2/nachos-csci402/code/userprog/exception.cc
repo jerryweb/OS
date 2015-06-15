@@ -24,21 +24,11 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+//#include "syscallFunctions.cc"
 #include "../threads/synch.h"
 #include <stdio.h>
 #include <iostream>
 
-using namespace std;
-
-int ArrayMaxSize = 20;
-//Max size can be changed 
-void** lockAndConditionArray = new void*[ArrayMaxSize]();
-
-//this holds the pointer to the lock and the condition
-struct SysCondition {
-  Lock*      conditionLock;
-  Condition* sysCondition;
-};
 
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
@@ -284,6 +274,7 @@ void Exec_Syscall(unsigned int vaddr, int len)
 void Yield_Syscall()
 {
     currentThread->Yield();
+    printf("Yield_Syscall was called; yielding current thread.\n");
 }
 void Exit_Syscall(int status)
 {
@@ -294,11 +285,13 @@ void Acquire_Syscall(int id)
     Lock* sysLock = (Lock*)lockAndConditionArray[id];
     if (sysLock != NULL) sysLock->Acquire();
 }
+
 void Release_Syscall(int id)
 {
     Lock* sysLock = (Lock*)lockAndConditionArray[id];
     if (sysLock != NULL) sysLock->Release();
 }
+
 void Wait_Syscall(int id)
 {
     SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
