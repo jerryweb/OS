@@ -34,9 +34,9 @@ int ArrayMaxSize = 20;
 void** lockAndConditionArray = new void*[ArrayMaxSize]();
 
 //this holds the pointer to the lock and the condition
-struct sysCondtion {
-  Lock* conditionLock;
-  Condition* sysCondtion;
+struct SysCondition {
+  Lock*      conditionLock;
+  Condition* sysCondition;
 };
 
 int copyin(unsigned int vaddr, int len, char *buf) {
@@ -260,26 +260,28 @@ void Exit_Syscall(int status)
 }
 void Acquire_Syscall(int id)
 {
-
-  //Needs to be corrected 
-  sysLockArray[id]->Acquire();
-    
+    Lock* sysLock = (Lock*)lockAndConditionArray[id];
+    if (sysLock != NULL) sysLock->Acquire();
 }
 void Release_Syscall(int id)
 {
-    sysLockArray[id]->Release();
+    Lock* sysLock = (Lock*)lockAndConditionArray[id];
+    if (sysLock != NULL) sysLock->Release();
 }
 void Wait_Syscall(int id)
 {
-    
+    SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
+    if (sysCond != NULL) sysCond->sysCondition->Wait(conditionLock);
 }
 void Signal_Syscall(int id)
 {
-    
+    SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
+    if (sysCond != NULL) sysCond->sysCondition->Signal(conditionLock);
 }
 void Broadcast_Syscall(int id)
 {
-    
+    SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
+    if (sysCond != NULL) sysCond->sysCondition->Broadcast(conditionLock);
 }
 int CreateLock_Syscall(char* name)
 {
@@ -290,13 +292,23 @@ int CreateLock_Syscall(char* name)
   //the list
   while(ArrayMaxSize > index){
     if(lockAndConditionArray[index] == NULL){
-      lockAndConditionArray[index] = sysLock;
+      lockAndConditionArray[index] = (void*) sysLock;
       break;
     }
     else
       index++;
   }
   return index;
+    // int index = 0;
+    // Lock* sysLock = new Lock(name);
+  
+    // while (lockAndConditionArray[i] != NULL)
+    // {
+    //     index++;
+    // }
+    // lockAndConditionArray[i] = (void*) sysLock;
+    // return index;
+
 }
 
 int CreateCondition_Syscall(char* name)
@@ -313,16 +325,35 @@ int CreateCondition_Syscall(char* name)
 
   //This finds the location of the condition and lock just added to 
   //the list
-  while(ArrayMaxSize > index){
-    if(lockAndConditionArray[index] == NULL){
-      lockAndConditionArray[index] = conditionSyscall;
-      break;
-    }
-    else
-      index++;
-  }
-  return index;
+  // while(ArrayMaxSize > index){
+  //   if(lockAndConditionArray[index] == NULL){
+  //     lockAndConditionArray[index] = conditionSyscall;
+  //     break;
+  //   }
+  //   else
+  //     index++;
+  // }
+  // return index;
 
+  //   int index = 0;
+  //   Condition* c = new Condition(name);
+  //   Lock* l = new Lock(name);
+  //   SysCondition* conditionSyscall = new SysCondition;
+
+  //   conditionSyscall->sysCondition = c;
+  //   conditionSyscall->conditionLock = l;
+    while(ArrayMaxSize > index){
+    // while (lockAndConditionArray[index] != NULL)
+    {
+      if(lockAndConditionArray[index] == NULL){
+        lockAndConditionArray[index] = (void*) conditionSyscall;
+        break;
+      }
+      else
+        index++;
+    }
+
+    return index;
 }
 void DestroyLock_Syscall(int id)
 {
