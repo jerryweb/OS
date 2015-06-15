@@ -248,11 +248,13 @@ void ExceptionHandler(ExceptionType which) {
             break;
 	    case SC_Create:
             DEBUG('a', "Create syscall.\n");
-            Create_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
+            Create_Syscall(machine->ReadRegister(4),
+                           machine->ReadRegister(5));
             break;
 	    case SC_Open:
             DEBUG('a', "Open syscall.\n");
-            rv = Open_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
+            rv = Open_Syscall(machine->ReadRegister(4),
+                              machine->ReadRegister(5));
             break;
 	    case SC_Write:
             DEBUG('a', "Write syscall.\n");
@@ -273,7 +275,8 @@ void ExceptionHandler(ExceptionType which) {
         // NEW SYSCALLS BELOW
 	    case SC_Fork:
             DEBUG('a', "Fork syscall.\n");
-            Fork_Syscall(machine->ReadRegister(4));
+            Fork_Syscall(machine->ReadRegister(4)); //,
+                         //machine->ReadRegister(5);
             break;
 	    case SC_Exec:
             DEBUG('a', "Exec syscall.\n");
@@ -298,17 +301,17 @@ void ExceptionHandler(ExceptionType which) {
             break;
 	    case SC_Wait:
             DEBUG('a', "Wait syscall.\n");
-            Wait_Syscall(machine->ReadRegister(4)
+            Wait_Syscall(machine->ReadRegister(4),
                          machine->ReadRegister(5));
             break;
 	    case SC_Signal:
             DEBUG('a', "Signal syscall.\n");
-            Signal_Syscall(machine->ReadRegister(4)
+            Signal_Syscall(machine->ReadRegister(4),
                            machine->ReadRegister(5));
             break;
 	    case SC_Broadcast:
             DEBUG('a', "Broadcast syscall.\n");
-            Broadcast_Syscall(machine->ReadRegister(4)
+            Broadcast_Syscall(machine->ReadRegister(4),
                               machine->ReadRegister(5));
             break;
 	    case SC_CreateLock:

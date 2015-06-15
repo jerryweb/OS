@@ -1,11 +1,14 @@
 //This file holds all the function definitions used in exception.cc for syscalls 
 #include "syscall.h"
 #include "../threads/synch.h"
+#include "../threads/thread.h"
+#include "table.h"
 
 using namespace std;
 
+extern int copyin(unsigned int vaddr, int len, char* buf);
 
-struct kernelLock
+struct KernelLock
 {
 	Lock* lock;
 	AddrSpace* owner;
@@ -19,9 +22,10 @@ struct KernelCondition
 	bool isToBeDeleted;
 };
 
-void Fork_Syscall(unsigned int vaddr)
+void Fork_Syscall(unsigned int vaddr) //, int arg)
 {
-    void* func = (void*) vaddr; 
+    Thread* t = new Thread("");
+    t->Fork( (void (*)(int)) vaddr, 0);
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
@@ -31,14 +35,14 @@ int Exec_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in Exec\n");
-        return;
+        return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to Exec\n");
         delete[] buf;
-        return;
+        return -1;
     }
 
     buf[len]='\0';
@@ -168,14 +172,14 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateLock\n");
-        return;
+        return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to CreateLock\n");
         delete[] buf;
-        return;
+        return -1;
     }
 
     buf[len]='\0';
@@ -198,20 +202,20 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateCondition\n");
-        return;
+        return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to CreateCondition\n");
         delete[] buf;
-        return;
+        return -1;
     }
 
     buf[len]='\0';
     
-    KernelLock* kCond = new KernelCondition;
-    kCond->lock = new Condition(buf);
+    KernelCondition* kCond = new KernelCondition;
+    kCond->condition = new Condition(buf);
     kCond->owner = currentThread->space;
     kCond->isToBeDeleted = false;
     
@@ -246,5 +250,5 @@ void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
 
     buf[len]='\0';
     
-    printf(buf, param1, param2, param3);
+    printf(buf, param1, param2);
 }
