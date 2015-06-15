@@ -55,26 +55,27 @@
  */
 
 /* Stop Nachos, and print out performance stats */
-void Halt();		
+void Halt();
  
 
 /* Address space control operations: Exit, Exec, and Join */
 
 /* This user program is done (status = 0 means exited normally). */
-void Exit(int status);	
+void Exit(int status);
 
 /* A unique identifier for an executing user program (address space) */
-typedef int SpaceId;	
+typedef int SpaceId;
  
 /* Run the executable, stored in the Nachos file "name", and return the 
  * address space identifier
  */
-SpaceId Exec(char *name, int len); 
 
+SpaceId Exec(char *name, int len);
+ 
 /* Only return once the the user program "id" has finished.  
  * Return the exit status.
  */
-int Join(SpaceId id); 	
+int Join(SpaceId id);
  
 
 /* File system operations: Create, Open, Read, Write, Close
@@ -87,7 +88,7 @@ int Join(SpaceId id);
  */
  
 /* A unique identifier for an open Nachos file. */
-typedef int OpenFileId;	
+typedef int OpenFileId;
 
 /* when an address space starts up, it has two open files, representing 
  * keyboard input and display output (in UNIX terms, stdin and stdout).
@@ -129,7 +130,8 @@ void Close(OpenFileId id);
 /* Fork a thread to run a procedure ("func") in the *same* address space 
  * as the current thread.
  */
-void Fork(void (*func)(), int len); 
+
+void Fork(void (*func)(), int len);
 
 /* Yield the CPU to another runnable thread, whether in this address space 
  * or not. 

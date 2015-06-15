@@ -278,8 +278,8 @@ void ExceptionHandler(ExceptionType which) {
             break;
 	    case SC_Exec:
             DEBUG('a', "Exec syscall.\n");
-            Exec_Syscall(machine->ReadRegister(4),
-                         machine->ReadRegister(5));
+            rv = Exec_Syscall(machine->ReadRegister(4),
+                              machine->ReadRegister(5));
             break;
 	    case SC_Yield:
             DEBUG('a', "Yield syscall.\n");

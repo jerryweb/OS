@@ -39,7 +39,7 @@ void Fork_Syscall(unsigned int vaddr, int len)
     buf[len]='\0';
 }
 
-void Exec_Syscall(unsigned int vaddr, int len)
+int Exec_Syscall(unsigned int vaddr, int len)
 {
     char *buf = new char[len+1];	// Kernel buffer: filename
 
@@ -57,6 +57,8 @@ void Exec_Syscall(unsigned int vaddr, int len)
     }
 
     buf[len]='\0';
+    
+    return 0;
 }
 
 void Yield_Syscall()
@@ -198,6 +200,8 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     kLock->owner = currentThread->space;
     kLock->isToBeDeleted = false;
     
+    delete[] buf;
+    
     return lockTable->Put(kLock);
 }
 
@@ -225,6 +229,8 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     kCond->lock = new Condition(buf);
     kCond->owner = currentThread->space;
     kCond->isToBeDeleted = false;
+    
+    delete[] buf;
     
     return CVTable->Put(kCond);
 }
