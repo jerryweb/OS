@@ -1,5 +1,6 @@
 //This file holds all the function definitions used in exception.cc for syscalls 
 #include "syscall.h"
+#include "../threads/synch.h"
 
 using namespace std;
 
@@ -30,14 +31,14 @@ int Exec_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in Exec\n");
-        return -1;
+        return;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to Exec\n");
         delete[] buf;
-        return -1;
+        return;
     }
 
     buf[len]='\0';
@@ -167,14 +168,14 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateLock\n");
-        return -1;
+        return;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to CreateLock\n");
         delete[] buf;
-        return -1;
+        return;
     }
 
     buf[len]='\0';
@@ -197,14 +198,14 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateCondition\n");
-        return -1;
+        return;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to CreateCondition\n");
         delete[] buf;
-        return -1;
+        return;
     }
 
     buf[len]='\0';
@@ -233,14 +234,14 @@ void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in CreateCondition\n");
-        return -1;
+        return;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to CreateCondition\n");
         delete[] buf;
-        return -1;
+        return;
     }
 
     buf[len]='\0';
