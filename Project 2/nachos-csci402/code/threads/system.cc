@@ -93,27 +93,6 @@ Initialize(int argc, char **argv)
     lockTable = new Table(maxNumLocks);
     CVTable = new Table(maxNumCV);
 
-    //Generates lock table and adds dummy kernelLocks for later use
-    for(int i = 0; i < maxNumLocks; i++){
-        kernelLock *KC = new kernelLock;
-        //Lock *dummyLock = new Lock("NoLock");
-        KC->Lock = NULL; 
-        KC->owner = NULL;
-        KC->isToBeDeleted = false;
-        lockTable->Put(KC);
-    }
-
-    //Generates CV table and adds dummy kernelLocks for later use
-    for(int i = 0; i < maxNumLocks; i++){
-        kernelCondtion *CC = new kernelCondtion;
-        //Lock *dummyCondition = new Condition("NoCondition");
-        CC->Condition = NULL; 
-        CC->owner = NULL;
-        CC->isToBeDeleted = false;
-        CVTable->Put(CC);
-    }
-    //Lock* lockTableLock = new Lock("");
-
 #endif
 #ifdef FILESYS_NEEDED
     bool format = FALSE;	// format disk
