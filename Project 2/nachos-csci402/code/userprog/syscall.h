@@ -140,11 +140,11 @@ void Acquire(int id);
 
 void Release(int id);
 
-void Wait(int id);
+void Wait(int id, int lockID);
 
-void Signal(int id);
+void Signal(int id, int lockID);
 
-void Broadcast(int id);
+void Broadcast(int id, int lockID);
 
 int CreateLock(char* name, int len);
 

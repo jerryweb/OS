@@ -3,17 +3,17 @@
 
 using namespace std;
 
-struct kernelLock
+struct KernelLock
 {
-	Lock* Lock;
-	AddrSpace* owner
+	Lock* lock;
+	AddrSpace* owner;
 	bool isToBeDeleted;
 };
 
-struct kernelCondtion
+struct KernelCondition
 {
-	Condition* Condition
-	AddrSpace* owner
+	Condition* condition;
+	AddrSpace* owner;
 	bool isToBeDeleted;
 };
 
@@ -71,30 +71,40 @@ void Exit_Syscall(int status)
 
 void Acquire_Syscall(int id)
 {
-    Lock* sysLock = (Lock*)lockAndConditionArray[id];
-    if (sysLock != NULL) sysLock->Acquire();
+    KernelLock* kLock = (KernelLock*) lockTable->Get();
+    if (currentThread->space != kLock->owner)
+    {   // Check if current process has access to lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL)
+        {   // Make sure lock is valid.
+            // error
+        }
+        else
+        {
+            kLock->lock->Acquire();
+        }
+    }
 }
 
 void Release_Syscall(int id)
 {
-    Lock* sysLock = (Lock*)lockAndConditionArray[id];
-    if (sysLock != NULL) sysLock->Release();
+    
 }
 
-void Wait_Syscall(int id)
+void Wait_Syscall(int id, int lockID)
 {
-    SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
-    if (sysCond != NULL) sysCond->sysCondition->Wait(sysCond->conditionLock);
+    
 }
-void Signal_Syscall(int id)
+void Signal_Syscall(int id, int lockID)
 {
-    SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
-    if (sysCond != NULL) sysCond->sysCondition->Signal(sysCond->conditionLock);
+    
 }
-void Broadcast_Syscall(int id)
+void Broadcast_Syscall(int id, int lockID)
 {
-    SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
-    if (sysCond != NULL) sysCond->sysCondition->Broadcast(sysCond->conditionLock);
+    
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)

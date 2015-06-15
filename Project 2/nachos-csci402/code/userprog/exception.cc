@@ -299,15 +299,18 @@ void ExceptionHandler(ExceptionType which) {
             break;
 	    case SC_Wait:
             DEBUG('a', "Wait syscall.\n");
-            Wait_Syscall(machine->ReadRegister(4));
+            Wait_Syscall(machine->ReadRegister(4)
+                         machine->ReadRegister(5));
             break;
 	    case SC_Signal:
             DEBUG('a', "Signal syscall.\n");
-            Signal_Syscall(machine->ReadRegister(4));
+            Signal_Syscall(machine->ReadRegister(4)
+                           machine->ReadRegister(5));
             break;
 	    case SC_Broadcast:
             DEBUG('a', "Broadcast syscall.\n");
-            Broadcast_Syscall(machine->ReadRegister(4));
+            Broadcast_Syscall(machine->ReadRegister(4)
+                              machine->ReadRegister(5));
             break;
 	    case SC_CreateLock:
             DEBUG('a', "CreateLock syscall.\n");
