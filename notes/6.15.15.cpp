@@ -127,7 +127,7 @@ We need a table of:
 		c = CreateLock(__);
 		Acquire(c);						Acquire(c);
 
-		Release(c);						Release(c);		//lock state will be *AVAILABLE	after B is doen using it	
+		Release(c);						Release(c);		//lock state will be *AVAILABLE	after B is done using it	
 		*DestroyLock(C);	//only destroy if available			
 	}								}
 
