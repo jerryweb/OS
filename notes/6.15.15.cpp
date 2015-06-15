@@ -141,11 +141,10 @@ We need a table of:
 	//fist make sure the lock exists, then make sure the lock doing the release or acquire is the owner
 
 	system.cc
-		Lock* lockTableLock;
 
 
 		void main(){
-			Initialized();			//This is in system.cc and is where all of nachos data structures are initialized here 
+			Initialized();			//This is in system.cc and is where all of nachos data structures are initialized 
 									//Our new data structure should go in this function under everything else
 				// _init		these two go in the 'function'
 				// _start

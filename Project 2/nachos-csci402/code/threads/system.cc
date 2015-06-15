@@ -82,10 +82,16 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
+    //Create the lock and CV tables
+    
 
 /*TODO: add the lock and condition tables here*/
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
+    int maxNumLocks = 20;
+    int maxNumCV = 20;
+    lockTable = new Table*[maxNumLocks]();
+    CVTable = new Table*[maxNumCV]();
     //Lock* lockTableLock = new Lock("");
 
 #endif

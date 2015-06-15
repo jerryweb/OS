@@ -90,6 +90,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     int index = 0;
     Lock* sysLock = new Lock(buf);
     
+    //looks for the first empty location in the array
     while(ArrayMaxSize > index){
         if(lockAndConditionArray[index] == NULL)
         {
