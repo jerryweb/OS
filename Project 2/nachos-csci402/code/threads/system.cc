@@ -90,8 +90,8 @@ Initialize(int argc, char **argv)
     bool debugUserProg = FALSE;	// single step user program
     int maxNumLocks = 20;
     int maxNumCV = 20;
-    lockTable = new Table*[maxNumLocks]();
-    CVTable = new Table*[maxNumCV]();
+    lockTable = new Table(maxNumLocks);
+    CVTable = new Table(maxNumCV);
 
     //Generates lock table and adds dummy kernelLocks for later use
     for(int i = 0; i < maxNumLocks; i++){
@@ -100,7 +100,7 @@ Initialize(int argc, char **argv)
         KC->Lock = NULL; 
         KC->owner = NULL;
         KC->isToBeDeleted = false;
-        lockTable[i] = KC;
+        lockTable->Put(KC);
     }
 
     //Generates CV table and adds dummy kernelLocks for later use
@@ -110,7 +110,7 @@ Initialize(int argc, char **argv)
         CC->Condition = NULL; 
         CC->owner = NULL;
         CC->isToBeDeleted = false;
-        CVTable[i] = CC;
+        CVTable->Put(CC);
     }
     //Lock* lockTableLock = new Lock("");
 
