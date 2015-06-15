@@ -3,16 +3,6 @@
 
 using namespace std;
 
-int ArrayMaxSize = 20;
-//Max size can be changed 
-void** lockAndConditionArray = new void*[ArrayMaxSize]();
-
-//this holds the pointer to the lock and the condition
-struct SysCondition {
-  Lock*      conditionLock;
-  Condition* sysCondition;
-};
-
 struct kernelLock
 {
 	Lock* Lock;
@@ -26,6 +16,46 @@ struct kernelCondtion
 	AddrSpace* owner
 	bool isToBeDeleted;
 };
+
+void Fork_Syscall(unsigned int vaddr, int len)
+{
+    char *buf = new char[len+1];	// Kernel buffer: func
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Fork\n");
+        return -1;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Fork\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+}
+
+void Exec_Syscall(unsigned int vaddr, int len)
+{
+    char *buf = new char[len+1];	// Kernel buffer: filename
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Exec\n");
+        return -1;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Exec\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+}
 
 void Yield_Syscall()
 {
@@ -41,9 +71,8 @@ void Exit_Syscall(int status)
 
 void Acquire_Syscall(int id)
 {
-	//if(lockTable[value /*from user*/].lock->owner == NULL){}
-	    Lock* sysLock = (Lock*)lockAndConditionArray[id];
-	    if (sysLock != NULL) sysLock->Acquire();
+    Lock* sysLock = (Lock*)lockAndConditionArray[id];
+    if (sysLock != NULL) sysLock->Acquire();
 }
 
 void Release_Syscall(int id)
@@ -149,7 +178,6 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 }
 void DestroyLock_Syscall(int id)
 {
-
     if((id <= ArrayMaxSize) || (lockAndConditionArray[id] = NULL)){
       printf("ID for lock %d is out of lockAndConditionArray index or the value is NULL!\n", id);
     }
@@ -171,4 +199,25 @@ void DestroyCondition_Syscall(int id)
       delete sysC;
       lockAndConditionArray[id] = NULL;
     }
+}
+
+void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
+{char *buf = new char[len+1];	// Kernel buffer: name
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in CreateCondition\n");
+        return -1;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to CreateCondition\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+    
+    printf(buf, param1, param2, param3);
 }

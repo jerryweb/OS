@@ -38,6 +38,7 @@
 #define SC_DestroyLock      17
 #define SC_CreateCondition  18
 #define SC_DestroyCondition 19
+#define SC_Printf           20
 
 #define MAXFILENAME 256
 
@@ -153,9 +154,7 @@ void DestroyLock(int id);
 
 void DestroyCondition(int id);
 
-// int ArrayMaxSize = 20;
-// //Max size can be changed 
-// void** lockAndConditionArray = new void*[ArrayMaxSize]();
+void Printf(char* string, int len, int param1, int param2);
 
 
 #endif /* IN_ASM */
