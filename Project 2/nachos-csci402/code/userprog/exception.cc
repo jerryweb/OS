@@ -243,13 +243,43 @@ void Close_Syscall(int fd) {
 }
 
 // NEW SYSCALLS BELOW
-void Fork_Syscall(void* func)
+void Fork_Syscall(unsigned int vaddr, int len)
 {
-    
+    char *buf = new char[len+1];	// Kernel buffer: func
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Fork\n");
+        return;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Fork\n");
+        delete[] buf;
+        return;
+    }
+
+    buf[len]='\0';
 }
-void Exec_Syscall(char* filename)
+void Exec_Syscall(unsigned int vaddr, int len)
 {
-    
+    char *buf = new char[len+1];	// Kernel buffer: filename
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Exec\n");
+        return;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Exec\n");
+        delete[] buf;
+        return;
+    }
+
+    buf[len]='\0';
 }
 void Yield_Syscall()
 {
@@ -284,41 +314,81 @@ void Broadcast_Syscall(int id)
     SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
     if (sysCond != NULL) sysCond->sysCondition->Broadcast(sysCond->conditionLock);
 }
-int CreateLock_Syscall(char* name)
+
+int CreateLock_Syscall(unsigned int vaddr, int len)
 {
-  int index = 0;
-  Lock* sysLock = new Lock(name);
-  // lockAndConditionArray->Appent((void *)sysLock);
-  //This finds the location of the condition and lock just added to 
-  //the list
-  while(ArrayMaxSize > index){
-    if(lockAndConditionArray[index] == NULL){
-      lockAndConditionArray[index] = (void*) sysLock;
-      break;
+    char *buf = new char[len+1];	// Kernel buffer: name
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in CreateLock\n");
+        return -1;
     }
-    else
-      index++;
-  }
-  return index;
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to CreateLock\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+    
+    int index = 0;
+    Lock* sysLock = new Lock(buf);
+    
+    while(ArrayMaxSize > index){
+        if(lockAndConditionArray[index] == NULL)
+        {
+            lockAndConditionArray[index] = (void*) sysLock;
+            break;
+        }
+        else
+            index++;
+    }
+    return index;
+
 }
 
-int CreateCondition_Syscall(char* name)
+int CreateCondition_Syscall(unsigned int vaddr, int len)
 {
-  int index = 0;
-  Condition* c = new Condition(name);
-  Lock* L = new Lock(name);
-  SysCondition* conditionSyscall = new SysCondition();
 
-  conditionSyscall->sysCondition = c;
-  conditionSyscall->conditionLock = L;
-  
-    while(ArrayMaxSize > index){
-      if(lockAndConditionArray[index] == NULL){
-        lockAndConditionArray[index] = (void*) conditionSyscall;
-        break;
-      }
-      else
-        index++;
+    char *buf = new char[len+1];	// Kernel buffer: name
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in CreateCondition\n");
+        return -1;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to CreateCondition\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+    
+    char* name;
+    int index = 0;
+    Condition* c = new Condition(buf);
+    Lock* L = new Lock(buf);
+    SysCondition* conditionSyscall = new SysCondition();
+
+    conditionSyscall->sysCondition = c;
+    conditionSyscall->conditionLock = L;
+
+    while(ArrayMaxSize > index)
+    {
+        if(lockAndConditionArray[index] == NULL)
+        {
+            lockAndConditionArray[index] = (void*) conditionSyscall;
+            break;
+        }
+        else
+            index++;
+
     }
 
     return index;
@@ -356,88 +426,92 @@ void ExceptionHandler(ExceptionType which) {
     if ( which == SyscallException ) {
 	switch (type) {
 	    default:
-		DEBUG('a', "Unknown syscall - shutting down.\n");
+            DEBUG('a', "Unknown syscall - shutting down.\n");
 	    case SC_Halt:
-		DEBUG('a', "Shutdown, initiated by user program.\n");
-		interrupt->Halt();
-		break;
+            DEBUG('a', "Shutdown, initiated by user program.\n");
+            interrupt->Halt();
+            break;
 	    case SC_Create:
-		DEBUG('a', "Create syscall.\n");
-		Create_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
-		break;
+            DEBUG('a', "Create syscall.\n");
+            Create_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
+            break;
 	    case SC_Open:
-		DEBUG('a', "Open syscall.\n");
-		rv = Open_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
-		break;
+            DEBUG('a', "Open syscall.\n");
+            rv = Open_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
+            break;
 	    case SC_Write:
-		DEBUG('a', "Write syscall.\n");
-		Write_Syscall(machine->ReadRegister(4),
-			      machine->ReadRegister(5),
-			      machine->ReadRegister(6));
-		break;
+            DEBUG('a', "Write syscall.\n");
+            Write_Syscall(machine->ReadRegister(4),
+                          machine->ReadRegister(5),
+                          machine->ReadRegister(6));
+            break;
 	    case SC_Read:
-		DEBUG('a', "Read syscall.\n");
-		rv = Read_Syscall(machine->ReadRegister(4),
-			      machine->ReadRegister(5),
-			      machine->ReadRegister(6));
-		break;
+            DEBUG('a', "Read syscall.\n");
+            rv = Read_Syscall(machine->ReadRegister(4),
+                              machine->ReadRegister(5),
+                              machine->ReadRegister(6));
+            break;
 	    case SC_Close:
-		DEBUG('a', "Close syscall.\n");
-		Close_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Close syscall.\n");
+            Close_Syscall(machine->ReadRegister(4));
+            break;
         // NEW SYSCALLS BELOW
 	    case SC_Fork:
-		DEBUG('a', "Fork syscall.\n");
-        Fork_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Fork syscall.\n");
+            Fork_Syscall(machine->ReadRegister(4),
+                         machine->ReadRegister(5));
+            break;
 	    case SC_Exec:
-		DEBUG('a', "Exec syscall.\n");
-        Exec_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Exec syscall.\n");
+            Exec_Syscall(machine->ReadRegister(4),
+                         machine->ReadRegister(5));
+            break;
 	    case SC_Yield:
-		DEBUG('a', "Yield syscall.\n");
-        Yield_Syscall();
-		break;
+            DEBUG('a', "Yield syscall.\n");
+            Yield_Syscall();
+            break;
 	    case SC_Exit:
-		DEBUG('a', "Exit syscall.\n");
-        Exit_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Exit syscall.\n");
+            Exit_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Acquire:
-		DEBUG('a', "Acquire syscall.\n");
-        Acquire_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Acquire syscall.\n");
+            Acquire_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Release:
-		DEBUG('a', "Release syscall.\n");
-        Release_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Release syscall.\n");
+            Release_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Wait:
-		DEBUG('a', "Wait syscall.\n");
-        Wait_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Wait syscall.\n");
+            Wait_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Signal:
-		DEBUG('a', "Signal syscall.\n");
-        Signal_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Signal syscall.\n");
+            Signal_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Broadcast:
-		DEBUG('a', "Broadcast syscall.\n");
-        Broadcast_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Broadcast syscall.\n");
+            Broadcast_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_CreateLock:
-		DEBUG('a', "CreateLock syscall.\n");
-        rv = CreateLock_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "CreateLock syscall.\n");
+            rv = CreateLock_Syscall(machine->ReadRegister(4),
+                                    machine->ReadRegister(5));
+            break;
 	    case SC_CreateCondition:
-		DEBUG('a', "CreateCondition syscall.\n");
-        rv = SC_CreateCondition_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "CreateCondition syscall.\n");
+            rv = CreateCondition_Syscall(machine->ReadRegister(4),
+                                         machine->ReadRegister(5));
+            break;
 	    case SC_DestroyLock:
-		DEBUG('a', "DestroyLock syscall.\n");
-        SC_DestroyLock_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "DestroyLock syscall.\n");
+            DestroyLock_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_DestroyCondition:
-		DEBUG('a', "DestroyCondition syscall.\n");
-        SC_DestroyCondition_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "DestroyCondition syscall.\n");
+            DestroyCondition_Syscall(machine->ReadRegister(4));
+            break;
 	}
 
 	// Put in the return value and increment the PC
