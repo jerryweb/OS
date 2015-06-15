@@ -94,20 +94,83 @@ void Acquire_Syscall(int id)
 
 void Release_Syscall(int id)
 {
-    
+    KernelLock* kLock = (KernelLock*) lockTable->Get(id);
+    if (currentThread->space != kLock->owner)
+    {   // Check if current process has access to lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL)
+        {   // Make sure lock is valid.
+            // error
+        }
+        else
+        {
+            kLock->lock->Release();
+        }
+    }
 }
 
 void Wait_Syscall(int id, int lockID)
 {
-    
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+    {   // Check if current process has access to condition and lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL || kCond->condition == NULL)
+        {   // Make sure condition and lock are valid.
+            // error
+        }
+        else
+        {
+            kCond->condition->Wait(kLock->lock);
+        }
+    }
 }
 void Signal_Syscall(int id, int lockID)
 {
-    
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+    {   // Check if current process has access to condition and lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL || kCond->condition == NULL)
+        {   // Make sure condition and lock are valid.
+            // error
+        }
+        else
+        {
+            kCond->condition->Signal(kLock->lock);
+        }
+    }
 }
 void Broadcast_Syscall(int id, int lockID)
 {
-    
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+    {   // Check if current process has access to condition and lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL || kCond->condition == NULL)
+        {   // Make sure condition and lock are valid.
+            // error
+        }
+        else
+        {
+            kCond->condition->Broadcast(kLock->lock);
+        }
+    }
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)
@@ -129,21 +192,12 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 
     buf[len]='\0';
     
-    int index = 0;
-    Lock* sysLock = new Lock(buf);
+    KernelLock* kLock = new KernelLock;
+    kLock->lock = new Lock(buf);
+    kLock->owner = currentThread->space;
+    kLock->isToBeDeleted = false;
     
-    //looks for the first empty location in the array
-    while(ArrayMaxSize > index){
-        if(lockAndConditionArray[index] == NULL)
-        {
-            lockAndConditionArray[index] = (void*) sysLock;
-            break;
-        }
-        else
-            index++;
-    }
-    return index;
-
+    return lockTable->Put(kLock);
 }
 
 int CreateCondition_Syscall(unsigned int vaddr, int len)
@@ -166,52 +220,20 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 
     buf[len]='\0';
     
-    char* name;
-    int index = 0;
-    Condition* c = new Condition(buf);
-    Lock* L = new Lock(buf);
-    SysCondition* conditionSyscall = new SysCondition();
-
-    conditionSyscall->sysCondition = c;
-    conditionSyscall->conditionLock = L;
-
-    while(ArrayMaxSize > index)
-    {
-        if(lockAndConditionArray[index] == NULL)
-        {
-            lockAndConditionArray[index] = (void*) conditionSyscall;
-            break;
-        }
-        else
-            index++;
-
-    }
-
-    return index;
+    KernelLock* kCond = new KernelCondition;
+    kCond->lock = new Condition(buf);
+    kCond->owner = currentThread->space;
+    kCond->isToBeDeleted = false;
+    
+    return CVTable->Put(kCond);
 }
 void DestroyLock_Syscall(int id)
 {
-    if((id <= ArrayMaxSize) || (lockAndConditionArray[id] = NULL)){
-      printf("ID for lock %d is out of lockAndConditionArray index or the value is NULL!\n", id);
-    }
-    else{
-      Lock* sysLock = (Lock*)lockAndConditionArray[id];
-      delete sysLock;
-      lockAndConditionArray[id] = NULL;
-    }
+    
 }
 void DestroyCondition_Syscall(int id)
 {
-    if((id <= ArrayMaxSize) || (lockAndConditionArray[id] = NULL)){
-      printf("ID for condition and lock %d is out of lockAndConditionArray index or the value is NULL!\n", id);
-    }
-    else{
-      SysCondition* sysC = (SysCondition*)lockAndConditionArray[id];
-      delete sysC->conditionLock;
-      delete sysC->sysCondition;
-      delete sysC;
-      lockAndConditionArray[id] = NULL;
-    }
+    
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
