@@ -24,6 +24,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "../threads/synch.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -271,17 +272,17 @@ void Release_Syscall(int id)
 void Wait_Syscall(int id)
 {
     SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
-    if (sysCond != NULL) sysCond->sysCondition->Wait(conditionLock);
+    if (sysCond != NULL) sysCond->sysCondition->Wait(sysCond->conditionLock);
 }
 void Signal_Syscall(int id)
 {
     SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
-    if (sysCond != NULL) sysCond->sysCondition->Signal(conditionLock);
+    if (sysCond != NULL) sysCond->sysCondition->Signal(sysCond->conditionLock);
 }
 void Broadcast_Syscall(int id)
 {
     SysCondition* sysCond = (SysCondition*)lockAndConditionArray[id];
-    if (sysCond != NULL) sysCond->sysCondition->Broadcast(conditionLock);
+    if (sysCond != NULL) sysCond->sysCondition->Broadcast(sysCond->conditionLock);
 }
 int CreateLock_Syscall(char* name)
 {
@@ -308,18 +309,17 @@ int CreateLock_Syscall(char* name)
     // }
     // lockAndConditionArray[i] = (void*) sysLock;
     // return index;
-
 }
 
 int CreateCondition_Syscall(char* name)
 {
   int index = 0;
-  Condition c = new Condition(name);
+  Condition* c = new Condition(name);
   Lock* L = new Lock(name);
-  sysCondtion* conditionSyscall = new sysCondtion();
+  SysCondition* conditionSyscall = new SysCondition();
 
-  conditionSyscall->Condition = c;
-  conditionSyscall->Lock = L;
+  conditionSyscall->sysCondition = c;
+  conditionSyscall->conditionLock = L;
   
   // lockAndConditionArray->Appent((void *)conditionSyscall);
 
@@ -343,8 +343,6 @@ int CreateCondition_Syscall(char* name)
   //   conditionSyscall->sysCondition = c;
   //   conditionSyscall->conditionLock = l;
     while(ArrayMaxSize > index){
-    // while (lockAndConditionArray[index] != NULL)
-    {
       if(lockAndConditionArray[index] == NULL){
         lockAndConditionArray[index] = (void*) conditionSyscall;
         break;
@@ -362,7 +360,8 @@ void DestroyLock_Syscall(int id)
       printf("ID for lock %d is out of lockAndConditionArray index or the value is NULL!\n", id);
     }
     else{
-      delete lockAndConditionArray[id];
+      Lock* sysLock = (Lock*)lockAndConditionArray[id];
+      delete sysLock;
       lockAndConditionArray[id] = NULL;
     }
 }
@@ -372,8 +371,10 @@ void DestroyCondition_Syscall(int id)
       printf("ID for condition and lock %d is out of lockAndConditionArray index or the value is NULL!\n", id);
     }
     else{
-      delete lockAndConditionArray[id]->conditionLock;
-      delete lockAndConditionArray[id]->sysCondition;
+      SysCondition* sysC = (SysCondition*)lockAndConditionArray[id];
+      delete sysC->conditionLock;
+      delete sysC->sysCondition;
+      delete sysC;
       lockAndConditionArray[id] = NULL;
     }
 }
