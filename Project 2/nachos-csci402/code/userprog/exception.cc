@@ -24,7 +24,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-//#include "syscallFunctions.cc"
+#include "syscallFunctions.cc"
 #include "../threads/synch.h"
 #include <stdio.h>
 #include <iostream>
@@ -233,44 +233,10 @@ void Close_Syscall(int fd) {
 }
 
 // NEW SYSCALLS BELOW
-void Fork_Syscall(unsigned int vaddr, int len)
-{
-    char *buf = new char[len+1];	// Kernel buffer: func
+void Fork_Syscall(unsigned int vaddr, int len);
 
-    if (! buf)
-    {
-        printf("%s","Can't allocate kernel buffer in Fork\n");
-        return;
-    }
+void Exec_Syscall(unsigned int vaddr, int len);
 
-    if( copyin(vaddr, len, buf) == -1 )
-    {
-        printf("%s","Bad pointer passed to Fork\n");
-        delete[] buf;
-        return;
-    }
-
-    buf[len]='\0';
-}
-void Exec_Syscall(unsigned int vaddr, int len)
-{
-    char *buf = new char[len+1];	// Kernel buffer: filename
-
-    if (! buf)
-    {
-        printf("%s","Can't allocate kernel buffer in Exec\n");
-        return;
-    }
-
-    if( copyin(vaddr, len, buf) == -1 )
-    {
-        printf("%s","Bad pointer passed to Exec\n");
-        delete[] buf;
-        return;
-    }
-
-    buf[len]='\0';
-}
 void Yield_Syscall()
 {
     currentThread->Yield();
