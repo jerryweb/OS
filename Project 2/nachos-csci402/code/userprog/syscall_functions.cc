@@ -25,14 +25,14 @@ void Fork_Syscall(unsigned int vaddr, int len)
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in Fork\n");
-        return -1;
+        return;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to Fork\n");
         delete[] buf;
-        return -1;
+        return;
     }
 
     buf[len]='\0';
