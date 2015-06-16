@@ -250,10 +250,14 @@ void Close_Syscall(int fd) {
     }
 }
 
-// New syscalls below.
+  //*********************//
+ // New syscalls below. //
+//*********************//
+
 void Fork_Syscall(unsigned int vaddr, int arg)
 {
     Thread* t = new Thread("");
+    // allocate memory
     t->Fork( (void (*)(int)) vaddr, arg);
 }
 
@@ -275,6 +279,8 @@ int Exec_Syscall(unsigned int vaddr, int len)
     }
 
     buf[len]='\0';
+    
+    // create new address space
     
     return 0;
 }
