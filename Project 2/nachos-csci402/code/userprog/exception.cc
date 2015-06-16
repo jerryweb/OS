@@ -472,13 +472,13 @@ void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
     int param3 = 0;
     if (! buf)
     {
-        printf("%s","Can't allocate kernel buffer in CreateCondition\n");
+        printf("%s","Can't allocate kernel buffer in Printf\n");
         return;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
-        printf("%s","Bad pointer passed to CreateCondition\n");
+        printf("%s","Bad pointer passed to Printf\n");
         delete[] buf;
         return;
     }
