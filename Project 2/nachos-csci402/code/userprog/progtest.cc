@@ -9,10 +9,10 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "system.h"
+#include "../threads/system.h"
 #include "console.h"
 #include "addrspace.h"
-#include "synch.h"
+#include "../threads/synch.h"
 #include "string.h"
 
 #define QUANTUM 100

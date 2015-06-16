@@ -155,7 +155,10 @@ void DestroyLock(int id);
 
 void DestroyCondition(int id);
 
-void Printf(char* string, int len, int numParams, int params); // Separate parameters by 100. Can handle up to 4 integers (NO CHAR*'S OR STRINGS).
+/* Outputs the given string to console using printf(). 
+ * Separate parameters by 100. Can handle up to 4 integers.
+ */
+void Printf(char* string, int len, int numParams, int params);
 
 
 #endif /* IN_ASM */
