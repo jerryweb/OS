@@ -505,22 +505,22 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     }
     switch (numParams)
     {
-        case 0;
+        case 0:
             printf(buf);
             break;
-        case 1;
+        case 1:
             printf(buf, parameters[0]);
             break;
-        case 2;
+        case 2:
             printf(buf, parameters[0], parameters[1]);
             break;
-        case 3;
+        case 3:
             printf(buf, parameters[0], parameters[1], parameters[2]);
             break;
-        case 4;
+        case 4:
             printf(buf, parameters[0], parameters[1], parameters[2], parameters[3]);
             break;
-        default;
+        default:
             printf("%s","Invalid number of parameters in Printf\n");
             break;
     }

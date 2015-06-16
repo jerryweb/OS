@@ -15,7 +15,7 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
-#include "table.h"
+#include "../userprog/table.h"
 #include <stdio.h>
 
 // Initialization and cleanup routines
