@@ -20,7 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 #include "table.h"
-#include "synch.h"
+#include "../threads/synch.h"
 
 extern "C" { int bzero(char *, int); };
 
