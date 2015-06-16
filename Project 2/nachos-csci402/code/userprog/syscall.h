@@ -154,8 +154,9 @@ int CreateCondition(char* name, int len);
 void DestroyLock(int id);
 
 void DestroyCondition(int id);
+// Separate parameters by 100. Can handle up to 4 integers (NO CHAR*S OR STRINGS).
 
-void Printf(char* string, int len, int numParams, int params); // Separate parameters by 100. Can handle up to 4 integers (NO CHAR*'S OR STRINGS).
+void Printf(char* string, int len, int numParams, int params);
 
 
 #endif /* IN_ASM */
