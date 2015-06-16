@@ -500,8 +500,8 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     
     for (int i = 0; i < numParams; i++)
     {
-        parameters[i] = parameter % 100;
-        parameter / 100;
+        parameters[i] = parameter % 1000;
+        parameter / 1000;
     }
     switch (numParams)
     {
