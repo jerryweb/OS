@@ -32,6 +32,7 @@
 
 using namespace std;
 
+//table for locks
 Table* lockTable;
 struct KernelLock
 {
@@ -40,6 +41,7 @@ struct KernelLock
   bool isToBeDeleted;
 };
 
+//table for condition variables
 Table* CVTable;
 struct KernelCondition
 {
@@ -258,6 +260,8 @@ void Fork_Syscall(unsigned int vaddr, int arg)
 {
     Thread* t = new Thread("");
     // allocate memory
+    
+    
     t->Fork( (void (*)(int)) vaddr, arg);
 }
 
