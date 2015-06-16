@@ -467,9 +467,18 @@ void DestroyCondition_Syscall(int id)
     
 }
 
-void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
-{char *buf = new char[len+1];	// Kernel buffer: name
-    int param3 = 0;
+void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
+{
+    if (numParams < 0 || numParams > 4)
+    {
+        printf("%s","Invalid number of parameters in Printf\n");
+    }
+    
+    char *buf = new char[len+1];	// Kernel buffer: name
+    
+    int parameters[4] = {0};
+    int parameter = params;
+    
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in Printf\n");
@@ -485,7 +494,32 @@ void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
 
     buf[len]='\0';
     
-    printf(buf, param1, param2);
+    for (int i = 0; i < numParams; i++)
+    {
+        parameters[i] = parameter % 100;
+        parameter / 100;
+    }
+    switch (numParams)
+    {
+        case 0;
+            printf(buf);
+            break;
+        case 1;
+            printf(buf, parameters[0]);
+            break;
+        case 2;
+            printf(buf, parameters[0], parameters[1]);
+            break;
+        case 3;
+            printf(buf, parameters[0], parameters[1], parameters[2]);
+            break;
+        case 4;
+            printf(buf, parameters[0], parameters[1], parameters[2], parameters[3]);
+            break;
+        default;
+            printf("%s","Invalid number of parameters in Printf\n");
+            break;
+    }
 }
 
 void ExceptionHandler(ExceptionType which) {
