@@ -24,13 +24,15 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-// #include "syscall_functions.cc"
 #include "../threads/synch.h"
+#include "../threads/thread.h"
+#include "table.h"
 #include <stdio.h>
 #include <iostream>
 
 using namespace std;
 
+Table* lockTable;
 struct KernelLock
 {
   Lock* lock;
@@ -38,6 +40,7 @@ struct KernelLock
   bool isToBeDeleted;
 };
 
+Table* CVTable;
 struct KernelCondition
 {
   Condition* condition;
@@ -247,30 +250,16 @@ void Close_Syscall(int fd) {
     }
 }
 
-// New syscalls defined in syscall_functions.cc
-void Fork_Syscall(unsigned int vaddr, int len)
+// New syscalls below.
+void Fork_Syscall(unsigned int vaddr, int arg)
 {
-    char *buf = new char[len+1];  // Kernel buffer: func
-
-    if (! buf)
-    {
-        printf("%s","Can't allocate kernel buffer in Fork\n");
-        return;
-    }
-
-    if( copyin(vaddr, len, buf) == -1 )
-    {
-        printf("%s","Bad pointer passed to Fork\n");
-        delete[] buf;
-        return;
-    }
-
-    buf[len]='\0';
+    Thread* t = new Thread("");
+    t->Fork( (void (*)(int)) vaddr, arg);
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
 {
-    char *buf = new char[len+1];  // Kernel buffer: filename
+    char *buf = new char[len+1];	// Kernel buffer: filename
 
     if (! buf)
     {
@@ -407,7 +396,7 @@ void Broadcast_Syscall(int id, int lockID)
 
 int CreateLock_Syscall(unsigned int vaddr, int len)
 {
-    char *buf = new char[len+1];  // Kernel buffer: name
+    char *buf = new char[len+1];	// Kernel buffer: name
 
     if (! buf)
     {
@@ -437,7 +426,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 int CreateCondition_Syscall(unsigned int vaddr, int len)
 {
 
-    char *buf = new char[len+1];  // Kernel buffer: name
+    char *buf = new char[len+1];	// Kernel buffer: name
 
     if (! buf)
     {
@@ -473,7 +462,7 @@ void DestroyCondition_Syscall(int id)
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
-{char *buf = new char[len+1]; // Kernel buffer: name
+{char *buf = new char[len+1];	// Kernel buffer: name
     int param3 = 0;
     if (! buf)
     {
@@ -490,7 +479,7 @@ void Printf_Syscall(unsigned int vaddr, int len, int param1, int param2)
 
     buf[len]='\0';
     
-    printf(buf, param1, param2, param3);
+    printf(buf, param1, param2);
 }
 
 void ExceptionHandler(ExceptionType which) {
@@ -534,8 +523,8 @@ void ExceptionHandler(ExceptionType which) {
         // NEW SYSCALLS BELOW
 	    case SC_Fork:
             DEBUG('a', "Fork syscall.\n");
-            Fork_Syscall(machine->ReadRegister(4)); //,
-                         //machine->ReadRegister(5);
+            Fork_Syscall(machine->ReadRegister(4),
+                         machine->ReadRegister(5));
             break;
 	    case SC_Exec:
             DEBUG('a', "Exec syscall.\n");

@@ -1,3 +1,8 @@
+
+  //****************************************//
+ // NOTE: FILE IS NOT CURRENTLY BEING USED //
+//****************************************//
+
 //This file holds all the function definitions used in exception.cc for syscalls 
 #include "syscall.h"
 #include "../threads/synch.h"
@@ -23,10 +28,10 @@ struct KernelCondition
 	bool isToBeDeleted;
 };
 
-void Fork_Syscall(unsigned int vaddr) //, int arg)
+void Fork_Syscall(unsigned int vaddr, int arg)
 {
     Thread* t = new Thread("");
-    t->Fork( (void (*)(int)) vaddr, 0);
+    t->Fork( (void (*)(int)) vaddr, arg);
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
