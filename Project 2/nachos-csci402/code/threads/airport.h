@@ -27,6 +27,7 @@ public:
 	bool* RequestingCargoData;      // Array of booleans that inform the
 									// Cargo Handlers if the manager wants data
 	bool* RequestingCheckinData;
+	Lock* screenLineLock;
 	Airline** airlines;             // Array of airlines. Index is
 									//  airline ID.
 	List* airlineState[3];          // This is the list of airline states
@@ -124,6 +125,8 @@ public:
     List** returnQueues;               //Array of returning security queues(list
 									   // of Passenger). Index corresponds
 									   //  to security ID.
+
+	List* screeningOfficerList;
 
 
     ScreenState* screenState;   // Array of states for each screen officers

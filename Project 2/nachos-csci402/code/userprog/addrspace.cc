@@ -154,7 +154,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 	pageTable[i].dirty = FALSE;
 	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
 					// a separate page, we could set its 
-					// pages to be read-only
+					// pages to be read-onl
     }
     
 // zero out the entire address space, to zero the unitialized data segment 

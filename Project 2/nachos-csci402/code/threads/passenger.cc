@@ -19,6 +19,7 @@ Passenger::Passenger(int ID, int qIndex, int airlineCode, Ticket T, List* bags,
 	airport = A;
 	securityPass = true;
 	inspectorList = INSPECTORLIST;
+
 }
 
 // Main constructor for the passenger. 
@@ -154,6 +155,23 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,bool 
 //----------------------------------------------------------------------
 void Passenger::findShortestLiaisonLine() {
 	int myLine = 0;
+// 	airport->liaisonLineLock->Acquire();																					
+// 		myLine = findShortestLine(airport->liaisonQueues, false, false);				// passenger will find shortest line
+
+// 		printf("Passenger %d chose liaison %d with a line length of %d\n", 
+// 			id, myLine, airport->liaisonQueues[myLine]->Size());
+// 		airport->liaisonQueues[myLine]->Append((void *)this);
+// 		if(airport->liaisonState[myLine] == L_BUSY){						// If the liaison is busy
+// 			//Wait in line
+// 						// add passenger to queue
+// 			//printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
+// 			airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock);
+// 		}
+// 		else
+// 			airport->liaisonLineLock->Release();
+		
+// 		airport->liaisonLock[myLine]->Acquire();
+// =======
 	airport->liaisonLineLock->Acquire();
 	myLine = findShortestLine(airport->liaisonQueues, false, false,true);// passenger will find shortest line
 
@@ -185,6 +203,31 @@ void Passenger::findShortestLiaisonLine() {
 
 void Passenger::Screening() {
 	int myLine = 0;
+		// airport->screenLineLock->Acquire();
+		// myLine = findShortestLine(airport->screenQueues,false, true);
+		// printf("Passenger %d is joining Screening officer's %d queue with length of %d\n",
+		//  id, myLine,airport->screenQueues[myLine]->Size());
+		// 		printf(" passenger airport pointer: %p\n", airport);
+
+		// airport->screenQueues[myLine]->Append((void *)this);
+		
+		// if(airport->screenState[myLine] == SO_BUSY){
+			
+		// 	airport->screenlineCV[myLine]->Wait(airport->screenLineLock);
+		// }
+
+		// else
+		// 	airport->screenLineLock->Release();
+		
+		// printf("asdfasfasd\n");
+		// airport->screenLocks[myLine]->Acquire();
+
+		// //Give bag to officer
+		// printf("Passenger %d gives the hand-luggage to screening officer %d\n",id, myLine);
+		// airport->screenCV[myLine]->Wait(airport->screenLocks[myLine]);
+
+		// if(!airport->securityInspectorList->IsEmpty())
+		// 	Inspecting();
 	airport->screenQueuesLock->Acquire();
 	myLine = findShortestLine(airport->screenQueues, false, true,false);
 	printf(
@@ -192,14 +235,14 @@ void Passenger::Screening() {
 			id, myLine, airport->screenQueues[myLine]->Size());
 
 	airport->screenQueues[myLine]->Append((void *) this);
-
+	printf(" passenger airport pointer: %p\n", airport);
 	if (airport->screenState[myLine] == SO_BUSY) {
 
 		airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
-	} else
+	} 
+	else
 		airport->screenQueuesLock->Release();
 
-	printf("asdfasfasd\n");
 	airport->screenLocks[myLine]->Acquire();
 
 	//Give bag to officer
