@@ -126,9 +126,6 @@ public:
 									   // of Passenger). Index corresponds
 									   //  to security ID.
 
-	List* screeningOfficerList;
-
-
     ScreenState* screenState;   // Array of states for each screen officers
     SecurityState* securityState; //Array of states for each security inspector
 	
