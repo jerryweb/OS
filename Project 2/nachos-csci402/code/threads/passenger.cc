@@ -18,6 +18,7 @@ Passenger::Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airpo
 	airport = A;
 	securityPass = true;
 	inspectorList = INSPECTORLIST;
+
 }
 
 // Main constructor for the passenger. 
@@ -144,7 +145,7 @@ void Passenger::findShortestLiaisonLine(){
 	int myLine = 0;
 	airport->liaisonLineLock->Acquire();																					
 		myLine = findShortestLine(airport->liaisonQueues, false, false);				// passenger will find shortest line
-		
+
 		printf("Passenger %d chose liaison %d with a line length of %d\n", 
 			id, myLine, airport->liaisonQueues[myLine]->Size());
 		airport->liaisonQueues[myLine]->Append((void *)this);
@@ -180,6 +181,7 @@ void Passenger::Screening() {
 		myLine = findShortestLine(airport->screenQueues,false, true);
 		printf("Passenger %d is joining Screening officer's %d queue with length of %d\n",
 		 id, myLine,airport->screenQueues[myLine]->Size());
+				printf(" passenger airport pointer: %p\n", airport);
 
 		airport->screenQueues[myLine]->Append((void *)this);
 		
@@ -187,6 +189,7 @@ void Passenger::Screening() {
 			
 			airport->screenlineCV[myLine]->Wait(airport->screenLineLock);
 		}
+
 		else
 			airport->screenLineLock->Release();
 		

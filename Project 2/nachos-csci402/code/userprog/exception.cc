@@ -50,6 +50,10 @@ struct KernelCondition
   bool isToBeDeleted;
 };
 
+void kernel_function(int pc){
+
+}
+
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
     // Return the number of bytes so read, or -1 if an error occors.
@@ -464,6 +468,7 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 }
 void DestroyLock_Syscall(int id)
 {
+    
     
 }
 void DestroyCondition_Syscall(int id)

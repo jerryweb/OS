@@ -5,6 +5,7 @@ ScreenOfficer::ScreenOfficer(int ID, Airport* AIRPORT) {
 	id = ID;
 	airport = AIRPORT;
 	airport->screenState[id] = SO_BUSY;
+	printf(" screen airport pointer: %p\n", airport);
 }
 
 ScreenOfficer::~ScreenOfficer() {
@@ -36,7 +37,7 @@ void ScreenOfficer::Screen(){
 	bool luggageTest = true;
 	
 	while(true){
-		
+		printf(" screen airport pointer: %p\n", airport);
 		airport->screenLineLock->Acquire();
 		p = CheckForPassengers();
 		airport->screenLocks[id]->Acquire();

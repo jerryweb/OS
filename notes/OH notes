@@ -1,0 +1,18 @@
+//Office Hours Notes
+
+void kernel_function(int pc){
+	//setup all registers
+	//initRegisters
+	//set PC Reg - PC
+	//set Next PC REg - pc + 4
+	//set Stack Reg 
+	//maching->Run();
+}
+
+void Fork_Syscall(int pcreg){
+	Thread *t = new Thread("___");
+	t->Fork(Kernel_func, pcreg);
+}
+
+to run gdb:
+gdb nachos 
