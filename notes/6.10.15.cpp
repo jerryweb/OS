@@ -90,7 +90,7 @@ Memory Management
 		memory is divided into pages
 		memory manager allocates memory 1 page at a time
 
-		To gert the executable contents into memory, we copy 1 page worth of contents to memory at a time
+		To get the executable contents into memory, we copy 1 page worth of contents to memory at a time
 			- to an unused page
 		*The OS must keep track of used/unused pages & process owner
 		*The Virtual address space can be mapped to any physical address space
@@ -179,7 +179,7 @@ Memory Management
 		2 Choices:
 			1. change page table to a start with X 		//(50) this adds 50*8  = 400 pages to the page table
 				sets of 8 stack pages 					//divRoundUp
-				- each time a new thread is to be created (Fork syscal), set StackReg for that thread
+				- each time a new thread is to be created (Fork syscal);, set StackReg for that thread
 			
 			2. leave page table alone in address space constructor
 				On each system call, make a new page table 8 pages bigger than current, copy all data from old page table to new,

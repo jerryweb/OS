@@ -20,7 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 #include "table.h"
-#include "synch.h"
+#include "../threads/synch.h"
 
 extern "C" { int bzero(char *, int); };
 
@@ -41,7 +41,7 @@ Table::~Table() {
 }
 
 void *Table::Get(int i) {
-    // Return the element associated with the given if, or 0 if
+    // Return the element associated with the given i, or 0 if
     // there is none.
 
     return (i >=0 && i < size && map.Test(i)) ? table[i] : 0;
@@ -113,7 +113,7 @@ SwapHeader (NoffHeader *noffH)
 //      It's possible to fail to fully construct the address space for
 //      several reasons, including being unable to allocate memory,
 //      and being unable to read key parts of the executable.
-//      Incompletely consretucted address spaces have the member
+//      Incompletely consrtucted address spaces have the member
 //      constructed set to false.
 //----------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
-                                                // we need to increase the size
+                        // we need to increase the size
 						// to leave room for the stack
     size = numPages * PageSize;
 
@@ -168,6 +168,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
 			noffH.code.size, noffH.code.inFileAddr);
     }
+
+    //method 2
     if (noffH.initData.size > 0) {
         DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);

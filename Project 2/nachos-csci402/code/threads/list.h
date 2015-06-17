@@ -55,6 +55,7 @@ class List {
     
     int Size(); // get the size of the list
     void* First();  //return the ptr of the first element in the list
+    void* GetElement(int index);  //return the ptr of the element at the given index in the list, or NULL if it's out of range
 
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int64_t sortKey);	// Put item into list

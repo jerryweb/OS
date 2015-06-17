@@ -38,6 +38,7 @@
 #define SC_DestroyLock      17
 #define SC_CreateCondition  18
 #define SC_DestroyCondition 19
+#define SC_Printf           20
 
 #define MAXFILENAME 256
 
@@ -54,26 +55,27 @@
  */
 
 /* Stop Nachos, and print out performance stats */
-void Halt();		
+void Halt();
  
 
 /* Address space control operations: Exit, Exec, and Join */
 
 /* This user program is done (status = 0 means exited normally). */
-void Exit(int status);	
+void Exit(int status);
 
 /* A unique identifier for an executing user program (address space) */
-typedef int SpaceId;	
+typedef int SpaceId;
  
 /* Run the executable, stored in the Nachos file "name", and return the 
  * address space identifier
  */
-SpaceId Exec(char *name);
+
+SpaceId Exec(char *name, int len);
  
 /* Only return once the the user program "id" has finished.  
  * Return the exit status.
  */
-int Join(SpaceId id); 	
+int Join(SpaceId id);
  
 
 /* File system operations: Create, Open, Read, Write, Close
@@ -86,7 +88,7 @@ int Join(SpaceId id);
  */
  
 /* A unique identifier for an open Nachos file. */
-typedef int OpenFileId;	
+typedef int OpenFileId;
 
 /* when an address space starts up, it has two open files, representing 
  * keyboard input and display output (in UNIX terms, stdin and stdout).
@@ -128,30 +130,67 @@ void Close(OpenFileId id);
 /* Fork a thread to run a procedure ("func") in the *same* address space 
  * as the current thread.
  */
-void Fork(void (*func)());
+void Fork(void (*func)(), int arg);
 
 /* Yield the CPU to another runnable thread, whether in this address space 
  * or not. 
  */
 void Yield();
 
-void Acquire(/**/);
+  //*****************************//
+ // LOCK AND CONDITION SYSCALLS //
+//*****************************//
 
-void Release(/**/);
+/* Acquire the kernel lock with the given id.
+ * This process must own the lock.
+ */
+void Acquire(int id);
 
-void Wait(/**/);
+/* Release the kernel lock with the given id.
+ * This process must own the lock.
+ */
+void Release(int id);
 
-void Signal(/**/);
+/* Wait on the kernel condition with the given id, using the lock with the given id.
+ * This process must own both the condition and lock.
+ */
+void Wait(int id, int lockID);
 
-void Broadcast(/**/);
+/* Signal the kernel condition with the given id, using the lock with the given id.
+ * This process must own both the condition and lock.
+ */
+void Signal(int id, int lockID);
 
-int CreateLock(char* name);
+/* Broadcast on the kernel condition with the given id, using the lock with the given id.
+ * This process must own both the condition and lock.
+ */
+void Broadcast(int id, int lockID);
 
-int CreateCondition(char* name);
+/* Create a new kernel lock for the process with the given name.
+ * Also pass in the length of the name.
+ */
+int CreateLock(char* name, int len);
 
-void DestroyLock(/**/);
+/* Create a new kernel condition for the process with the given name.
+ * Also pass in the length of the name.
+ */
+int CreateCondition(char* name, int len);
 
-void DestroyCondition(/**/);
+/* Delete the kernel lock with the given id.
+ * This process mus own the lock.
+ */
+void DestroyLock(int id);
+
+/* Delete the kernel condition with the given id.
+ * This process mus own the condition.
+ */
+void DestroyCondition(int id);
+
+/* Outputs the given string to console using printf(). 
+ * Separate parameters by 100 (e.g. you want to print 2 and 4, params = 4002).
+ * Can handle up to 4 integers.
+ */
+void Printf(char* string, int len, int numParams, int params);
 
 
 #endif /* IN_ASM */

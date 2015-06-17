@@ -92,6 +92,7 @@ THREAD_O =main.o list.o lockTest.o scheduler.o synch.o synchlist.o system.o thre
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\
+	../userprog/table.h\
 	../filesys/filesys.h\
 	../filesys/openfile.h\
 	../machine/console.h\

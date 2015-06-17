@@ -194,6 +194,27 @@ List::First()
     return first->item;
 }
 
+//-----------------------------------------------------------------------
+// List::GetElement
+//     Returns the pointer of the element at the given index in
+//      the list, or NULL if it's out of range
+//-----------------------------------------------------------------------
+
+void *
+List::GetElement(int index)
+{
+    ListElement* ptr = first;
+    int currI = 0;
+    while (currI < index)
+    {
+        if (ptr == NULL)
+            return NULL;
+        currI++;
+        ptr = ptr->next;
+    }
+    return ptr->item;
+}
+
 //----------------------------------------------------------------------
 // List::SortedInsert
 //      Insert an "item" into a list, so that the list elements are

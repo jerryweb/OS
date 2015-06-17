@@ -22,33 +22,54 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "system.h"
+#include "../threads/system.h"
 #include "syscall.h"
+#include "../threads/synch.h"
+#include "../threads/thread.h"
+#include "table.h"
 #include <stdio.h>
 #include <iostream>
 
 using namespace std;
 
+//table for locks
+Table* lockTable;
+struct KernelLock
+{
+  Lock* lock;
+  AddrSpace* owner;
+  bool isToBeDeleted;
+};
+
+//table for condition variables
+Table* CVTable;
+struct KernelCondition
+{
+  Condition* condition;
+  AddrSpace* owner;
+  bool isToBeDeleted;
+};
+
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
-    // Return the number of bytes so read, or -1 if an error occors.
+    // Return the number of bytes so read, or -1 if an error occurs.
     // Errors can generally mean a bad virtual address was passed in.
     bool result;
-    int n=0;			// The number of bytes copied in
+    int n=0;            // The number of bytes copied in
     int *paddr = new int;
 
     while ( n >= 0 && n < len) {
       result = machine->ReadMem( vaddr, 1, paddr );
       while(!result) // FALL 09 CHANGES
-	  {
-   			result = machine->ReadMem( vaddr, 1, paddr ); // FALL 09 CHANGES: TO HANDLE PAGE FAULT IN THE ReadMem SYS CALL
-	  }	
+      {
+            result = machine->ReadMem( vaddr, 1, paddr ); // FALL 09 CHANGES: TO HANDLE PAGE FAULT IN THE ReadMem SYS CALL
+      } 
       
       buf[n++] = *paddr;
      
       if ( !result ) {
-	//translation failed
-	return -1;
+    //translation failed
+    return -1;
       }
 
       vaddr++;
@@ -61,7 +82,7 @@ int copyin(unsigned int vaddr, int len, char *buf) {
 int copyout(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes to the current thread's virtual address vaddr.
     // Return the number of bytes so written, or -1 if an error
-    // occors.  Errors can generally mean a bad virtual address was
+    // occurs.  Errors can generally mean a bad virtual address was
     // passed in.
     bool result;
     int n=0;			// The number of bytes copied in
@@ -231,58 +252,312 @@ void Close_Syscall(int fd) {
     }
 }
 
-// NEW SYSCALLS BELOW
-void Fork_Syscall(void* func)
+  //*********************//
+ // New syscalls below. //
+//*********************//
+
+void Fork_Syscall(unsigned int vaddr, int arg)
+// (FORK)
 {
+    Thread* t = new Thread("");
+    // allocate memory
     
+    
+    t->Fork( (void (*)(int)) vaddr, arg);
 }
-void Exec_Syscall(char* filename)
+
+int Exec_Syscall(unsigned int vaddr, int len)
+// (EXEC)
 {
+    char *buf = new char[len+1];	// Kernel buffer: filename
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Exec\n");
+        return -1;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Exec\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
     
+    // create new address space
+    
+    return 0;
 }
+
 void Yield_Syscall()
+// Yields the current thread.
 {
     currentThread->Yield();
+    printf("Yield_Syscall was called; yielding current thread.\n");
 }
+
 void Exit_Syscall(int status)
+// (EXIT)
+{
+    // currentThread->Finish();
+
+}
+
+void Acquire_Syscall(int id)
+// Acquire the kernel lock with the given ID. If the current process
+//  does not have access to the lock or the lock does not exist,
+//  will print an error without acquiring.
+{
+
+    KernelLock* kLock = (KernelLock*) lockTable->Get(id);
+    if (currentThread->space != kLock->owner)
+    {   // Check if current process has access to lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL)
+        {   // Make sure lock is valid. Should never reach here.
+            // error
+        }
+        else
+        {
+            kLock->lock->Acquire();
+        }
+    }
+
+}
+
+void Release_Syscall(int id)
+// Release the kernel lock with the given ID. If the current process
+//  does not have access to the lock or the lock does not exist,
+//  will print an error without releasing.
+{
+    KernelLock* kLock = (KernelLock*) lockTable->Get(id);
+    if (currentThread->space != kLock->owner)
+    {   // Check if current process has access to lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL)
+        {   // Make sure lock is valid.
+            // error
+        }
+        else
+        {
+            kLock->lock->Release();
+        }
+    }
+}
+
+void Wait_Syscall(int id, int lockID)
+// Waits on the kernel condition with the given ID, using the kernel
+//  lock with the given ID. If the current process does not have access
+//  to the condition or the lock or either does not exist, will print
+//  an error without waiting.
+{
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+    {   // Check if current process has access to condition and lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL || kCond->condition == NULL)
+        {   // Make sure condition and lock are valid.
+            // error
+        }
+        else
+        {
+            kCond->condition->Wait(kLock->lock);
+        }
+    }
+}
+void Signal_Syscall(int id, int lockID)
+// Signals the kernel condition with the given ID, using the kernel
+//  lock with the given ID. If the current process does not have access
+//  to the condition or the lock or either does not exist, will print
+//  an error without signalling.
+{
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+    {   // Check if current process has access to condition and lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL || kCond->condition == NULL)
+        {   // Make sure condition and lock are valid.
+            // error
+        }
+        else
+        {
+            kCond->condition->Signal(kLock->lock);
+        }
+    }
+}
+void Broadcast_Syscall(int id, int lockID)
+// Broadcasts on the kernel condition with the given ID, using the kernel
+//  lock with the given ID. If the current process does not have access
+//  to the condition or the lock or either does not exist, will print
+//  an error without broadcasting.
+{
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+    {   // Check if current process has access to condition and lock.
+        // error
+    }
+    else
+    {
+        if (kLock->lock == NULL || kCond->condition == NULL)
+        {   // Make sure condition and lock are valid.
+            // error
+        }
+        else
+        {
+            kCond->condition->Broadcast(kLock->lock);
+        }
+    }
+}
+
+int CreateLock_Syscall(unsigned int vaddr, int len)
+// Create a kernel lock with the name in the user buffer pointed
+//  to by vaddr, with length len. If the lock is created successfully,
+//  it is placed in the kernel lock table and its index is returned.
+//  If there are any errors, -1 is returned.
+    char *buf = new char[len+1];	// Kernel buffer: name
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in CreateLock\n");
+        return -1;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to CreateLock\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+    
+    KernelLock* kLock = new KernelLock;
+    kLock->lock = new Lock(buf);
+    kLock->owner = currentThread->space;
+    kLock->isToBeDeleted = false;
+    
+    delete[] buf;
+    
+    return lockTable->Put(kLock);
+}
+
+int CreateCondition_Syscall(unsigned int vaddr, int len)
+// Create a kernel condition with the name in the user buffer pointed
+//  to by vaddr, with length len. If the condition is created successfully,
+//  it is placed in the kernel condition table and its index is returned.
+//  If there are any errors, -1 is returned.
+{
+
+    char *buf = new char[len+1];	// Kernel buffer: name
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in CreateCondition\n");
+        return -1;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to CreateCondition\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+    
+    KernelCondition* kCond = new KernelCondition;
+    kCond->condition = new Condition(buf);
+    kCond->owner = currentThread->space;
+    kCond->isToBeDeleted = false;
+    
+    delete[] buf;
+    
+    return CVTable->Put(kCond);
+}
+void DestroyLock_Syscall(int id)
+// (DESTROY LOCK)
 {
     
 }
-void Acquire_Syscall(/**/)
+void DestroyCondition_Syscall(int id)
+// (DESTROY CONDITION)
 {
     
 }
-void Release_Syscall(/**/)
+
+void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
+// Output the string in the user buffer pointed to by vaddr, with length len,
+//  using printf(). Can take 0-4 parameters, separated by a factor of 1000
+//  in params.
 {
+    if (numParams < 0 || numParams > 4)
+    {
+        printf("%s","Invalid number of parameters in Printf\n");
+    }
     
-}
-void Wait_Syscall(/**/)
-{
+    char *buf = new char[len+1];	// Kernel buffer: name
     
-}
-void Signal_Syscall(/**/)
-{
+    int parameters[4] = {0};
+    int parameter = params;
     
-}
-void Broadcast_Syscall(/**/)
-{
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Printf\n");
+        return;
+    }
+
+    if( copyin(vaddr, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Printf\n");
+        delete[] buf;
+        return;
+    }
+
+    buf[len]='\0';
     
-}
-int CreateLock_Syscall(char* name)
-{
-    
-}
-int CreateCondition_Syscall(char* name)
-{
-    
-}
-void DestroyLock_Syscall(/**/)
-{
-    
-}
-void DestroyCondition_Syscall(/**/)
-{
-    
+    for (int i = 0; i < numParams; i++)
+    {
+        parameters[i] = parameter % 1000;
+        parameter / 1000;
+    }
+    switch (numParams)
+    {
+        case 0:
+            printf(buf);
+            break;
+        case 1:
+            printf(buf, parameters[0]);
+            break;
+        case 2:
+            printf(buf, parameters[0], parameters[1]);
+            break;
+        case 3:
+            printf(buf, parameters[0], parameters[1], parameters[2]);
+            break;
+        case 4:
+            printf(buf, parameters[0], parameters[1], parameters[2], parameters[3]);
+            break;
+        default:
+            printf("%s","Invalid number of parameters in Printf\n");
+            break;
+    }
 }
 
 void ExceptionHandler(ExceptionType which) {
@@ -292,88 +567,104 @@ void ExceptionHandler(ExceptionType which) {
     if ( which == SyscallException ) {
 	switch (type) {
 	    default:
-		DEBUG('a', "Unknown syscall - shutting down.\n");
+            DEBUG('a', "Unknown syscall - shutting down.\n");
 	    case SC_Halt:
-		DEBUG('a', "Shutdown, initiated by user program.\n");
-		interrupt->Halt();
-		break;
+            DEBUG('a', "Shutdown, initiated by user program.\n");
+            interrupt->Halt();
+            break;
 	    case SC_Create:
-		DEBUG('a', "Create syscall.\n");
-		Create_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
-		break;
+            DEBUG('a', "Create syscall.\n");
+            Create_Syscall(machine->ReadRegister(4),
+                           machine->ReadRegister(5));
+            break;
 	    case SC_Open:
-		DEBUG('a', "Open syscall.\n");
-		rv = Open_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
-		break;
+            DEBUG('a', "Open syscall.\n");
+            rv = Open_Syscall(machine->ReadRegister(4),
+                              machine->ReadRegister(5));
+            break;
 	    case SC_Write:
-		DEBUG('a', "Write syscall.\n");
-		Write_Syscall(machine->ReadRegister(4),
-			      machine->ReadRegister(5),
-			      machine->ReadRegister(6));
-		break;
+            DEBUG('a', "Write syscall.\n");
+            Write_Syscall(machine->ReadRegister(4),
+                          machine->ReadRegister(5),
+                          machine->ReadRegister(6));
+            break;
 	    case SC_Read:
-		DEBUG('a', "Read syscall.\n");
-		rv = Read_Syscall(machine->ReadRegister(4),
-			      machine->ReadRegister(5),
-			      machine->ReadRegister(6));
-		break;
+            DEBUG('a', "Read syscall.\n");
+            rv = Read_Syscall(machine->ReadRegister(4),
+                              machine->ReadRegister(5),
+                              machine->ReadRegister(6));
+            break;
 	    case SC_Close:
-		DEBUG('a', "Close syscall.\n");
-		Close_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Close syscall.\n");
+            Close_Syscall(machine->ReadRegister(4));
+            break;
         // NEW SYSCALLS BELOW
 	    case SC_Fork:
-		DEBUG('a', "Fork syscall.\n");
-        Fork_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Fork syscall.\n");
+            Fork_Syscall(machine->ReadRegister(4),
+                         machine->ReadRegister(5));
+            break;
 	    case SC_Exec:
-		DEBUG('a', "Exec syscall.\n");
-        Exec_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Exec syscall.\n");
+            rv = Exec_Syscall(machine->ReadRegister(4),
+                              machine->ReadRegister(5));
+            break;
 	    case SC_Yield:
-		DEBUG('a', "Yield syscall.\n");
-        Yield_Syscall();
-		break;
+            DEBUG('a', "Yield syscall.\n");
+            Yield_Syscall();
+            break;
 	    case SC_Exit:
-		DEBUG('a', "Exit syscall.\n");
-        Exit_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "Exit syscall.\n");
+            Exit_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Acquire:
-		DEBUG('a', "Acquire syscall.\n");
-        Acquire_Syscall(/**/);
-		break;
+            DEBUG('a', "Acquire syscall.\n");
+            Acquire_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Release:
-		DEBUG('a', "Release syscall.\n");
-        Release_Syscall(/**/);
-		break;
+            DEBUG('a', "Release syscall.\n");
+            Release_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_Wait:
-		DEBUG('a', "Wait syscall.\n");
-        Wait_Syscall(/**/);
-		break;
+            DEBUG('a', "Wait syscall.\n");
+            Wait_Syscall(machine->ReadRegister(4),
+                         machine->ReadRegister(5));
+            break;
 	    case SC_Signal:
-		DEBUG('a', "Signal syscall.\n");
-        Signal_Syscall(/**/);
-		break;
+            DEBUG('a', "Signal syscall.\n");
+            Signal_Syscall(machine->ReadRegister(4),
+                           machine->ReadRegister(5));
+            break;
 	    case SC_Broadcast:
-		DEBUG('a', "Broadcast syscall.\n");
-        Broadcast_Syscall(/**/);
-		break;
+            DEBUG('a', "Broadcast syscall.\n");
+            Broadcast_Syscall(machine->ReadRegister(4),
+                              machine->ReadRegister(5));
+            break;
 	    case SC_CreateLock:
-		DEBUG('a', "CreateLock syscall.\n");
-        rv = CreateLock_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "CreateLock syscall.\n");
+            rv = CreateLock_Syscall(machine->ReadRegister(4),
+                                    machine->ReadRegister(5));
+            break;
 	    case SC_CreateCondition:
-		DEBUG('a', "CreateCondition syscall.\n");
-        rv = SC_CreateCondition_Syscall(machine->ReadRegister(4));
-		break;
+            DEBUG('a', "CreateCondition syscall.\n");
+            rv = CreateCondition_Syscall(machine->ReadRegister(4),
+                                         machine->ReadRegister(5));
+            break;
 	    case SC_DestroyLock:
-		DEBUG('a', "DestroyLock syscall.\n");
-        SC_DestroyLock_Syscall(/**/);
-		break;
+            DEBUG('a', "DestroyLock syscall.\n");
+            DestroyLock_Syscall(machine->ReadRegister(4));
+            break;
 	    case SC_DestroyCondition:
-		DEBUG('a', "DestroyCondition syscall.\n");
-        SC_DestroyCondition_Syscall(/**/);
-		break;
+            DEBUG('a', "DestroyCondition syscall.\n");
+            DestroyCondition_Syscall(machine->ReadRegister(4));
+            break;
+	    case SC_Printf:
+            DEBUG('a', "Printf syscall.\n");
+            Printf_Syscall(machine->ReadRegister(4),
+                           machine->ReadRegister(5),
+                           machine->ReadRegister(6),
+                           machine->ReadRegister(7));
+            break;
 	}
 
 	// Put in the return value and increment the PC
