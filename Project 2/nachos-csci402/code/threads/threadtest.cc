@@ -694,12 +694,12 @@ void InspectTest() {
 		bP.gate = i;
 		bP.seatNum = i*5;
 		inspectPassenger[i] = new Passenger(i, airport,bP);
-		airport->securityQueues[0]->Append(inspectPassenger[i]);
+		//airport->securityQueues[0]->Append(inspectPassenger[i]);
 	}
 
-	//spwaning all the passenger and inspector threads for the test,then for them
-	Thread** passengerThreads = new Thread*[5];
-	for (int i = 0; i < 5; i++) {
+	//spwaning all the passenger and inspector threads for the test,then fork them
+	Thread** passengerThreads = new Thread*[3];
+	for (int i = 0; i < 3; i++) {
 		passengerThreads[i] = new Thread("Passenger");
 		passengerThreads[i]->Fork(StartInspectingTest,
 				(int(inspectPassenger[i])));
@@ -707,6 +707,7 @@ void InspectTest() {
 
 	Thread* inspectorThread = new Thread("Inspector");
 	inspectorThread->Fork(StartInspecting, (int(sInspector[0])));
+	printf("*******************threadtest code 710**************************\n");
 }
 void MTest() {
 	Airport* airport = new Airport(); // 3 airlines

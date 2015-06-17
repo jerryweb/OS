@@ -31,7 +31,7 @@ class Passenger {
 
 		/*this function iterates through a given array and returns the location
 		of the smallest value and the value itself*/
-		int findShortestLine(List** list, bool CISline, bool Screenline);
+		int findShortestLine(List** list, bool CISline, bool Screenline,bool Securityline);
 		/*This is the first version of the function for the passenger to find
 		the shortest liaison line in the Airport.*/
 		void findShortestLiaisonLine();
@@ -52,6 +52,8 @@ class Passenger {
 		void SetQueueIndex(int qIndex);
 		void SetSecurityPass(bool pnp);
 		bool GetSecurityPass();
+		void SetBoarding();
+		bool GetBoarding();
 		/*****************************************/
 
 		BoardingPass GetBoardingPass() { return boardingPass; }
@@ -72,6 +74,7 @@ class Passenger {
 
 		/*******For screening and Security**************/
 		bool securityPass;
+		bool isBoarding;
 
 		int queueIndex;        //This is the index of which queue the passenger is now in, it works for all the queues
 							   //Please enforce updating the queueIndex everytime assigning a new queue for the passenger

@@ -111,13 +111,8 @@ public:
 
 									// Screening and security variables
 
-	int* clearPassengerCount;         //array to store cleared passenger cout for each airline
-									  //used by airport manager
-
-	Lock* updateClearCount;           //Lock to update security inspector's clear passenger count
-
-
-	List* securityInspectorList;      //used by airport manager
+	List* securityInspectorList;
+	List* screeningOfficerList;
 
 	List** screenQueues;                    // Array of screening queues (list
 											//  of Passengers). Index corresponds
@@ -127,20 +122,21 @@ public:
 											//  of Passengers). Index corresponds
 											//  to security ID.
 
-    ScreenState* screenState;   // Array of states for each screen officers
-    SecurityState* securityState; //Array of states for each security inspector
-	
     List** returnQueues;               //Array of returning security queues(list
 									   // of Passenger). Index corresponds
 									   //  to security ID.
+
 	List* screeningOfficerList;
-    
+
+
+    ScreenState* screenState;   // Array of states for each screen officers
+    SecurityState* securityState; //Array of states for each security inspector
+	
+
+    Lock* screenQueuesLock;              //Lock for all the screening lines as a whole
 
 	Lock** screenLocks; //Array of locks for screening lines (each officer has a lock)
 						//index corresponds to officer id
-
-	Lock* screenQueuesLock;        //Lock for all the screening lines as a whole
-								   //should be used when determining which line is the shortest
 
 	Lock** securityLocks; //Array of locks for security lines (each inspector has a lock)
 						  //index corresponds to inspector id
@@ -148,37 +144,16 @@ public:
 	Lock* securityQueuesLock;       //Lock for all the security lines as a whole
 									//should be used when determining which line is the shortest
 
-    Condition** screenlineCV;
-    Condition** securitylineCV;
+	Lock* endLock;
+
     Condition** screenCV;
-
-	Condition** inspectorWaitPassengerCV; //Array of C.V. used in inspector waiting passenger
-										  //index corresponds to inspector id
-
-	Condition** passengerWaitInspectorCV; //Array of C.V. used in passenger waiting inspector
-										  //index corresponds to inspector id
-
-	Condition** passengerWaitOfficerCV;    //Array of C.V. for each screen locks
-										   //index corresponds to officer id
-
-	Condition** officerWaitPassengerCV; //Array of C.V. used in officer waiting Passenger
-										//index corresponds to officer id
-
-	Condition** inspectorWaitRePassengerCV; //Array of C.V. used in inspector waiting returned passenger
-											//index corresponds to inspector id
-
-	Condition** rePassengerWaitInspectorCV; //Array of C.V. used in returned passenger waiting inspector
-											//index corresponds to officer id
-
-	Condition** inspectorWaitQuestioningCV;  //Array of C.V. used in inspector
-											 //waiting questiong passenger
-											 //inspector called this lock when both securityQueue
-											 //and returnQueue is empty but still passenger being questioned
-											 //index corresponds to inspector id
-
-	Condition** liaWaitPassengerCV;
-	Condition** passengerWaitLiaCV;
-	Lock* checkinQueuesLock;
+    Condition** screenQueuesCV;
+    Condition** returnQueuesCV;
+    Condition** securityQueuesCV;
+    //Condition** securityWaitPassengerCV;
+    Condition** boardCV;
+    Condition** freeCV;
+    Condition** endCV;
 
 	//  Manager variables
     

@@ -20,7 +20,7 @@ public:
 
 private:
 	int id;
-	bool isBoarding;
+	//bool isBoarding;
 	int* clearCount;   //Array for clear passenger count
 	Airport* airport;
 	List* reportList;   //array of bool

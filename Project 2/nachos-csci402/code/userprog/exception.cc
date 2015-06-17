@@ -22,7 +22,7 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "system.h"
+#include "../threads/system.h"
 #include "syscall.h"
 #include "../threads/synch.h"
 #include "../threads/thread.h"
@@ -56,7 +56,7 @@ void kernel_function(int pc){
 
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
-    // Return the number of bytes so read, or -1 if an error occors.
+    // Return the number of bytes so read, or -1 if an error occurs.
     // Errors can generally mean a bad virtual address was passed in.
     bool result;
     int n=0;            // The number of bytes copied in
@@ -86,7 +86,7 @@ int copyin(unsigned int vaddr, int len, char *buf) {
 int copyout(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes to the current thread's virtual address vaddr.
     // Return the number of bytes so written, or -1 if an error
-    // occors.  Errors can generally mean a bad virtual address was
+    // occurs.  Errors can generally mean a bad virtual address was
     // passed in.
     bool result;
     int n=0;			// The number of bytes copied in
@@ -261,6 +261,7 @@ void Close_Syscall(int fd) {
 //*********************//
 
 void Fork_Syscall(unsigned int vaddr, int arg)
+// (FORK)
 {
     Thread* t = new Thread("");
     // allocate memory
@@ -270,6 +271,7 @@ void Fork_Syscall(unsigned int vaddr, int arg)
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
+// (EXEC)
 {
     char *buf = new char[len+1];	// Kernel buffer: filename
 
@@ -294,18 +296,23 @@ int Exec_Syscall(unsigned int vaddr, int len)
 }
 
 void Yield_Syscall()
+// Yields the current thread.
 {
     currentThread->Yield();
     printf("Yield_Syscall was called; yielding current thread.\n");
 }
 
 void Exit_Syscall(int status)
+// (EXIT)
 {
     // currentThread->Finish();
 
 }
 
 void Acquire_Syscall(int id)
+// Acquire the kernel lock with the given ID. If the current process
+//  does not have access to the lock or the lock does not exist,
+//  will print an error without acquiring.
 {
 
     KernelLock* kLock = (KernelLock*) lockTable->Get(id);
@@ -316,7 +323,7 @@ void Acquire_Syscall(int id)
     else
     {
         if (kLock->lock == NULL)
-        {   // Make sure lock is valid.
+        {   // Make sure lock is valid. Should never reach here.
             // error
         }
         else
@@ -328,6 +335,9 @@ void Acquire_Syscall(int id)
 }
 
 void Release_Syscall(int id)
+// Release the kernel lock with the given ID. If the current process
+//  does not have access to the lock or the lock does not exist,
+//  will print an error without releasing.
 {
     KernelLock* kLock = (KernelLock*) lockTable->Get(id);
     if (currentThread->space != kLock->owner)
@@ -348,6 +358,10 @@ void Release_Syscall(int id)
 }
 
 void Wait_Syscall(int id, int lockID)
+// Waits on the kernel condition with the given ID, using the kernel
+//  lock with the given ID. If the current process does not have access
+//  to the condition or the lock or either does not exist, will print
+//  an error without waiting.
 {
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
@@ -368,6 +382,10 @@ void Wait_Syscall(int id, int lockID)
     }
 }
 void Signal_Syscall(int id, int lockID)
+// Signals the kernel condition with the given ID, using the kernel
+//  lock with the given ID. If the current process does not have access
+//  to the condition or the lock or either does not exist, will print
+//  an error without signalling.
 {
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
@@ -388,6 +406,10 @@ void Signal_Syscall(int id, int lockID)
     }
 }
 void Broadcast_Syscall(int id, int lockID)
+// Broadcasts on the kernel condition with the given ID, using the kernel
+//  lock with the given ID. If the current process does not have access
+//  to the condition or the lock or either does not exist, will print
+//  an error without broadcasting.
 {
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
@@ -409,7 +431,10 @@ void Broadcast_Syscall(int id, int lockID)
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)
-{
+// Create a kernel lock with the name in the user buffer pointed
+//  to by vaddr, with length len. If the lock is created successfully,
+//  it is placed in the kernel lock table and its index is returned.
+//  If there are any errors, -1 is returned.
     char *buf = new char[len+1];	// Kernel buffer: name
 
     if (! buf)
@@ -438,6 +463,10 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 }
 
 int CreateCondition_Syscall(unsigned int vaddr, int len)
+// Create a kernel condition with the name in the user buffer pointed
+//  to by vaddr, with length len. If the condition is created successfully,
+//  it is placed in the kernel condition table and its index is returned.
+//  If there are any errors, -1 is returned.
 {
 
     char *buf = new char[len+1];	// Kernel buffer: name
@@ -467,16 +496,21 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     return CVTable->Put(kCond);
 }
 void DestroyLock_Syscall(int id)
+// (DESTROY LOCK)
 {
     
     
 }
 void DestroyCondition_Syscall(int id)
+// (DESTROY CONDITION)
 {
     
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
+// Output the string in the user buffer pointed to by vaddr, with length len,
+//  using printf(). Can take 0-4 parameters, separated by a factor of 1000
+//  in params.
 {
     if (numParams < 0 || numParams > 4)
     {
@@ -505,8 +539,8 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     
     for (int i = 0; i < numParams; i++)
     {
-        parameters[i] = parameter % 100;
-        parameter / 100;
+        parameters[i] = parameter % 1000;
+        parameter / 1000;
     }
     switch (numParams)
     {
