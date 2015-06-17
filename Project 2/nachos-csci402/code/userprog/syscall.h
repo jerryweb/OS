@@ -137,22 +137,53 @@ void Fork(void (*func)(), int arg);
  */
 void Yield();
 
+  //*****************************//
+ // LOCK AND CONDITION SYSCALLS //
+//*****************************//
+
+/* Acquire the kernel lock with the given id.
+ * This process must own the lock.
+ */
 void Acquire(int id);
 
+/* Release the kernel lock with the given id.
+ * This process must own the lock.
+ */
 void Release(int id);
 
+/* Wait on the kernel condition with the given id, using the lock with the given id.
+ * This process must own both the condition and lock.
+ */
 void Wait(int id, int lockID);
 
+/* Signal the kernel condition with the given id, using the lock with the given id.
+ * This process must own both the condition and lock.
+ */
 void Signal(int id, int lockID);
 
+/* Broadcast on the kernel condition with the given id, using the lock with the given id.
+ * This process must own both the condition and lock.
+ */
 void Broadcast(int id, int lockID);
 
+/* Create a new kernel lock for the process with the given name.
+ * Also pass in the length of the name.
+ */
 int CreateLock(char* name, int len);
 
+/* Create a new kernel condition for the process with the given name.
+ * Also pass in the length of the name.
+ */
 int CreateCondition(char* name, int len);
 
+/* Delete the kernel lock with the given id.
+ * This process mus own the lock.
+ */
 void DestroyLock(int id);
 
+/* Delete the kernel condition with the given id.
+ * This process mus own the condition.
+ */
 void DestroyCondition(int id);
 
 /* Outputs the given string to console using printf(). 
