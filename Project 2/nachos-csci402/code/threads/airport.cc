@@ -89,12 +89,6 @@ Airport::Airport(){
 	}
 
 	//Screen & Security Variables
-	clearPassengerCount = new int[3];
-	for (i = 0; i < 3; i++) {
-		clearPassengerCount[i] = 0;
-	}
-
-	updateClearCount = new Lock("updateClearCount");
 
 	screeningOfficerList = new List();
 	securityInspectorList = new List();
@@ -102,7 +96,6 @@ Airport::Airport(){
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
 
-    screenLineLock = new Lock("screenLineLock");
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
     screenState = new ScreenState[3];
@@ -110,22 +103,16 @@ Airport::Airport(){
 	screenQueues = new List*[3];
 	securityQueues = new List*[3];
 	returnQueues = new List*[3];
-	passengerWaitOfficerCV = new Condition*[3];
-	officerWaitPassengerCV = new Condition*[3];
-	inspectorWaitRePassengerCV = new Condition*[3];
-	rePassengerWaitInspectorCV = new Condition*[3];
-	inspectorWaitPassengerCV = new Condition*[3];
-	passengerWaitInspectorCV = new Condition*[3];
-	inspectorWaitQuestioningCV = new Condition*[3];
-	liaWaitPassengerCV = new Condition*[7];
-    screenlineCV = new Condition*[3];
-	passengerWaitLiaCV = new Condition*[7];
-    securitylineCV = new Condition*[3];
+    screenCV = new Condition*[3];
+    screenQueuesCV = new Condition*[3];
+    securityQueuesCV = new Condition*[3];
+    returnQueuesCV = new Condition*[3];
+    boardCV = new Condition*[3];
+    freeCV = new Condition*[3];
+   // securityWaitPassengerCV = new Condition*[3];
 
-	for (i=0;i<7;i++) {
-		liaWaitPassengerCV[i] = new Condition("liaWaitPassengerCV");
-		passengerWaitLiaCV[i] = new Condition("passWaitLiaCV");
-	}
+    endLock = new Lock("endLock");
+    endCV = new Condition*[3];
 
 	for (i = 0; i < 3; i++) {
 		screenLocks[i] = new Lock("screenLocks");
@@ -140,8 +127,16 @@ Airport::Airport(){
         securityQueues[i] = new List();
 		returnQueues[i] = new List();
 
-        screenlineCV[i] = new Condition("screenlineCV");
-        securitylineCV[i] = new Condition("securitylineCV");
+        screenCV[i] = new Condition("screenCV");
+        boardCV[i] = new Condition("boardCV");
+        freeCV[i] = new Condition("freeCV");
+
+        screenQueuesCV[i] = new Condition("screenQueuesCV");
+        securityQueuesCV[i] = new Condition("securityQueuesCV");
+        returnQueuesCV[i] = new Condition("returnQueuesCV");
+
+        endCV[i] = new Condition("endCV");
+        //securityWaitPassengerCV[i] = new Condition("securityWaitPassengerCV");
 	
 	}
 
@@ -183,7 +178,6 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     }
 
     // Check-in variables
-    checkinQueuesLock = new Lock("checkinQueuesLock");
     
     int numCheckin = numAirlines * 6;
     finalCheckin = new bool[numCheckin];
@@ -244,36 +238,22 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     securityInspectorList = new List();
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
-	updateClearCount = new Lock("updateClearCount");
-        screenLineLock = new Lock("screenLineLock");
 	screenQueues = new List*[security];
 	securityQueues = new List*[security];
 	returnQueues = new List*[security];
 	screenLocks = new Lock*[security];
-	passengerWaitOfficerCV = new Condition*[security];
-	officerWaitPassengerCV = new Condition*[security];
 	securityLocks = new Lock*[security];
-	inspectorWaitRePassengerCV = new Condition*[security];
-	rePassengerWaitInspectorCV = new Condition*[security];
-	inspectorWaitPassengerCV = new Condition*[security];
-	passengerWaitInspectorCV = new Condition*[security];
-    securitylineCV = new Condition*[security];
-    screenlineCV = new Condition*[security];
+    boardCV = new Condition*[security];
+    screenCV = new Condition*[security];
 	for (i = 0; i < security; i++) {
 
 		screenQueues[i] = new List;
 		securityQueues[i] = new List;
 		returnQueues[i] = new List;
 		screenLocks[i] = new Lock("screenLocks");
-		passengerWaitOfficerCV[i] = new Condition("passengerWaitOfficerCV");
-		officerWaitPassengerCV[i] = new Condition("officerWaitPassengerCV");
 		securityLocks[i] = new Lock("securityLocks");
-		inspectorWaitRePassengerCV[i] = new Condition("inspectorWaitRePassengerCV");
-		rePassengerWaitInspectorCV[i] = new Condition("rePassengerWaitInspectorCV");
-		inspectorWaitPassengerCV[i] = new Condition("inspectorWaitPassengerCV");
-		passengerWaitInspectorCV[i] = new Condition("passengerWaitInspectorCV");
-                screenlineCV[i] = new Condition("screenlineCV");
-        securitylineCV[i] = new Condition("securitylineCV");
+		screenCV[i] = new Condition("screenCV");
+        boardCV[i] = new Condition("boardCV");
 	}
 }
 
@@ -294,12 +274,8 @@ Airport::~Airport() {
     delete[] securityQueues;
     delete[] screenLocks;
     delete screenQueuesLock;
-    delete[] passengerWaitOfficerCV;
-    delete[] officerWaitPassengerCV;
     delete[] securityLocks;
     delete securityQueuesLock;
-    delete[] passengerWaitInspectorCV;
-    delete[] inspectorWaitPassengerCV;
-    delete[] rePassengerWaitInspectorCV;
-    delete[] inspectorWaitRePassengerCV;
+    delete[] screenCV;
+    delete[] boardCV;
 }
