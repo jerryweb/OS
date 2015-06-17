@@ -219,76 +219,61 @@ void Passenger::Inspecting() {
 
 	/*printf("Passenger %d chose security %d with a line length of %d\n", id,
 	 myLine, airport->securityQueues[myLine]->Size());*/
+	//add passenger to the security line
 	airport->securityQueues[myLine]->Append((void *) this);
 
-	//printf("*************Passenger code 214******************\n");
-
-	/*if (airport->securityState[myLine] == SC_FREE) {
+	//if security inspector is on break wait him
+	if (airport->securityState[myLine] == SC_FREE) {
 		airport->securityLocks[myLine]->Acquire();
 		airport->freeCV[myLine]->Signal(airport->securityLocks[myLine]);
 		airport->securityLocks[myLine]->Release();
-	//} */
+	}
 
-//	if (airport->securityState[myLine] == SC_BUSY) {
-	//printf("*************Passenger code 216******************\n");
+	//wait for inspector to do security check
 	airport->securityQueuesCV[myLine]->Wait(airport->securityQueuesLock);
-	//} else {
-	//	printf("*************Passenger code 219******************\n");
-	//airport->securityLocks[myLine]->Acquire();
-	//airport->freeCV[myLine]->Signal(airport->securityLocks[myLine]);
-	//airport->securityLocks[myLine]->Release();
-	//	airport->securityQueuesLock->Release();
-	//}
 
-	//printf("*************Passenger code 220******************\n");
-	//airport->securityLocks[myLine]->Acquire();
+	//if pass
 	if (securityPass) {
-		//give security information
+		//tell inspector I acknowledge I can board now
 		airport->securityLocks[myLine]->Acquire();
-		//airport->securityWaitPassengerCV[myLine]->Signal(airport->securityLocks[myLine]);
-		//printf("***********passenger code wait 249*************\n");
 		airport->boardCV[myLine]->Signal(airport->securityLocks[myLine]);
 		airport->securityLocks[myLine]->Release();
 
-		//for now
+		//for now, wait on endlock when I'm done
 		airport->endLock->Acquire();
-		printf("***********Passenger %d line 245*******************\n",id);
 		airport->endCV[myLine]->Wait(airport->endLock);
+
+		//If fail the check, go to questioning
 	} else {
-		//airport->securityLocks[myLine]->Release();
 		//yield random cycles
 		int randNum = rand() % 5 + 1;
 		for (int i = 0; i < randNum; i++) {
 			currentThread->Yield();
 		}
+
+		//after questioning go to the return queue of the same inspector
 		airport->securityQueuesLock->Acquire();
 		airport->returnQueues[myLine]->Append((void*) this);
 
-		//if (airport->securityState[myLine] == SC_FREE) {
+		//wake up on break inspector
+		if (airport->securityState[myLine] == SC_FREE) {
 
 			airport->securityLocks[myLine]->Acquire();
 			airport->freeCV[myLine]->Signal(airport->securityLocks[myLine]);
 			airport->securityLocks[myLine]->Release();
 
-		//}
-		//printf("*************Passenger code 234******************\n");
+		}
 
-		//if (airport->securityState[myLine] == SC_BUSY) {
-		//printf("***********passenger code wait 277*************\n");
+		//wait for inspector to clear my boarding status
 		airport->returnQueuesCV[myLine]->Wait(airport->securityQueuesLock);
-		//} else
-		//airport->securityQueuesLock->Release();
 
-		//give security information
+		//tell inspector I acknowledge I can board now
 		airport->securityLocks[myLine]->Acquire();
-		//printf("***********passenger code wait 284*************\n");
-		//airport->securityWaitPassengerCV[myLine]->Signal(airport->securityLocks[myLine]);
-		//printf("***********passenger code Release 286*************\n");
 		airport->boardCV[myLine]->Signal(airport->securityLocks[myLine]);
 		airport->securityLocks[myLine]->Release();
-		//printf("*************Passenger code 244******************\n");
+
+		//for now, wait on endlock when I'm done
 		airport->endLock->Acquire();
-		printf("***********Passenger %d line 274*******************\n",id);
 		airport->endCV[myLine]->Wait(airport->endLock);
 	}
 }

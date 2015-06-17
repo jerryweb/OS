@@ -110,8 +110,8 @@ public:
 
 									// Screening and security variables
 
-	List* securityInspectorList;
-	List* screeningOfficerList;
+	List* securityInspectorList;            //Contain security inspector class
+	List* screeningOfficerList;             //contain screen officer class
 
 	List** screenQueues;                    // Array of screening queues (list
 											//  of Passengers). Index corresponds
@@ -132,14 +132,16 @@ public:
 
     Lock* screenQueuesLock;              //Lock for all the screening lines as a whole
 
+    Lock* securityQueuesLock;       //Lock for all the security lines as a whole
+
 	Lock** screenLocks; //Array of locks for screening lines (each officer has a lock)
 						//index corresponds to officer id
 
 	Lock** securityLocks; //Array of locks for security lines (each inspector has a lock)
 						  //index corresponds to inspector id
 
-	Lock* securityQueuesLock;       //Lock for all the security lines as a whole
-									//should be used when determining which line is the shortest
+
+
 
 	Lock* endLock;
 
@@ -147,7 +149,6 @@ public:
     Condition** screenQueuesCV;
     Condition** returnQueuesCV;
     Condition** securityQueuesCV;
-    //Condition** securityWaitPassengerCV;
     Condition** boardCV;
     Condition** freeCV;
     Condition** endCV;

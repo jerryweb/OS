@@ -24,45 +24,53 @@ SecurityInspector::~SecurityInspector() {
 Passenger* SecurityInspector::CheckForPassengers() {
 
 	Passenger* p = NULL;
-	if (!(airport->returnQueues[id]->IsEmpty())) {
-		//isBoarding = true;
-		//printf("**************security code 29*********************\n");
 
+	//handle return queues first if it's not empty
+	if (!(airport->returnQueues[id]->IsEmpty())) {
+
+		//remove passenger and set p point to the removed passenger in return queue
 		p = (Passenger*) airport->returnQueues[id]->Remove();
 		p->SetSecurityPass(true);
-		p->SetBoarding();
+		p->SetBoarding();     //set boarding status to true
 
 		printf(
 				"Security inspector %d permits returning passenger %d to board\n",
 				id, p->getID());
 
+		//set state busy
 		airport->securityState[id] = SC_BUSY;
+		//signal passenger waiting in return queue
 		airport->returnQueuesCV[id]->Signal(airport->securityQueuesLock);
+
+		//if return queues is empty than handel normal queue
 	} else if (!(airport->securityQueues[id]->IsEmpty())) {
 		bool passFlag;
-		if (airport->screeningOfficerList->Size() != 0)
+
+		//if it's normal case read securitypass status from report list
+		if (airport->screeningOfficerList->Size() != 0) {
 			passFlag = reportList->First();
+			reportList->Remove();  //remove security report form screenofficer
+		}			//as we going to remove pasenger in security queue as well
+
+		//if it's individual test for security class set it to true as default
 		else
 			passFlag = true;
 
-		reportList->Remove();
+		//remove passenger and set p point to removed passenger in normal queue
 		p = (Passenger*) airport->securityQueues[id]->Remove();
 
-		//do the security check here
-		if (passFlag) {
-			//assume 20% chance fail
-			int randNum = rand() % 100 + 1;
-			//	printf("**************security code 48*********************\n");
-			if (randNum > 0 && randNum < 51) {
-				//	printf("**************security code 45*********************\n");
-				p->SetSecurityPass(false);
-				passFlag = false;
-			}
+		//do the security check here if he
+		//assume 20% chance fail
+		int randNum = rand() % 100 + 1;
+		if (randNum > 0 && randNum < 21) {
+			p->SetSecurityPass(false);
+			passFlag = false;
 		}
 
 		//make decision based on result
 		if (passFlag) {
-			//isBoarding = true;
+			//if pass set securitypass to true
+			//set boarding status to true
 			p->SetSecurityPass(true);
 			p->SetBoarding();
 
@@ -71,10 +79,8 @@ Passenger* SecurityInspector::CheckForPassengers() {
 					id, p->getID());
 			printf("Security inspector %d allows passenger %d to board\n", id,
 					p->getID());
-			airport->securityQueuesCV[id]->Signal(airport->securityQueuesLock);
 
-		} else {
-			//isBoarding = false;
+		} else { //if fail set securityPass to false
 			p->SetSecurityPass(false);
 
 			printf("Security inspector %d is suspicious of the passenger %d\n",
@@ -82,14 +88,16 @@ Passenger* SecurityInspector::CheckForPassengers() {
 			printf(
 					"Security inpector %d asks passenger %d to go for further examination\n",
 					id, p->getID());
-			airport->securityQueuesCV[id]->Signal(airport->securityQueuesLock);
 
 		}
 
-		airport->securityState[id] = SC_BUSY;
-	} else {
+		//signal the passenger waiting on passenger.cc line 229
+		airport->securityQueuesCV[id]->Signal(airport->securityQueuesLock);
+		airport->securityState[id] = SC_BUSY;          		//set state busy
+
+	} else { //if both security and return queues are empty
 		p = NULL;
-		airport->securityState[id] = SC_FREE;
+		airport->securityState[id] = SC_FREE;   //set state to free
 	}
 
 	return p;
@@ -100,23 +108,20 @@ void SecurityInspector::Inspect() {
 
 	while (true) {
 		Passenger* p = NULL;
-		//printf("*****************security code 81********************\n");
 		airport->securityQueuesLock->Acquire();
-		//printf("*****************security code 82********************\n");
-		p = CheckForPassengers();
-		//printf("*****************security code 84********************\n");
+		p = CheckForPassengers();     		//this function remove and return the first passenger in the line if there's one
+											//in either security or return queue
+											//the security check also happens here
 
-
+		//if passenger pass security check
+		//include the passengers return from questioning
 		if (p != NULL && (p->GetBoarding())) {
-			//printf("************ss code release 111**************\n");
 			airport->securityQueuesLock->Release();
 			airport->securityLocks[id]->Acquire();
-			//printf("************ss code wait 114**************\n");
-			//airport->securityWaitPassengerCV[id]->Wait(airport->securityLocks[id]);
-			//airport->securityLocks[id]->Acquire();
-			//printf("*****************security code 91********************\n");
+
+			//wait for confirmation from passeger
+			//correspond to passenger.cc line 240
 			airport->boardCV[id]->Wait(airport->securityLocks[id]);
-			//printf("*****************security code 93********************\n");
 			airport->securityQueuesLock->Acquire();
 
 			//update clear count here
@@ -127,141 +132,138 @@ void SecurityInspector::Inspect() {
 			BoardingPass bp = p->GetBoardingPass();
 			boardingPassList->Append(&bp);
 
-			//printf("************ss code release 130**************\n");
 			airport->securityQueuesLock->Release();
-			//printf("************ss code release 132**************\n");
-			//airport->securityLocks[id]->Release();
 
+		//if fail the security pass, go to next cycle
 		} else if (p != NULL) {
-			//airport->securityQueuesLock->Release();
-			//printf("************ss code release 137**************\n");
 			airport->securityQueuesLock->Release();
+
+		//if p = NULL, that means both normal and return queues are empty
+		//put mysel on break,potential manager code here
+		//passenger.cc code line
 		} else {
-		//	printf("************ss code release 140**************\n");
 			airport->securityQueuesLock->Release();
-			//printf("*************security code 108******************\n");
 			airport->securityLocks[id]->Acquire();
 			airport->freeCV[id]->Wait(airport->securityLocks[id]);
-			//printf("*************security code 110******************\n");
 		}
 	}
 }
 
 /*void SecurityInspector::Inspect() {
-	//initialize random seed
-	srand(time(NULL));
-	while (true) {
-		//starting C.S.(1) for security line
-		airport->securityLocks[id]->Acquire();
-		Passenger* currentPassenger;
+ //initialize random seed
+ srand(time(NULL));
+ while (true) {
+ //starting C.S.(1) for security line
+ airport->securityLocks[id]->Acquire();
+ Passenger* currentPassenger;
 
-		//handle return queue first if it is not empty
-		if (!(airport->returnQueues[id]->IsEmpty())) {
-			currentPassenger = (Passenger*) airport->returnQueues[id]->First();
-			currentPassenger->SetSecurityPass(true);
+ //handle return queue first if it is not empty
+ if (!(airport->returnQueues[id]->IsEmpty())) {
+ currentPassenger = (Passenger*) airport->returnQueues[id]->First();
+ currentPassenger->SetSecurityPass(true);
 
-			airport->returnQueues[id]->Remove();
-			qPassengerCount--;
+ airport->returnQueues[id]->Remove();
+ qPassengerCount--;
 
-			//starting C.S.(2) for ping-pong with returning passenger
-			airport->rePassengerWaitInspectorCV[id]->Signal(
-					airport->securityLocks[id]);
-			airport->securityLocks[id]->Release();
-			airport->securityLocks[id]->Acquire();
-			airport->inspectorWaitRePassengerCV[id]->Wait(
-					airport->securityLocks[id]);
-			//ending C.S.(2)
+ //starting C.S.(2) for ping-pong with returning passenger
+ airport->rePassengerWaitInspectorCV[id]->Signal(
+ airport->securityLocks[id]);
+ airport->securityLocks[id]->Release();
+ airport->securityLocks[id]->Acquire();
+ airport->inspectorWaitRePassengerCV[id]->Wait(
+ airport->securityLocks[id]);
+ //ending C.S.(2)
 
-			printf(
-					"Security inspector %d permits returning passenger %d to board\n",
-					id, currentPassenger->getID());
+ printf(
+ "Security inspector %d permits returning passenger %d to board\n",
+ id, currentPassenger->getID());
 
-			//starting C.S.(6) to update cleared passenger count for manager
-			//this lock shared by all the inspectors and manager
-			airport->updateClearCount->Acquire();
-			(airport->clearPassengerCount[currentPassenger->GetAirline()])++;
-			airport->updateClearCount->Release();
-			//ending C.S.(6)
+ //starting C.S.(6) to update cleared passenger count for manager
+ //this lock shared by all the inspectors and manager
+ airport->updateClearCount->Acquire();
+ (airport->clearPassengerCount[currentPassenger->GetAirline()])++;
+ airport->updateClearCount->Release();
+ //ending C.S.(6)
 
-			//if return line is empty handle the security line
-		} else if (!(airport->securityQueues[id]->IsEmpty())) {
-			currentPassenger =
-					(Passenger*) airport->securityQueues[id]->First();
+ //if return line is empty handle the security line
+ } else if (!(airport->securityQueues[id]->IsEmpty())) {
+ currentPassenger =
+ (Passenger*) airport->securityQueues[id]->First();
 
-			//this flag use locally in this function
-			bool passFlag = currentPassenger->GetSecurityPass();
+ //this flag use locally in this function
+ bool passFlag = currentPassenger->GetSecurityPass();
 
-			//if it's orginally clean from screening do wand-hand test
-			if (passFlag) {
-				//assume 20% chance fail the screening
-				int randNum = rand() % 100 + 1;
-				if (randNum > 0 && randNum < 21) {
-					currentPassenger->SetSecurityPass(false);
-					passFlag = false;
-				}
-			}
+ //if it's orginally clean from screening do wand-hand test
+ if (passFlag) {
+ //assume 20% chance fail the screening
+ int randNum = rand() % 100 + 1;
+ if (randNum > 0 && randNum < 21) {
+ currentPassenger->SetSecurityPass(false);
+ passFlag = false;
+ }
+ }
 
-			//starting C.S.(3) for removing currentPassenger from myline
-			airport->securityQueuesLock->Acquire();
-			airport->securityQueues[id]->Remove();
-			airport->securityQueuesLock->Release();
-			//ending C.S.(3)
+ //starting C.S.(3) for removing currentPassenger from myline
+ airport->securityQueuesLock->Acquire();
+ airport->securityQueues[id]->Remove();
+ airport->securityQueuesLock->Release();
+ //ending C.S.(3)
 
-			//starting C.S.(4) for ping-pong with Passenger
-			airport->passengerWaitInspectorCV[id]->Signal(
-					airport->securityLocks[id]);
-			airport->securityLocks[id]->Release();
-			airport->securityLocks[id]->Acquire();
-			airport->inspectorWaitPassengerCV[id]->Wait(
-					airport->securityLocks[id]);
-			//ending C.S.(4)
+ //starting C.S.(4) for ping-pong with Passenger
+ airport->passengerWaitInspectorCV[id]->Signal(
+ airport->securityLocks[id]);
+ airport->securityLocks[id]->Release();
+ airport->securityLocks[id]->Acquire();
+ airport->inspectorWaitPassengerCV[id]->Wait(
+ airport->securityLocks[id]);
+ //ending C.S.(4)
 
-			//make decision based on the result above
-			if (!passFlag) {
-				printf(
-						"Security inspector %d is suspicious of the passenger %d\n",
-						id, currentPassenger->getID());
-				printf(
-						"Security inpector %d asks passenger %d to go for further examination\n",
-						id, currentPassenger->getID());
-				if (qPassengerCount == (-1)) {
-					qPassengerCount = 0;
-				}
-				qPassengerCount++;
-			} else {
-				printf(
-						"Security inspector %d is not suspicious of the passenger %d\n",
-						id, currentPassenger->getID());
-				printf("Security inspector %d allows passenger %d to board\n",
-						id, currentPassenger->getID());
+ //make decision based on the result above
+ if (!passFlag) {
+ printf(
+ "Security inspector %d is suspicious of the passenger %d\n",
+ id, currentPassenger->getID());
+ printf(
+ "Security inpector %d asks passenger %d to go for further examination\n",
+ id, currentPassenger->getID());
+ if (qPassengerCount == (-1)) {
+ qPassengerCount = 0;
+ }
+ qPassengerCount++;
+ } else {
+ printf(
+ "Security inspector %d is not suspicious of the passenger %d\n",
+ id, currentPassenger->getID());
+ printf("Security inspector %d allows passenger %d to board\n",
+ id, currentPassenger->getID());
 
-				//starting C.S.(5) to update cleared passenger count for manager
-				airport->updateClearCount->Acquire();
-				(airport->clearPassengerCount[currentPassenger->GetAirline()])++;
-				airport->updateClearCount->Release();
-				//ending C.S.(5)
-			}
+ //starting C.S.(5) to update cleared passenger count for manager
+ airport->updateClearCount->Acquire();
+ (airport->clearPassengerCount[currentPassenger->GetAirline()])++;
+ airport->updateClearCount->Release();
+ //ending C.S.(5)
+ }
 
-			//if both security and return queues are empty but
-			//qPassengerCount is larger than 0, means still has
-			//passenger being questioned,wait those passengers
-			//to come back
-		} else if (qPassengerCount > 0) {
-			airport->inspectorWaitQuestioningCV[id]->Wait(
-					airport->securityLocks[id]);
-			//ending C.S.(1) and goes to wait
+ //if both security and return queues are empty but
+ //qPassengerCount is larger than 0, means still has
+ //passenger being questioned,wait those passengers
+ //to come back
+ } else if (qPassengerCount > 0) {
+ airport->inspectorWaitQuestioningCV[id]->Wait(
+ airport->securityLocks[id]);
+ //ending C.S.(1) and goes to wait
 
-			//if it goes to else it ends
-		} else {
-			airport->securityLocks[id]->Release();
-			//ending C.S.(1)
+ //if it goes to else it ends
+ } else {
+ airport->securityLocks[id]->Release();
+ //ending C.S.(1)
 
-			//add manager control code here
+ //add manager control code here
 
-			break;
-		}
-	}
-}*/
+ break;
+ }
+ }
+ }*/
 
 void SecurityInspector::AppendBool(bool* b) {
 	reportList->Append(b);

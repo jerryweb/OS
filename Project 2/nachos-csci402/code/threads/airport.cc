@@ -109,7 +109,6 @@ Airport::Airport(){
     returnQueuesCV = new Condition*[3];
     boardCV = new Condition*[3];
     freeCV = new Condition*[3];
-   // securityWaitPassengerCV = new Condition*[3];
 
     endLock = new Lock("endLock");
     endCV = new Condition*[3];
@@ -136,7 +135,6 @@ Airport::Airport(){
         returnQueuesCV[i] = new Condition("returnQueuesCV");
 
         endCV[i] = new Condition("endCV");
-        //securityWaitPassengerCV[i] = new Condition("securityWaitPassengerCV");
 	
 	}
 
