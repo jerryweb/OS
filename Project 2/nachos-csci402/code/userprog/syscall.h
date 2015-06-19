@@ -130,7 +130,7 @@ void Close(OpenFileId id);
 /* Fork a thread with the given name to run a procedure ("func") in the
  * *same* address space as the current thread.
  */
-void Fork(void (*func)(), char* name);
+void Fork(void (*func)(), char* name, int len);
 
 /* Yield the CPU to another runnable thread, whether in this address space 
  * or not. 
