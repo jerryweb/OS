@@ -50,10 +50,6 @@ struct KernelCondition
   bool isToBeDeleted;
 };
 
-void kernel_function(int pc){
-
-}
-
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
     // Return the number of bytes so read, or -1 if an error occurs.
@@ -259,16 +255,31 @@ void Close_Syscall(int fd) {
   //*********************//
  // New syscalls below. //
 //*********************//
-//This creates an address space for the thread from the parent process
-//Next give this thread its own set of stack pages. And finally, you must fork this new, ready-to-go thread with an internal Nachos kernel fork
-void Fork_Syscall(unsigned int vaddr, int arg)
-// (FORK)
+
+void kernel_function(unsigned int vaddr)
+// Sets up registers and stack space for a new thread.
 {
-    Thread* t = new Thread("");
-    // allocate memory
-    
-    
-    t->Fork( (void (*)(int)) vaddr, arg);
+    // Set program counter to new program.
+    machine->WriteRegister(PCReg, vaddr);
+    machine->WriteRegister(NextPCReg, vaddr + 4);
+    // 
+    currentThread->space->RestoreState();
+    // Allocate stack pages? (pretty sure this isn't how to do it)
+    currentThread->space->numPages += 8;
+    machine->WriteRegister(StackReg, currentThread->space->numPages * PageSize - 16);
+    // Run the new program.
+    machine->Run();
+}
+void Fork_Syscall(unsigned int vaddr)
+// Creates and runs a new thread:
+//  First, creates an address space for the thread from the parent process.
+//  Next, give this thread its own set of stack pages.
+//  Finally, fork new thread with an internal Nachos kernel fork.
+{
+    Thread* t = new Thread(""); // Create new thread.
+    t->space = currentThread->space; // Set the process to the currently running one.
+    // update process table?
+    t->Fork(kernel_function, vaddr); // Fork the new thread to run the kernel program.
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
