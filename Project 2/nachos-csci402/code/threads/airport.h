@@ -112,7 +112,7 @@ public:
 									// Screening and security variables
 
 	List* securityInspectorList;            //Contain security inspector class
-	List* screeningOfficerList;             //contain screen officer class
+	List* screenOfficerList;             //contain screen officer class
 
 	List** screenQueues;                    // Array of screening queues (list
 											//  of Passengers). Index corresponds
@@ -146,12 +146,13 @@ public:
 	Lock* endLock;
 
     Condition** screenCV;
+    Condition** screenFreeCV;
     Condition** screenQueuesCV;
     Condition** returnQueuesCV;
     Condition** securityQueuesCV;
     Condition** boardCV;
-    Condition** freeCV;
-    Condition** endCV;
+    Condition** securityFreeCV;
+    //Condition** endCV;
 
 	//  Manager variables
     

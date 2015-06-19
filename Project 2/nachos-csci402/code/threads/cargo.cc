@@ -28,11 +28,13 @@ void Cargo::StartCargo()
         {   // Conveyor is empty, go on break (sleep).
             airport->cargoLock[id]->Acquire();
             airport->cargoState[id] = C_BREAK;
-            printf("Cargo Handler %d is going for a break\n", id);
+            //********temporally disbale following message for testing
+           //printf("Cargo Handler %d is going for a break\n", id);
             airport->conveyorLock->Release();
             // airport->cargoCV->Wait(airport->cargoLock);
             airport->cargoDataCV[id]->Wait(airport->cargoLock[id]);
-            printf("Cargo Handler %d returned from break\n", id);
+            //********temporally disbale following message for testing
+           // printf("Cargo Handler %d returned from break\n", id);
             airport->cargoState[id] = C_BUSY;
         }
         else

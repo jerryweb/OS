@@ -16,15 +16,13 @@ class SecurityInspector;
 class Passenger {
 	public:
 		//For full run
-		Passenger(int ID,int qIndex,int airlineCode,Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST);
+		Passenger(int ID,int airlineCode,Ticket T,List* bags,Airport* A);
 		Passenger(int ID, List* bags, Ticket T, Airport* A);        // For full simulation.
 		Passenger(int ID, Ticket t, int airlineCode, Airport* a);   // For PassengerFindsCorrectCISLine (test).
 		Passenger(int ID, Ticket t);                                // For LiaisonTest.
         Passenger(int ID, Airport* a);                              // For PassengerFindsShortestLiaisonLine (test).
         Passenger(int ID);                                          // For CheckInTest.
-        Passenger();                                                // For PassengerFindsCorrectCISLine (test).
-		Passenger(int ID,int qIndex,Airport* AIRPORT);                                      //For Screening Test
-		Passenger(int ID,int qIndex,Airport* AIRPORT,int airlineCode,SecurityInspector** INSPECTORLIST);    //For Security Test
+        Passenger();                                                // For PassengerFindsCorrectCISLine (test).                                 //For Screening Test
 		Passenger(Airport* AIRPORT);                                                        //For Screening Test(produce dummy passenger to fill arrays)
 		Passenger(int ID,Airport* A, BoardingPass bp);              //For security test
         ~Passenger();
