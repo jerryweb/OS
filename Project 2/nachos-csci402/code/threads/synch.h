@@ -68,7 +68,9 @@ class Lock {
     Lock(char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
     char* getName() { return name; }	// debugging assist
-    
+    List* getWaitQueue() { return waitQueue; }
+    List* getReadyQueue() { return readyQueue; }
+
     void Acquire(); // these are the only operations on a lock
     void Release(); // they are both *atomic*
 
@@ -125,6 +127,8 @@ class Condition {
 					// "no one waiting"
     ~Condition();			// deallocate the condition
     char* getName() { return (name); }
+    List* getWaitList() { return waitList; }
+    Lock* getWaitLock() { return waitLock; }
     
     void Wait(Lock *conditionLock); 	// these are the 3 operations on 
 					// condition variables; releasing the 

@@ -120,6 +120,11 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     NoffHeader noffH;
     unsigned int i, size;
+    int numOfThreads = 30;
+
+    //Keep track of all of the threads that belong to the process
+    threadTable = new Table(numOfThreads);
+    // stackPage =;
 
     // Don't allocate the input or output to disk files
     fileTable.Put(0);
@@ -135,7 +140,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
                         // we need to increase the size
 						// to leave room for the stack
-    stackpage = divRoundUp(size, PageSize)+1;
+    // stackpage = divRoundUp(size, PageSize)+1;
 
     size = numPages * PageSize;
 

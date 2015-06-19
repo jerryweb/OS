@@ -50,6 +50,8 @@ struct KernelCondition
   bool isToBeDeleted;
 };
 
+int awakeThreadCount = 0;
+
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
     // Return the number of bytes so read, or -1 if an error occurs.
@@ -265,11 +267,13 @@ void kernel_function(unsigned int vaddr)
     // 
     currentThread->space->RestoreState();
     // Allocate stack pages? (pretty sure this isn't how to do it)
-    currentThread->space->numPages += 8;
-    machine->WriteRegister(StackReg, currentThread->space->numPages * PageSize - 16);
+
+    //currentThread->space->getNumPages() += 8;
+    machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 16);
     // Run the new program.
     machine->Run();
 }
+
 void Fork_Syscall(unsigned int vaddr)
 // Creates and runs a new thread:
 //  First, creates an address space for the thread from the parent process.
@@ -278,7 +282,10 @@ void Fork_Syscall(unsigned int vaddr)
 {
     Thread* t = new Thread(""); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
+
     // update process table?
+    currentThread->space->processTable->put(t);
+
     t->Fork(kernel_function, vaddr); // Fork the new thread to run the kernel program.
 }
 
@@ -341,6 +348,8 @@ void Acquire_Syscall(int id)
         else
         {
             kLock->lock->Acquire();
+            awakeThreadCount--;         //Decrements the number of 
+                                        // threads that are active
         }
     }
 
@@ -365,6 +374,7 @@ void Release_Syscall(int id)
         else
         {
             kLock->lock->Release();
+            awakeThreadCount++;                     //increment the number of active threads
         }
     }
 }
@@ -390,6 +400,8 @@ void Wait_Syscall(int id, int lockID)
         else
         {
             kCond->condition->Wait(kLock->lock);
+            awakeThreadCount++;                     //increment the number of active threads
+
         }
     }
 }
@@ -414,6 +426,8 @@ void Signal_Syscall(int id, int lockID)
         else
         {
             kCond->condition->Signal(kLock->lock);
+            awakeThreadCount++;                     //increment the number of active threads
+
         }
     }
 }
@@ -438,6 +452,7 @@ void Broadcast_Syscall(int id, int lockID)
         else
         {
             kCond->condition->Broadcast(kLock->lock);
+            //need to add the incrementer for the number of active threads
         }
     }
 }
@@ -447,7 +462,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 //  to by vaddr, with length len. If the lock is created successfully,
 //  it is placed in the kernel lock table and its index is returned.
 //  If there are any errors, -1 is returned.
-    char *buf = new char[len+1];	// Kernel buffer: name
+{   char *buf = new char[len+1];	// Kernel buffer: name
 
     if (! buf)
     {
@@ -474,7 +489,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     return lockTable->Put(kLock);
 }
 
-int CreateCondition_Syscall(unsigned int vaddr, int len)
+int CreateCondition_Syscall(unsigned int vaddr, int len){
 // Create a kernel condition with the name in the user buffer pointed
 //  to by vaddr, with length len. If the condition is created successfully,
 //  it is placed in the kernel condition table and its index is returned.
@@ -507,16 +522,56 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     
     return CVTable->Put(kCond);
 }
+
 void DestroyLock_Syscall(int id)
 // (DESTROY LOCK)
 {
+    // bool threadWaitingForLock = false;
+
+    // This will set the flag for the request for the lock to be 
+    // deleted to true
+    if(!lockTable->Get(id)->isToBeDeleted){
+        lockTable->Get(id)->isToBeDeleted = true;
+        printf("Syscall request to destroy lock %d\n", id);
+    }
+
+    if((lockTable->Get(id)->lock->getWaitQueue()->isEmpty() &&
+        lockTable->Get(id)->lock->getReadyQueue()->isEmpty()
+        && lockTable->Get(id)->isToBeDeleted) || (awakeThreadCount == 0)){
+
+        lockTable->lock->Acquire();     // prevent lock corruption when 
+                                        // deleting the lock
+        printf("Syscall destroying lock %d\n", id);
+        lockTable->Get(id)->lock = NULL;
+        lockTable->Get(id)->owner = NULL;  
+
+        lockTable->lock->Release();
+    }
     
     
 }
 void DestroyCondition_Syscall(int id)
 // (DESTROY CONDITION)
 {
-    
+    if(!CVTable.Get(id)->isToBeDeleted){
+        CVTable.Get(id)->isToBeDeleted = true;
+        printf("Syscall request to destroy condition %d\n", id);
+    }
+
+    if((CVTable.Get(id)->condition->getWaitList()->IsEmpty() 
+        && (CVTable.Get(id)->condition->getWaitLock() == NULL)
+        CVTable.Get(id)->isToBeDeleted) || (awakeThreadCount == 0){
+
+        CVTable->lock->Acquire();   // prevent lock corruption when 
+                                    // deleting the condition
+        printf("Syscall destroying condition %d\n", id);
+        CVTable.Get(id)->condition = NULL;
+        CVTable.Get(id)->owner = NULL;
+
+        CVTable->lock->Release();
+    }
+
+
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
