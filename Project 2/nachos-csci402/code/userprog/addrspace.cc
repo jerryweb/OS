@@ -159,6 +159,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
+    //need to delete this once we start using exec and the constructor gets called
+    //more than once
     bzero(machine->mainMemory, size);
 
 // then, copy in the code and data segments into memory

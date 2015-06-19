@@ -259,7 +259,8 @@ void Close_Syscall(int fd) {
   //*********************//
  // New syscalls below. //
 //*********************//
-
+//This creates an address space for the thread from the parent process
+//Next give this thread its own set of stack pages. And finally, you must fork this new, ready-to-go thread with an internal Nachos kernel fork
 void Fork_Syscall(unsigned int vaddr, int arg)
 // (FORK)
 {

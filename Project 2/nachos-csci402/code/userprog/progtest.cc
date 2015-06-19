@@ -29,8 +29,8 @@ StartProcess(char *filename)
     AddrSpace *space;
 
     if (executable == NULL) {
-	printf("Unable to open file %s\n", filename);
-	return;
+    	printf("Unable to open file %s\n", filename);
+    	return;
     }
    
     space = new AddrSpace(executable);
@@ -79,11 +79,11 @@ ConsoleTest (char *in, char *out)
     writeDone = new Semaphore("write done", 0);
     
     for (;;) {
-	readAvail->P();		// wait for character to arrive
-	ch = console->GetChar();
-	console->PutChar(ch);	// echo it!
-	writeDone->P() ;        // wait for write to finish
-	if (ch == 'q') return;  // if q, quit
+    	readAvail->P();		// wait for character to arrive
+    	ch = console->GetChar();
+    	console->PutChar(ch);	// echo it!
+    	writeDone->P() ;        // wait for write to finish
+    	if (ch == 'q') return;  // if q, quit
     }
 }
 
