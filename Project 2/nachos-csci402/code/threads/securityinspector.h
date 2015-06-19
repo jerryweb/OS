@@ -17,6 +17,7 @@ public:
 	void Inspect();
 	void AppendBool(bool* b);
 	int getID();
+	int* getClearCount();
 
 private:
 	int id;

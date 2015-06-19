@@ -47,7 +47,7 @@ Passenger* SecurityInspector::CheckForPassengers() {
 		bool passFlag;
 
 		//if it's normal case read securitypass status from report list
-		if (airport->screeningOfficerList->Size() != 0) {
+		if (airport->screenOfficerList->Size() != 0) {
 			passFlag = reportList->First();
 			reportList->Remove();  //remove security report form screenofficer
 		}			//as we going to remove pasenger in security queue as well
@@ -144,7 +144,7 @@ void SecurityInspector::Inspect() {
 		} else {
 			airport->securityQueuesLock->Release();
 			airport->securityLocks[id]->Acquire();
-			airport->freeCV[id]->Wait(airport->securityLocks[id]);
+			airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
 		}
 	}
 }
@@ -271,4 +271,8 @@ void SecurityInspector::AppendBool(bool* b) {
 
 int SecurityInspector::getID() {
 	return id;
+}
+
+int* SecurityInspector::getClearCount() {
+	return clearCount;
 }

@@ -90,7 +90,7 @@ Airport::Airport(){
 
 	//Screen & Security Variables
 
-	screeningOfficerList = new List();
+	screenOfficerList = new List();
 	securityInspectorList = new List();
 
 	screenQueuesLock = new Lock("screenQueuesLock");
@@ -108,10 +108,11 @@ Airport::Airport(){
     securityQueuesCV = new Condition*[3];
     returnQueuesCV = new Condition*[3];
     boardCV = new Condition*[3];
-    freeCV = new Condition*[3];
+    screenFreeCV = new Condition*[3];
+    securityFreeCV = new Condition*[3];
 
-    endLock = new Lock("endLock");
-    endCV = new Condition*[3];
+    //endLock = new Lock("endLock");
+    //endCV = new Condition*[3];
 
 	for (i = 0; i < 3; i++) {
 		screenLocks[i] = new Lock("screenLocks");
@@ -127,14 +128,15 @@ Airport::Airport(){
 		returnQueues[i] = new List();
 
         screenCV[i] = new Condition("screenCV");
+        screenFreeCV[i] = new Condition("screenFreeCV");
         boardCV[i] = new Condition("boardCV");
-        freeCV[i] = new Condition("freeCV");
+        securityFreeCV[i] = new Condition("securityFreeCV");
 
         screenQueuesCV[i] = new Condition("screenQueuesCV");
         securityQueuesCV[i] = new Condition("securityQueuesCV");
         returnQueuesCV[i] = new Condition("returnQueuesCV");
 
-        endCV[i] = new Condition("endCV");
+        //endCV[i] = new Condition("endCV");
 	
 	}
 
@@ -232,7 +234,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     }
 
 	//Screen & Security Variables
-    screeningOfficerList = new List();
+    screenOfficerList = new List();
     securityInspectorList = new List();
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
