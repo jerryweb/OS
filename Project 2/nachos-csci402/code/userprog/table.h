@@ -20,6 +20,8 @@ class Table {
     void *Get(int);
     int Put(void *);
     void *Remove(int);
+    void lockAcquire();
+    void lockRelease();
 };
 
 

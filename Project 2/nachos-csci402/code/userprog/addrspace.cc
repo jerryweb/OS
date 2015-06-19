@@ -78,6 +78,15 @@ void *Table::Remove(int i) {
     return f;
 }
 
+void Table::lockAcquire() {
+    // Acquire table's lock
+	lock->Acquire();
+}
+void Table::lockRelease() {
+    // Acquire table's lock
+	lock->Release();
+}
+
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the 

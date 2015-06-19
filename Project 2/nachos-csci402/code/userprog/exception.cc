@@ -50,7 +50,8 @@ struct KernelCondition
   bool isToBeDeleted;
 };
 
-
+//table for processes
+Table* processTable;
 
 int awakeThreadCount = 0;
 
@@ -260,12 +261,13 @@ void Close_Syscall(int fd) {
  // New syscalls below. //
 //*********************//
 
-void kernel_function(unsigned int vaddr)
+void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
+    unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
-    machine->WriteRegister(PCReg, vaddr);
-    machine->WriteRegister(NextPCReg, vaddr + 4);\
+    machine->WriteRegister(PCReg, addr);
+    machine->WriteRegister(NextPCReg, addr + 4);\
     currentThread->space->RestoreState();
     // Allocate stack pages? (pretty sure this isn't how to do it)
 
@@ -273,26 +275,27 @@ void kernel_function(unsigned int vaddr)
     machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 16);
     // Run the new program.
     machine->Run();
-
-void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2)
+}
+void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
 // Creates and runs a new thread:
 //  First, creates an address space for the thread from the parent process.
 //  Next, give this thread its own set of stack pages.
 //  Finally, fork new thread with an internal Nachos kernel fork.
+// If there is an error, will return without forking the new thread.
 {
     char *buf = new char[len+1];	// Kernel buffer: filename
 
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in Exec\n");
-        return -1;
+        return;
     }
 
     if( copyin(vaddr2, len, buf) == -1 )
     {
         printf("%s","Bad pointer passed to Exec\n");
         delete[] buf;
-        return -1;
+        return;
     }
 
     buf[len]='\0';
@@ -300,11 +303,10 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2)
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
 
-    // update process table?
+    // update thread table
+Thread->space->threadTable->Put(t);
 
-    
-
-    t->Fork(kernel_function, vaddr1); // Fork the new thread to run the kernel program.
+    t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
@@ -510,7 +512,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     return lockTable->Put(kLock);
 }
 
-int CreateCondition_Syscall(unsigned int vaddr, int len){
+int CreateCondition_Syscall(unsigned int vaddr, int len)
 // Create a kernel condition with the name in the user buffer pointed
 //  to by vaddr, with length len. If the condition is created successfully,
 //  it is placed in the kernel condition table and its index is returned.
@@ -551,22 +553,25 @@ void DestroyLock_Syscall(int id)
 
     // This will set the flag for the request for the lock to be 
     // deleted to true
-    if(!lockTable->Get(id)->isToBeDeleted){
-        lockTable->Get(id)->isToBeDeleted = true;
+    
+    KernelLock* kLock = (KernelLock*) lockTable->Get(id);
+    
+    if(!kLock->isToBeDeleted){
+        kLock->isToBeDeleted = true;
         printf("Syscall request to destroy lock %d\n", id);
     }
 
-    if((lockTable->Get(id)->lock->getWaitQueue()->isEmpty() &&
-        lockTable->Get(id)->lock->getReadyQueue()->isEmpty()
-        && lockTable->Get(id)->isToBeDeleted) || (awakeThreadCount == 0)){
+    if((kLock->lock->getWaitQueue()->IsEmpty() &&
+        kLock->lock->getReadyQueue()->IsEmpty() &&
+        kLock->isToBeDeleted) || (awakeThreadCount == 0)){
 
-        lockTable->lock->Acquire();     // prevent lock corruption when 
+        lockTable->lockAcquire();     // prevent lock corruption when 
                                         // deleting the lock
         printf("Syscall destroying lock %d\n", id);
-        lockTable->Get(id)->lock = NULL;
-        lockTable->Get(id)->owner = NULL;  
+        kLock->lock = NULL;
+        kLock->owner = NULL;  
 
-        lockTable->lock->Release();
+        lockTable->lockRelease();
     }
     
     
@@ -574,22 +579,24 @@ void DestroyLock_Syscall(int id)
 void DestroyCondition_Syscall(int id)
 // (DESTROY CONDITION)
 {
-    if(!CVTable.Get(id)->isToBeDeleted){
-        CVTable.Get(id)->isToBeDeleted = true;
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    
+    if(!kCond->isToBeDeleted){
+        kCond->isToBeDeleted = true;
         printf("Syscall request to destroy condition %d\n", id);
     }
 
-    if((CVTable.Get(id)->condition->getWaitList()->IsEmpty() 
-        && (CVTable.Get(id)->condition->getWaitLock() == NULL)
-        CVTable.Get(id)->isToBeDeleted) || (awakeThreadCount == 0){
+    if((kCond->condition->getWaitList()->IsEmpty() 
+        && (kCond->condition->getWaitLock() == NULL)
+        && kCond->isToBeDeleted) || (awakeThreadCount == 0)){
 
-        CVTable->lock->Acquire();   // prevent lock corruption when 
+        CVTable->lockAcquire();   // prevent lock corruption when 
                                     // deleting the condition
         printf("Syscall destroying condition %d\n", id);
-        CVTable.Get(id)->condition = NULL;
-        CVTable.Get(id)->owner = NULL;
+        kCond->condition = NULL;
+        kCond->owner = NULL;
 
-        CVTable->lock->Release();
+        CVTable->lockRelease();
     }
 
 
@@ -695,7 +702,8 @@ void ExceptionHandler(ExceptionType which) {
 	    case SC_Fork:
             DEBUG('a', "Fork syscall.\n");
             Fork_Syscall(machine->ReadRegister(4),
-                         machine->ReadRegister(5));
+                         machine->ReadRegister(5),
+                         machine->ReadRegister(6));
             break;
 	    case SC_Exec:
             DEBUG('a', "Exec syscall.\n");
