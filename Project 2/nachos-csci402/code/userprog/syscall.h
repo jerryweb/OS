@@ -137,9 +137,7 @@ void Fork(void (*func)(), char* name, int len);
  */
 void Yield();
 
-  //*****************************//
- // LOCK AND CONDITION SYSCALLS //
-//*****************************//
+/* Lock and condition syscalls */
 
 /* Acquire the kernel lock with the given id.
  * This process must own the lock.
