@@ -140,7 +140,7 @@ Memory Management
 		Has 2 methods:
 			Find - returns an int
 				 - an unused physical page #
-			Clear(___) //to free a  "  "
+			Clear(___) //to free a physical page
 		
 		You will create 1 BitMap object 				// The contstructor takes an int of how many pages you have
 			for all nachos - system.h/.cc 				//extern statements are located in system.h

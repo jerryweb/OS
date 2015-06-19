@@ -96,6 +96,9 @@ Initialize(int argc, char **argv)
     CVTable = new Table(maxNumCV);
     processTable =  new Table(maxNumProc);
 
+    //used for finding unused memory pages
+    memMap = new BitMap(numPhysPages);
+
 #endif
 #ifdef FILESYS_NEEDED
     bool format = FALSE;	// format disk

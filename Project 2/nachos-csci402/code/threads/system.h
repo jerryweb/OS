@@ -35,7 +35,7 @@ extern Table* lockTable;				// Tables for the CVs and Locks
 extern Table* CVTable;	
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes		
-extern BitMap* bitMap;
+extern BitMap* memMap[];
 
 #ifdef USER_PROGRAM
 #include "machine.h"
@@ -44,7 +44,7 @@ extern Machine* machine;	// user program memory and registers
 #endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
-#include "filesys.h"
+#include "../filesys/filesys.h"
 extern FileSystem  *fileSystem;
 #endif
 

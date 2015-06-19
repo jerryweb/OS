@@ -50,6 +50,8 @@ struct KernelCondition
   bool isToBeDeleted;
 };
 
+
+
 int awakeThreadCount = 0;
 
 int copyin(unsigned int vaddr, int len, char *buf) {
@@ -300,7 +302,7 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2)
 
     // update process table?
 
-    currentThread->space->processTable->put(t);
+    
 
     t->Fork(kernel_function, vaddr1); // Fork the new thread to run the kernel program.
 }
@@ -327,6 +329,9 @@ int Exec_Syscall(unsigned int vaddr, int len)
     
     // create new address space
     
+
+    //add it to the process table
+    // processTable->put(space);
     return 0;
 }
 
