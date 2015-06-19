@@ -135,6 +135,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
                         // we need to increase the size
 						// to leave room for the stack
+    stackpage = divRoundUp(size, PageSize)+1;
+
     size = numPages * PageSize;
 
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
@@ -171,7 +173,6 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 			noffH.code.size, noffH.code.inFileAddr);
     }
 
-    //method 2
     if (noffH.initData.size > 0) {
         DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);
