@@ -263,8 +263,7 @@ void kernel_function(unsigned int vaddr)
 {
     // Set program counter to new program.
     machine->WriteRegister(PCReg, vaddr);
-    machine->WriteRegister(NextPCReg, vaddr + 4);
-    // 
+    machine->WriteRegister(NextPCReg, vaddr + 4);\
     currentThread->space->RestoreState();
     // Allocate stack pages? (pretty sure this isn't how to do it)
 
@@ -272,21 +271,38 @@ void kernel_function(unsigned int vaddr)
     machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 16);
     // Run the new program.
     machine->Run();
-}
 
-void Fork_Syscall(unsigned int vaddr)
+void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2)
 // Creates and runs a new thread:
 //  First, creates an address space for the thread from the parent process.
 //  Next, give this thread its own set of stack pages.
 //  Finally, fork new thread with an internal Nachos kernel fork.
 {
-    Thread* t = new Thread(""); // Create new thread.
+    char *buf = new char[len+1];	// Kernel buffer: filename
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Exec\n");
+        return -1;
+    }
+
+    if( copyin(vaddr2, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Exec\n");
+        delete[] buf;
+        return -1;
+    }
+
+    buf[len]='\0';
+    
+    Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
 
     // update process table?
+
     currentThread->space->processTable->put(t);
 
-    t->Fork(kernel_function, vaddr); // Fork the new thread to run the kernel program.
+    t->Fork(kernel_function, vaddr1); // Fork the new thread to run the kernel program.
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
