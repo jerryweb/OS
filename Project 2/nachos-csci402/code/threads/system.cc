@@ -82,7 +82,7 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
-    //Create the lock and CV tables
+    
     
 
 /*TODO: add the Process tables here*/
@@ -90,8 +90,14 @@ Initialize(int argc, char **argv)
     bool debugUserProg = FALSE;	// single step user program
     int maxNumLocks = 20;
     int maxNumCV = 20;
+    int maxNumProc = 5;
+    //Create the lock and CV tables
     lockTable = new Table(maxNumLocks);
     CVTable = new Table(maxNumCV);
+    processTable =  new Table(maxNumProc);
+
+    //used for finding unused memory pages
+    memMap = new BitMap(numPhysPages);
 
 #endif
 #ifdef FILESYS_NEEDED

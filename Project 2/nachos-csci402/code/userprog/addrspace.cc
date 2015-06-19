@@ -78,6 +78,15 @@ void *Table::Remove(int i) {
     return f;
 }
 
+void Table::lockAcquire() {
+    // Acquire table's lock
+	lock->Acquire();
+}
+void Table::lockRelease() {
+    // Acquire table's lock
+	lock->Release();
+}
+
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the 
@@ -120,6 +129,11 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     NoffHeader noffH;
     unsigned int i, size;
+    int numOfThreads = 30;
+
+    //Keep track of all of the threads that belong to the process
+    threadTable = new Table(numOfThreads);
+    // stackPage =;
 
     // Don't allocate the input or output to disk files
     fileTable.Put(0);
@@ -135,6 +149,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
                         // we need to increase the size
 						// to leave room for the stack
+    // stackpage = divRoundUp(size, PageSize)+1;
+
     size = numPages * PageSize;
 
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
@@ -171,7 +187,6 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 			noffH.code.size, noffH.code.inFileAddr);
     }
 
-    //method 2
     if (noffH.initData.size > 0) {
         DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);
@@ -212,7 +227,7 @@ AddrSpace::InitRegisters()
 	machine->WriteRegister(i, 0);
 
     // Initial program counter -- must be location of "Start"
-    machine->WriteRegister(PCReg, 0);	
+    machine->WriteRegister(PCReg, 0);
 
     // Need to also tell MIPS where next instruction is, because
     // of branch delay possibility

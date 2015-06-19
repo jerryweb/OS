@@ -14,7 +14,7 @@
 #define ADDRSPACE_H
 
 #include "copyright.h"
-#include "filesys.h"
+#include "../filesys/filesys.h"
 #include "table.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
@@ -31,16 +31,19 @@ class AddrSpace {
 
     void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
-
+    unsigned int getNumPages() { return numPages; }
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
     Table fileTable;			// Table of openfiles
+    Table* threadTable;
 
  private:
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
+    // int stackPage;  //stack page location of the threads
+    
 };
 
 #endif // ADDRSPACE_H

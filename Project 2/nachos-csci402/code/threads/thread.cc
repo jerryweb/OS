@@ -42,7 +42,6 @@ Thread::Thread(char* threadName)
     space = NULL;
 #endif
 }
-
 //----------------------------------------------------------------------
 // Thread::~Thread
 // 	De-allocate a thread.

@@ -192,6 +192,7 @@ Condition::Condition(char* debugName)
 Condition::~Condition()
 {
     delete waitList;
+    // delete waitLock;
 }
 void Condition::Wait(Lock* conditionLock)
 {

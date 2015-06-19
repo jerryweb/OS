@@ -50,9 +50,10 @@ struct KernelCondition
   bool isToBeDeleted;
 };
 
-void kernel_function(int pc){
+//table for processes
+Table* processTable;
 
-}
+int awakeThreadCount = 0;
 
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
@@ -259,16 +260,53 @@ void Close_Syscall(int fd) {
   //*********************//
  // New syscalls below. //
 //*********************//
-//This creates an address space for the thread from the parent process
-//Next give this thread its own set of stack pages. And finally, you must fork this new, ready-to-go thread with an internal Nachos kernel fork
-void Fork_Syscall(unsigned int vaddr, int arg)
-// (FORK)
+
+void kernel_function(int vaddr)
+// Sets up registers and stack space for a new thread.
 {
-    Thread* t = new Thread("");
-    // allocate memory
+    unsigned int addr = (unsigned int) vaddr;
+    // Set program counter to new program.
+    machine->WriteRegister(PCReg, addr);
+    machine->WriteRegister(NextPCReg, addr + 4);\
+    currentThread->space->RestoreState();
+    // Allocate stack pages? (pretty sure this isn't how to do it)
+
+    //currentThread->space->getNumPages() += 8;
+    machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 16);
+    // Run the new program.
+    machine->Run();
+}
+void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
+// Creates and runs a new thread:
+//  First, creates an address space for the thread from the parent process.
+//  Next, give this thread its own set of stack pages.
+//  Finally, fork new thread with an internal Nachos kernel fork.
+// If there is an error, will return without forking the new thread.
+{
+    char *buf = new char[len+1];	// Kernel buffer: filename
+
+    if (! buf)
+    {
+        printf("%s","Can't allocate kernel buffer in Exec\n");
+        return;
+    }
+
+    if( copyin(vaddr2, len, buf) == -1 )
+    {
+        printf("%s","Bad pointer passed to Exec\n");
+        delete[] buf;
+        return;
+    }
+
+    buf[len]='\0';
     
-    
-    t->Fork( (void (*)(int)) vaddr, arg);
+    Thread* t = new Thread(buf); // Create new thread.
+    t->space = currentThread->space; // Set the process to the currently running one.
+
+    // update thread table
+Thread->space->threadTable->Put(t);
+
+    t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
 int Exec_Syscall(unsigned int vaddr, int len)
@@ -293,6 +331,9 @@ int Exec_Syscall(unsigned int vaddr, int len)
     
     // create new address space
     
+
+    //add it to the process table
+    // processTable->put(space);
     return 0;
 }
 
@@ -330,6 +371,8 @@ void Acquire_Syscall(int id)
         else
         {
             kLock->lock->Acquire();
+            awakeThreadCount--;         //Decrements the number of 
+                                        // threads that are active
         }
     }
 
@@ -354,6 +397,7 @@ void Release_Syscall(int id)
         else
         {
             kLock->lock->Release();
+            awakeThreadCount++;                     //increment the number of active threads
         }
     }
 }
@@ -379,6 +423,8 @@ void Wait_Syscall(int id, int lockID)
         else
         {
             kCond->condition->Wait(kLock->lock);
+            awakeThreadCount++;                     //increment the number of active threads
+
         }
     }
 }
@@ -403,6 +449,8 @@ void Signal_Syscall(int id, int lockID)
         else
         {
             kCond->condition->Signal(kLock->lock);
+            awakeThreadCount++;                     //increment the number of active threads
+
         }
     }
 }
@@ -427,6 +475,7 @@ void Broadcast_Syscall(int id, int lockID)
         else
         {
             kCond->condition->Broadcast(kLock->lock);
+            //need to add the incrementer for the number of active threads
         }
     }
 }
@@ -436,7 +485,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 //  to by vaddr, with length len. If the lock is created successfully,
 //  it is placed in the kernel lock table and its index is returned.
 //  If there are any errors, -1 is returned.
-    char *buf = new char[len+1];	// Kernel buffer: name
+{   char *buf = new char[len+1];	// Kernel buffer: name
 
     if (! buf)
     {
@@ -496,16 +545,61 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     
     return CVTable->Put(kCond);
 }
+
 void DestroyLock_Syscall(int id)
 // (DESTROY LOCK)
 {
+    // bool threadWaitingForLock = false;
+
+    // This will set the flag for the request for the lock to be 
+    // deleted to true
+    
+    KernelLock* kLock = (KernelLock*) lockTable->Get(id);
+    
+    if(!kLock->isToBeDeleted){
+        kLock->isToBeDeleted = true;
+        printf("Syscall request to destroy lock %d\n", id);
+    }
+
+    if((kLock->lock->getWaitQueue()->IsEmpty() &&
+        kLock->lock->getReadyQueue()->IsEmpty() &&
+        kLock->isToBeDeleted) || (awakeThreadCount == 0)){
+
+        lockTable->lockAcquire();     // prevent lock corruption when 
+                                        // deleting the lock
+        printf("Syscall destroying lock %d\n", id);
+        kLock->lock = NULL;
+        kLock->owner = NULL;  
+
+        lockTable->lockRelease();
+    }
     
     
 }
 void DestroyCondition_Syscall(int id)
 // (DESTROY CONDITION)
 {
+    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     
+    if(!kCond->isToBeDeleted){
+        kCond->isToBeDeleted = true;
+        printf("Syscall request to destroy condition %d\n", id);
+    }
+
+    if((kCond->condition->getWaitList()->IsEmpty() 
+        && (kCond->condition->getWaitLock() == NULL)
+        && kCond->isToBeDeleted) || (awakeThreadCount == 0)){
+
+        CVTable->lockAcquire();   // prevent lock corruption when 
+                                    // deleting the condition
+        printf("Syscall destroying condition %d\n", id);
+        kCond->condition = NULL;
+        kCond->owner = NULL;
+
+        CVTable->lockRelease();
+    }
+
+
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
@@ -608,7 +702,8 @@ void ExceptionHandler(ExceptionType which) {
 	    case SC_Fork:
             DEBUG('a', "Fork syscall.\n");
             Fork_Syscall(machine->ReadRegister(4),
-                         machine->ReadRegister(5));
+                         machine->ReadRegister(5),
+                         machine->ReadRegister(6));
             break;
 	    case SC_Exec:
             DEBUG('a', "Exec syscall.\n");
