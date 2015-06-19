@@ -94,10 +94,10 @@ main(int argc, char **argv)
 	
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
-    argCount = 1;
+   //arCount = 1;
 	for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-    
-//#ifdef THREADS
+    argCount = 1;
+#ifdef THREADS
     if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
 		TestSuite();
 	} 
@@ -153,7 +153,7 @@ main(int argc, char **argv)
 	}
 
 	
-//#endif
+#endif
 
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);

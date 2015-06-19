@@ -304,7 +304,7 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     t->space = currentThread->space; // Set the process to the currently running one.
 
     // update thread table
-Thread->space->threadTable->Put(t);
+    t->space->threadTable->Put(t);
 
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
