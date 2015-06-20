@@ -13,7 +13,7 @@ Airport::Airport(){
     boardingLock = new Lock*[numAirlines];
 
 	for (i = 0; i < numAirlines; i++) {
-		airlines[i] = new Airline(i, 0, 0);
+		airlines[i] = new Airline(i, 0, 0, 0);
 		airlineLock[i] = new Lock("airlineLock");
         boardingQueue[i] = new List();
         boardingCV[i] = new Condition("boardingCV");
@@ -153,7 +153,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     
     for (i = 0; i < numAirlines; i++)
     {
-        airlines[i] = new Airline(i, NULL, 0);
+        airlines[i] = new Airline(i, 0, 0, 0);
         airlineLock[i] = new Lock("airlineLock");
     }
     

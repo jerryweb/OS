@@ -89,7 +89,9 @@ void CheckIn::StartCheckInStaff()
             }
             printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system\n",
                     id, airline);
+            pass = NULL;
             airport->conveyorLock->Release();
+            
             // Check if all passengers are processed, close if done.
         }    
             
@@ -109,7 +111,7 @@ void CheckIn::StartCheckInStaff()
         }
         
         airport->airlineLock[airline]->Acquire();
-        if (airport->airlines[airline]->seatsAssigned >= airport->airlines[airline]->ticketsIssued)//airport->RequestingCheckinData[id] == false)
+        if (airport->airlines[airline]->seatsAssigned >= airport->airlines[airline]->ticketsIssued)
         {
             airport->checkinLock[id]->Acquire();
             airport->checkinState[id] = CI_CLOSED;

@@ -6,10 +6,7 @@
 #include "time.h"
 #include "securityinspector.h"
 
-//#include "system.h"
-
-Passenger::Passenger(int ID, int airlineCode, Ticket T, List* bags,
-		Airport* A) {
+Passenger::Passenger(int ID, int airlineCode, Ticket T, List* bags, Airport* A) {
 	id = ID;
 	airline = airlineCode;
 	airport = A;
@@ -19,7 +16,6 @@ Passenger::Passenger(int ID, int airlineCode, Ticket T, List* bags,
 	securityPass = true;
 	isBoarding = false;
 	queueIndex = 0;
-
 }
 
 // Main constructor for the passenger. 
@@ -77,7 +73,7 @@ Passenger::~Passenger() {
 // minValue variables that are passed in
 //----------------------------------------------------------------------
 int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
-		bool Securityline) { //, //int *location, int *minValue){
+		bool Securityline) {
 	int location = 0;
 	int minValue = -1;	//this is the size and location of the smallest line
 
@@ -85,13 +81,11 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 		minValue = list[0]->Size();
 
 		for (int i = 0; i < 7; i++) {
-			//printf("Size: %d\n", list[i]->Size());
 			if (minValue < 0 || minValue > list[i]->Size()) {
 				minValue = list[i]->Size();
 				location = i;
 			}
 		}
-		//return location;						//Found a line
 	}
 
 	else if (CISline && !Screenline && !Securityline) {
@@ -105,11 +99,9 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 				location = i;
 			}
 		}
-		//return location;						//Found a line
 	}
 
 	else if (!CISline && Screenline && !Securityline) {
-		printf("size: %d\n", list[0]->Size());
 		for (int i = 0; i < airport->screenOfficerList->Size(); i++) {
 
 			if (minValue < 0 || minValue > list[i]->Size()) {
@@ -117,7 +109,6 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 				location = i;
 			}
 		}
-		//return location;
 	} else if (!CISline && !Screenline && Securityline) {
 		for (int i = 0; i < airport->securityInspectorList->Size(); i++) {
 			if (minValue < 0 || minValue > list[i]->Size()) {
@@ -125,8 +116,8 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 				location = i;
 			}
 		}
-		//return location;
 	}
+    
 	return location;
 }
 
@@ -141,23 +132,7 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 //----------------------------------------------------------------------
 void Passenger::findShortestLiaisonLine() {
 	int myLine = 0;
-// 	airport->liaisonLineLock->Acquire();																					
-// 		myLine = findShortestLine(airport->liaisonQueues, false, false);				// passenger will find shortest line
-
-// 		printf("Passenger %d chose liaison %d with a line length of %d\n", 
-// 			id, myLine, airport->liaisonQueues[myLine]->Size());
-// 		airport->liaisonQueues[myLine]->Append((void *)this);
-// 		if(airport->liaisonState[myLine] == L_BUSY){						// If the liaison is busy
-// 			//Wait in line
-// 						// add passenger to queue
-// 			//printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
-// 			airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock);
-// 		}
-// 		else
-// 			airport->liaisonLineLock->Release();
-
-// 		airport->liaisonLock[myLine]->Acquire();
-// =======
+    
 	airport->liaisonLineLock->Acquire();
 	myLine = findShortestLine(airport->liaisonQueues, false, false, true);// passenger will find shortest line
 
@@ -167,7 +142,6 @@ void Passenger::findShortestLiaisonLine() {
 	if (airport->liaisonState[myLine] == L_BUSY) {	// If the liaison is busy
 		//Wait in line
 		// add passenger to queue
-		//printf("Size: %d\n", airport->liaisonQueues[myLine]->Size());
 		airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock);
 	} else
 		airport->liaisonLineLock->Release();
@@ -191,9 +165,6 @@ void Passenger::Screening() {
 	int myLine = 0;
 	airport->screenQueuesLock->Acquire();
 	myLine = findShortestLine(airport->screenQueues, false, true, false);
-	/*printf(
-	 "Passenger %d is joining Screening officer's %d queue with length of %d\n",
-	 id, myLine, airport->screenQueues[myLine]->Size()); */
 
 	airport->screenQueues[myLine]->Append((void *) this);
 
@@ -203,15 +174,12 @@ void Passenger::Screening() {
 		airport->screenLocks[myLine]->Release();
 	}
 
-	//printf("******Passenger %d waiting in screening line*****\n",id);
 	airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
-	//printf(" passenger airport pointer: %p\n", airport);
-
+    
 	airport->screenLocks[myLine]->Acquire();
 
-	/*//Give bag to officer
-	 printf("Passenger %d gives the hand-luggage to screening officer %d\n", id,
-	 myLine);*/
+	// Give bag to officer
+	printf("Passenger %d gives the hand-luggage to screening officer %d\n", id, myLine);
 	airport->screenCV[myLine]->Signal(airport->screenLocks[myLine]);
 	airport->screenLocks[myLine]->Release();
 
@@ -223,11 +191,8 @@ void Passenger::Inspecting() {
 	srand(time(NULL));
 	int myLine = 0;
 	airport->securityQueuesLock->Acquire();
-	//myLine = findShortestLine(airport->securityQueues, false, false, true);
 	myLine = queueIndex;
 
-	/*printf("Passenger %d chose security %d with a line length of %d\n", id,
-	 myLine, airport->securityQueues[myLine]->Size());*/
 	//add passenger to the security line
 	airport->securityQueues[myLine]->Append((void *) this);
 
@@ -244,25 +209,8 @@ void Passenger::Inspecting() {
 	airport->securityQueuesCV[myLine]->Wait(airport->securityQueuesLock);
 
 	//if pass
-	if (securityPass) {
-		//tell inspector I acknowledge I can board now
-		airport->securityLocks[myLine]->Acquire();
-		airport->securityFinishCV[myLine]->Signal(airport->securityLocks[myLine]);
-		airport->securityLocks[myLine]->Release();
-
-		printf("*********************Passenger %d of Airline %d reached the gate %d\n", id, airline,
-				boardingPass.gate);
-
-		//add passenger himself to boarding queue
-		airport->boardingQueue[airline]->Append(this);
-
-		//for now, wait on endlock when I'm done
-		airport->boardingLock[airline]->Acquire();
-		airport->boardingCV[airline]->Wait(airport->boardingLock[airline]);
-		currentThread->Finish();
-
+	if (! securityPass) {
 		//If fail the check, go to questioning
-	} else {
 		printf("Passenger %d goes for further questioning\n", id);
 		//yield random cycles
 		int randNum = rand() % 5 + 1;
@@ -274,9 +222,7 @@ void Passenger::Inspecting() {
 		airport->securityQueuesLock->Acquire();
 		airport->returnQueues[myLine]->Append((void*) this);
 
-		printf(
-				"Passenger %d comes back to security inspector %d after further examination\n",
-				id, myLine);
+		printf("Passenger %d comes back to security inspector %d after further examination\n", id, myLine);
 
 		//wake up on break inspector
 		if (airport->securityState[myLine] == SC_FREE) {
@@ -290,23 +236,22 @@ void Passenger::Inspecting() {
 
 		//wait for inspector to clear my boarding status
 		airport->returnQueuesCV[myLine]->Wait(airport->securityQueuesLock);
+    }
+    
+    //tell inspector I acknowledge I can board now
+    airport->securityLocks[myLine]->Acquire();
+    airport->securityFinishCV[myLine]->Signal(airport->securityLocks[myLine]);
+    airport->securityLocks[myLine]->Release();
 
-		//tell inspector I acknowledge I can board now
-		airport->securityLocks[myLine]->Acquire();
-		airport->securityFinishCV[myLine]->Signal(airport->securityLocks[myLine]);
-		airport->securityLocks[myLine]->Release();
+    //add passenger himself to boarding queue
+    airport->boardingLock[airline]->Acquire();
+    printf("Passenger %d of Airline %d reached the gate %d\n", id, airline, airline);
+    airport->boardingQueue[airline]->Append(this);
 
-		printf("*****************Passenger %d of Airline %d reached the gate %d\n", id, airline,
-				boardingPass.gate);
-
-		//add passenger himself to boarding queue
-		airport->boardingQueue[airline]->Append(this);
-
-		//for now, wait on endlock when I'm done
-		airport->boardingLock[airline]->Acquire();
-		airport->boardingCV[airline]->Wait(airport->boardingLock[airline]);
-		currentThread->Finish();
-	}
+    //for now, wait on endlock when I'm done
+    airport->boardingCV[airline]->Wait(airport->boardingLock[airline]);
+    printf("Passenger %d of Airline %d boarded airline %d\n", id, airline, airline);
+    currentThread->Finish();
 }
 
 void Passenger::SetQueueIndex(int qIndex) {
@@ -331,27 +276,23 @@ bool Passenger::GetSecurityPass() {
 
 void Passenger::CheckIn() {
 	airport->checkinLineLock[airline]->Acquire();
-// Find the shortest line to get into. Default is executive.
+    // Find the shortest line to get into. Default is executive.
 	int checkInLine = airline * 6;
 	if (!ticket.executive) {
 		checkInLine = findShortestLine(airport->checkinQueues, true, false,
 				false);
 		;
-		printf(
-				"Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n",
+        printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n",
 				id, airline, checkInLine,
 				airport->checkinQueues[checkInLine]->Size());
 	} else {
-		printf(
-				"Passenger %d of Airline %d is waiting in the executive class line\n",
+		printf("Passenger %d of Airline %d is waiting in the executive class line\n",
 				id, airline);
 	}
 	airport->checkinQueues[checkInLine]->Append((void *) this);
 	airport->checkinLineCV[checkInLine]->Wait(
 			airport->checkinLineLock[airline]);
 	airport->checkinLineLock[airline]->Acquire();
-	printf("Passenger %d of Airline %d was informed to board at gate %d\n", id,
-			airline, boardingPass.gate);
 	airport->checkinLineLock[airline]->Release();
 
 	if (airport->screenOfficerList->Size() > 0)

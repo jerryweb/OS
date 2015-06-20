@@ -209,34 +209,41 @@ void ManagerTest() {
 	List* CargoHandlerTreadArray = new List();
 	List* SecurityInspectorThreadArray = new List();
 	List* ScreenOfficerThreadArray = new List();
-
-	//Generate Passengers each with seperate luggage and tickets 
+    
+    int* passengersPerAirline = new int[3];
+	int* bagsPerAirline = new int[3];
+	int* bagWeightPerAirline = new int[3];
+    
+    // Generate passengers, luggage, and airlines.
+	for (int a = 0; a < 3; a++) {
+		passengersPerAirline[a] = 0;
+		bagsPerAirline[a] = 0;
+		bagWeightPerAirline[a] = 0;
+	}
 	for (int i = 0; i < 20; i++) {
-		List* bagList = new List();
-
-		for (int j = 0; j < 3; j++) {
-			Luggage *bag = new Luggage;
-			bag->airlineCode = 2;
-			bag->weight = (30 + i * 2 + j) % 60;//weight ranges from 30 to 60lbs
-			bagList->Append((void *) bag);
-		}
-
-		//Varies the airline codes and executive class status for the passengers
 		Ticket ticket;
-		ticket.airline = i % 3;
-		airport->airlines[i % 3]->ticketsIssued++;
-		airport->airlines[i % 3]->totalBagCount += 3;
-		// if (i % 2 == 0)
-		// 	ticket.executive = true;
-		// else
-		ticket.executive = false;
-
-		Passenger *p = new Passenger(i, bagList, ticket, airport);
-		//Passenger(int ID, Ticket T,List* bags,Airport* A,SecurityInspector** INSPECTORLIST)
-		// Passenger *p = new Passenger(i,ticket,bagList,airport,sInspectors);
-		airport->passengerList->Append((void *) p);
-		Thread *t = new Thread("Passenger");
-		PassengerThreadArray->Append((void *) t);
+		int airline = rand() % 3;
+		passengersPerAirline[airline]++;
+		ticket.airline = airline;
+		ticket.executive = (rand() % 100 < 50);
+		int numBags = rand() % 2 + 2;
+		List* bags = new List();
+		for (int j = 0; j < numBags; j++) {
+			Luggage* l = new Luggage;
+			l->airlineCode = -1;
+			l->weight = rand() % 30 + 30;
+            bagsPerAirline[airline]++;
+            bagWeightPerAirline[airline] += l->weight;
+			bags->Append((void*) l);
+		}
+		Passenger* P = new Passenger(i, bags, ticket, airport);
+		airport->passengerList->Append((void*) P);
+		Thread* tP = new Thread("Passenger");
+		PassengerThreadArray->Append((void*) tP);
+	}
+	for (int i = 0; i < 3; i++) {
+		airport->airlines[i] = new Airline(i, passengersPerAirline[i],
+				bagsPerAirline[i], bagWeightPerAirline[i]);
 	}
 
 	//Generates Liaisons
@@ -343,17 +350,8 @@ void ManagerTest() {
 		tSI->Fork(StartInspecting, (int(SI)));
 	}
 
-	/*Fork all ScreenOfficer and SecurityInspector
-	 for (int i = 0; i < 3; i++) {
-	 ScreenOfficerThreadArray[i] = new Thread("ScreenOfficer");
-	 SecurityInspectorThreadArray[i] = new Thread("SecurityInspector");
-	 ScreenOfficerThreadArray[i]->Fork(StartScreening, (int(sOfficers[i])));
-	 SecurityInspectorThreadArray[i]->Fork(StartInspecting,
-	 (int(sInspectors[i])));
-	 }*/
-
 	Thread* tM = new Thread("Manager");
-	tM->Fork(StartManager, (int) manager);  //call MakeRounds()
+	tM->Fork(StartManager, (int) manager);
 }
 
 //----------------------------------------------------------------------
@@ -619,25 +617,8 @@ void ScreenTest() {
 
 	for (int i = 0; i < 6; i++) {
 		screenPassenger[i] = new Passenger(i, airport);
-		//airport->screenQueues[0]->Append(screenPassenger[i]);
 	}
-	//lines with dummy passengers
-	//security line 0 has size 1
-	//security line
-
-	//fill the security 1 has size 2
-	//security line 2 has size 3assenger(airport);
-
-	/*Passenger** dummyPassenger = new Passenger*[6];
-	 for (int i = 0; i < 6; i++) {
-	 dummyPassenger[i] = new P
-	 airport->securityQueues[0]->Append(dummyPassenger[0]);
-	 airport->securityQueues[1]->Append(dummyPassenger[1]);
-	 airport->securityQueues[1]->Append(dummyPassenger[2]);
-	 airport->securityQueues[2]->Append(dummyPassenger[3]);
-	 airport->securityQueues[2]->Append(dummyPassenger[4]);
-	 airport->securityQueues[2]->Append(dummyPassenger[5]); */
-
+    
 //spawning all the passenger and officer threads for the test,then fork them
 	Thread** passengerThreads = new Thread*[6];
 	for (int i = 0; i < 6; i++) {
@@ -656,50 +637,15 @@ void ScreenTest() {
 		inspectorThreads[i]->Fork(StartInspecting, (int(sInspector[i])));
 	}
 
-	printf("**********ScreeningTestStart***************\n");
-
 }
 
-/*
- //This tests the screeing officer's two interactions
- void ScreenTest() {
-
- Airport* airport = new Airport();
-
- Passenger* P = new Passenger(0, airport);
- Thread *t = new Thread("Passenger");
- airport->passengerList->Append((void *) P);
- //1st queue is the shortest
- int tempVariable = 4;
- for (int i = 0; i < 3; i++) {
-
- for (int j = 2; j > 0; j--) {
- airport->securityQueues[i]->Append((void *) tempVariable);
-
- }
-
- }
-
- airport->screenQueues[1]->Append((void *) tempVariable);
- airport->screenQueues[2]->Append((void *) tempVariable);
-
- ScreenOfficer* SO = new ScreenOfficer(0, airport);
-
- airport->screeningOfficerList->Append((void *) SO);
- Thread* tSO = new Thread("ScreeningOfficer");
-
- t->Fork(FindScreeningOfficer, (int) P);
- tSO->Fork(StartScreening, (int) tSO);
- } */
-
 void InspectTest() {
-	printf("Starting Security Inspector Test:\n\n");
 	Airport* airport = new Airport();
 
-//declare passenger array
+    //declare passenger array
 	Passenger** inspectPassenger = new Passenger*[3];
 
-//declare a single inspector
+    //declare a single inspector
 	SecurityInspector** sInspector = new SecurityInspector*[1];
 	sInspector[0] = new SecurityInspector(0, airport);
 	airport->securityInspectorList->Append((void *) sInspector[0]);
@@ -709,10 +655,9 @@ void InspectTest() {
 		bP.gate = i;
 		bP.seatNum = i * 5;
 		inspectPassenger[i] = new Passenger(i, airport, bP);
-		//airport->securityQueues[0]->Append(inspectPassenger[i]);
 	}
 
-//spwaning all the passenger and inspector threads for the test,then fork them
+    //spwaning all the passenger and inspector threads for the test,then fork them
 	Thread** passengerThreads = new Thread*[3];
 	for (int i = 0; i < 3; i++) {
 		passengerThreads[i] = new Thread("Passenger");
@@ -722,8 +667,6 @@ void InspectTest() {
 
 	Thread* inspectorThread = new Thread("Inspector");
 	inspectorThread->Fork(StartInspecting, (int(sInspector[0])));
-	printf(
-			"*******************threadtest code 710**************************\n");
 }
 void MTest() {
 	Airport* airport = new Airport(); // 3 airlines
@@ -852,23 +795,26 @@ void AirportSim() {
 // Initialize data classes and threads.
 	int* passengersPerAirline = new int[airlines];
 	int* bagsPerAirline = new int[airlines];
+	int* bagWeightPerAirline = new int[airlines];
 	for (i = 0; i < airlines; i++) {
 		passengersPerAirline[i] = 0;
 		bagsPerAirline[i] = 0;
+		bagWeightPerAirline[i] = 0;
 	}
 	for (i = 0; i < passengers; i++) {
 		Ticket ticket;
 		int airline = rand() % airlines;
 		passengersPerAirline[airline]++;
 		ticket.airline = airline;
-		ticket.executive = (bool) rand() % 2;
+		ticket.executive = (rand() % 100 < 50);
 		int numBags = rand() % 2 + 2;
-		bagsPerAirline[airline]++;
 		List* bags = new List();
 		for (int j = 0; j < numBags; j++) {
 			Luggage* l = new Luggage;
 			l->airlineCode = -1;
 			l->weight = rand() % 30 + 30;
+            bagsPerAirline[airline]++;
+            bagWeightPerAirline[airline] += l->weight;
 			bags->Append((void*) l);
 		}
 		Passenger* p = new Passenger(i, bags, ticket, airport);
@@ -878,7 +824,7 @@ void AirportSim() {
 	}
 	for (i = 0; i < airlines; i++) {
 		airport->airlines[i] = new Airline(i, passengersPerAirline[i],
-				bagsPerAirline[i]);
+				bagsPerAirline[i], bagWeightPerAirline[i]);
 	}
 	for (i = 0; i < liaisons; i++) {
 		Liaison* l = new Liaison(i, airport);

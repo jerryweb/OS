@@ -46,7 +46,6 @@ void Manager::MakeRounds() {
 		//keeps track of how many cargo handlers are on break
 
 		//Cargo handler interaction
-		//	printf("************In MakeRounds****************8\n");
 
 		airport->conveyorLock->Acquire();
 		if (!airport->conveyor->IsEmpty()) {
@@ -59,8 +58,7 @@ void Manager::MakeRounds() {
 			}
 			//If all handlers are on break, broadcast
 			if (counter == airport->cargoHandlerList->Size()) {
-				printf(
-						"Airport manager calls back all the cargo handlers from break\n");
+				printf("Airport manager calls back all the cargo handlers from break\n");
 
 				for (int i = 0; i < airport->cargoHandlerList->Size(); i++) {
 					airport->cargoLock[i]->Acquire();
@@ -88,27 +86,10 @@ void Manager::MakeRounds() {
 		for (int a = 0; a < airport->numAirlines; a++) {
 			if (!clearAirline[a]) {
 				airport->airlineLock[a]->Acquire();
-				if (securityInspectorPassengerCount[a]
-						>= airport->airlines[a]->ticketsIssued)
-				/*		&& airport->airlines[a]->seatsAssigned
-								>= airport->airlines[a]->ticketsIssued
-						&& liaisonPassengerCount[a]
-								>= airport->airlines[a]->ticketsIssued
-						&& checkinPassengerCount[a]
-								>= airport->airlines[a]->ticketsIssued
-						&& securityInspectorPassengerCount[a]
-								>= airport->airlines[a]->ticketsIssued
-						&& airport->boardingQueue[a]->Size()
-								>= airport->airlines[a]->ticketsIssued
-						&& liaisonBaggageCount[a]
-								>= airport->airlines[a]->totalBagCount
-						&& cargoHandlersBaggageCount[a]
-								>= airport->airlines[a]->totalBagCount
-						&& airport->aircraft[a]->Size()
-								>= airport->airlines[a]->totalBagCount)*/ { // Everything matches up.
-					printf(
-							"*****************Airport manager gives a boarding call to airline %d\n",
-							a);
+                printf("manager: checking airline %d; pass cleared = %d, tickets issued = %d; bags loaded = %d, bag count = %d\n", a, securityInspectorPassengerCount[a], airport->airlines[a]->ticketsIssued, airport->aircraft[a]->Size(), airport->airlines[a]->totalBagCount);
+				if (securityInspectorPassengerCount[a] >= airport->airlines[a]->ticketsIssued
+					&& airport->aircraft[a]->Size()    >= airport->airlines[a]->totalBagCount) {
+					printf("Airport manager gives a boarding call to airline %d\n", a);
 					airport->boardingLock[a]->Acquire();
 					airport->boardingCV[a]->Broadcast(airport->boardingLock[a]);
 					clearAirline[a] = true;
@@ -116,18 +97,40 @@ void Manager::MakeRounds() {
 					airport->boardingLock[a]->Release();
 				}
 				airport->airlineLock[a]->Release();
-				printf("******************manager line 109*********\n");
 			}
 		}
 
-		printf("*******clear airline count %d*******\n", clearAirlineCount);
-
 		if (clearAirlineCount == airport->numAirlines) {
+            
+            // Total passenger statistics
+            int totalLiaisonPassengers  = 0;
+            int totalCheckinPassengers  = 0;
+            int totalSecurityPassengers = 0;
+            for (int a = 0; a < airport->numAirlines; a++)
+            {
+                totalLiaisonPassengers  += liaisonPassengerCount[a];
+                totalCheckinPassengers  += checkinPassengerCount[a];
+                totalSecurityPassengers += securityInspectorPassengerCount[a];
+            }
+            printf("Passenger count reported by airport liaison = %d\n",        totalLiaisonPassengers  );
+            printf("Passenger count reported by airline check-in staff = %d\n", totalCheckinPassengers  );
+            printf("Passenger count reported by security inspector = %d\n",     totalSecurityPassengers );
+            
+            // Baggage statistics for each airline
+            for (int a = 0; a < airport->numAirlines; a++)
+            {
+                printf("From setup: Baggage count of airline %d = %d\n",                   a, airport->airlines[a]->totalBagCount  );
+                printf("From airport liaison: Baggage count of airline %d = %d\n",         a, liaisonBaggageCount[a]               );
+                printf("From cargo handlers: Baggage count of airline %d = %d\n",          a, cargoHandlersBaggageCount[a]         );
+                printf("From setup: Baggage weight of airline %d = %d\n",                  a, airport->airlines[a]->totalBagWeight );
+                printf("From airline check-in staff: Baggage weight of airline %d = %d\n", a, checkinBaggageWeight[a]              );
+                printf("From cargo handlers: Baggage weight of airline %d = %d\n",         a, cargoHandlersBaggageWeight[a]        );
+            }
+            
 			currentThread->Finish();
 		}
 
 		for (int i = 0; i < 50; i++) //this makes the manager give up the CPU otherwise he would hog the CPU
-			//	printf("*********manager yielding***********\n");
 			currentThread->Yield();
 
 	}
@@ -220,7 +223,6 @@ void Manager::CargoRequest(Cargo *CH) {
 			CH = (Cargo*) airport->cargoHandlerList->Remove();
 			airport->cargoHandlerList->Append((void *) CH);
 			airport->RequestingCargoData[CH->getID()] = true;
-			// airport->cargoCV->Broadcast(airport->cargoLock[i]);
 			airport->cargoDataCV[i]->Signal(airport->cargoLock[i]);
 			airport->cargoManagerCV[CH->getID()]->Wait(
 					airport->CargoHandlerManagerLock);

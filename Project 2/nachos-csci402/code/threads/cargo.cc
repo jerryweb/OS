@@ -27,17 +27,20 @@ void Cargo::StartCargo()
         if(airport->conveyor->IsEmpty())
         {   // Conveyor is empty, go on break (sleep).
             airport->cargoLock[id]->Acquire();
-            airport->cargoState[id] = C_BREAK;
-            //********temporally disbale following message for testing
-           //printf("Cargo Handler %d is going for a break\n", id);
+            if (airport->cargoState[id] != C_BREAK)
+            {
+                printf("Cargo Handler %d is going for a break\n", id);
+                airport->cargoState[id] = C_BREAK;
+            }
             airport->conveyorLock->Release();
-            // airport->cargoCV->Wait(airport->cargoLock);
             airport->cargoDataCV[id]->Wait(airport->cargoLock[id]);
-            //********temporally disbale following message for testing
-           // printf("Cargo Handler %d returned from break\n", id);
-            airport->cargoState[id] = C_BUSY;
+            if (! airport->conveyor->IsEmpty())
+            {
+                printf("Cargo Handler %d returned from break\n", id);
+                airport->cargoState[id] = C_BUSY;
+            }
         }
-        else
+        else if (airport->cargoState[id] == C_BUSY)
         {   // Process bag and load onto airplane.
             bag = (Luggage*)airport->conveyor->Remove();
             printf("Cargo Handler %d picked bag of airline %d weighing %d lbs\n",
