@@ -190,31 +190,29 @@ void Passenger::findShortestLiaisonLine() {
 void Passenger::Screening() {
 	int myLine = 0;
 	airport->screenQueuesLock->Acquire();
+	//find the shortest line of screening officers
 	myLine = findShortestLine(airport->screenQueues, false, true, false);
-	/*printf(
-	 "Passenger %d is joining Screening officer's %d queue with length of %d\n",
-	 id, myLine, airport->screenQueues[myLine]->Size()); */
 
+	//Append myself to the line
 	airport->screenQueues[myLine]->Append((void *) this);
 
+	//if current screen officer is on free wait siganl him
 	if (airport->screenState[myLine] == SO_FREE) {
 		airport->screenLocks[myLine]->Acquire();
 		airport->screenFreeCV[myLine]->Signal(airport->screenLocks[myLine]);
 		airport->screenLocks[myLine]->Release();
 	}
 
-	//printf("******Passenger %d waiting in screening line*****\n",id);
+	//wait for screen officer to do checking
 	airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
-	//printf(" passenger airport pointer: %p\n", airport);
 
 	airport->screenLocks[myLine]->Acquire();
 
-	/*//Give bag to officer
-	 printf("Passenger %d gives the hand-luggage to screening officer %d\n", id,
-	 myLine);*/
+	//send aknowledgement to screen officer
 	airport->screenCV[myLine]->Signal(airport->screenLocks[myLine]);
 	airport->screenLocks[myLine]->Release();
 
+	//proceed to security inspecting
 	if (!airport->securityInspectorList->IsEmpty())
 		Inspecting();
 }

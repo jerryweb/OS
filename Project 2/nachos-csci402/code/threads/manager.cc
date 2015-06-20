@@ -88,24 +88,29 @@ void Manager::MakeRounds() {
 		for (int a = 0; a < airport->numAirlines; a++) {
 			if (!clearAirline[a]) {
 				airport->airlineLock[a]->Acquire();
+			//	printf(
+			//			"**************Total Baggage Count for airline %d is %d*************\n",
+			//			a, cargoHandlersBaggageCount[a]);
 				if (securityInspectorPassengerCount[a]
-						>= airport->airlines[a]->ticketsIssued)
-				/*		&& airport->airlines[a]->seatsAssigned
-								>= airport->airlines[a]->ticketsIssued
-						&& liaisonPassengerCount[a]
-								>= airport->airlines[a]->ticketsIssued
-						&& checkinPassengerCount[a]
-								>= airport->airlines[a]->ticketsIssued
-						&& securityInspectorPassengerCount[a]
-								>= airport->airlines[a]->ticketsIssued
-						&& airport->boardingQueue[a]->Size()
-								>= airport->airlines[a]->ticketsIssued
-						&& liaisonBaggageCount[a]
-								>= airport->airlines[a]->totalBagCount
+						>= airport->airlines[a]->ticketsIssued
 						&& cargoHandlersBaggageCount[a]
-								>= airport->airlines[a]->totalBagCount
-						&& airport->aircraft[a]->Size()
-								>= airport->airlines[a]->totalBagCount)*/ { // Everything matches up.
+								>= airport->airlines[a]->totalBagCount)
+								/*		&& airport->airlines[a]->seatsAssigned
+								 >= airport->airlines[a]->ticketsIssued
+								 && liaisonPassengerCount[a]
+								 >= airport->airlines[a]->ticketsIssued
+								 && checkinPassengerCount[a]
+								 >= airport->airlines[a]->ticketsIssued
+								 && securityInspectorPassengerCount[a]
+								 >= airport->airlines[a]->ticketsIssued
+								 && airport->boardingQueue[a]->Size()
+								 >= airport->airlines[a]->ticketsIssued
+								 && liaisonBaggageCount[a]
+								 >= airport->airlines[a]->totalBagCount
+								 && cargoHandlersBaggageCount[a]
+								 >= airport->airlines[a]->totalBagCount
+								 && airport->aircraft[a]->Size()
+								 >= airport->airlines[a]->totalBagCount)*/{ // Everything matches up.
 					printf(
 							"*****************Airport manager gives a boarding call to airline %d\n",
 							a);
@@ -116,11 +121,9 @@ void Manager::MakeRounds() {
 					airport->boardingLock[a]->Release();
 				}
 				airport->airlineLock[a]->Release();
-				printf("******************manager line 109*********\n");
 			}
 		}
-
-		printf("*******clear airline count %d*******\n", clearAirlineCount);
+	//	printf("*******clear airline count %d*******\n", clearAirlineCount);
 
 		if (clearAirlineCount == airport->numAirlines) {
 			currentThread->Finish();
@@ -213,9 +216,12 @@ void Manager::CargoRequest(Cargo *CH) {
 		cargoHandlersBaggageCount[i] = 0;
 		cargoHandlersBaggageWeight[i] = 0;
 	}
-	for (int i = 0; i < airport->cargoHandlerList->Size(); i++) {
 
-		if (airport->cargoState[i] == C_BREAK) {
+	int cargoNum = airport->cargoHandlerList->Size();
+
+	for (int i = 0; i < cargoNum; i++) {
+
+		//if (airport->cargoState[i] == C_BREAK) {
 			airport->CargoHandlerManagerLock->Acquire();
 			CH = (Cargo*) airport->cargoHandlerList->Remove();
 			airport->cargoHandlerList->Append((void *) CH);
@@ -229,6 +235,7 @@ void Manager::CargoRequest(Cargo *CH) {
 			airport->cargoDataLock[CH->getID()]->Acquire();
 			//Records the total weight per airline and stores into an array
 			for (int k = 0; k < airport->numAirlines; k++) {
+				//printf("*****updating cargo count for cargohandler %d*********\n",i);
 				cargoHandlersBaggageWeight[k] += CH->getWeight(k);
 				cargoHandlersBaggageCount[k] += CH->getLuggage(k);
 			}
@@ -236,7 +243,7 @@ void Manager::CargoRequest(Cargo *CH) {
 			airport->cargoDataCV[CH->getID()]->Signal(
 					airport->cargoDataLock[CH->getID()]);
 			airport->cargoDataLock[CH->getID()]->Release();
-		}
+		//}
 
 	}
 }
@@ -251,6 +258,7 @@ void Manager::SecurityDataRequest(SecurityInspector *SI) {
 
 	SecurityInspector* si;
 	int securityNum = airport->securityInspectorList->Size();
+	//gather clear passenger count from all security inspector
 	for (int i = 0; i < securityNum; i++) {
 		si = (SecurityInspector*) airport->securityInspectorList->Remove();
 		int* count = si->getClearCount();

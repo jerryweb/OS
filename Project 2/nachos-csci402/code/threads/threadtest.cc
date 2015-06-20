@@ -215,7 +215,7 @@ void ManagerTest() {
 
 		for (int j = 0; j < 3; j++) {
 			Luggage *bag = new Luggage;
-			bag->airlineCode = 2;
+			bag->airlineCode = i % 3;
 			bag->weight = (30 + i * 2 + j) % 60;//weight ranges from 30 to 60lbs
 			bagList->Append((void *) bag);
 		}
