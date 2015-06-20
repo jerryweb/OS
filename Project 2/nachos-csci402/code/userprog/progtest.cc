@@ -27,6 +27,7 @@ StartProcess(char *filename)
 {
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
+   // BitMap *memMap;
 
     if (executable == NULL) {
     	printf("Unable to open file %s\n", filename);
@@ -34,6 +35,7 @@ StartProcess(char *filename)
     }
     
     space = new AddrSpace(executable);
+    //memMap = new BitMap;
 
     currentThread->space = space;
 

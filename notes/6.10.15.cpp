@@ -163,12 +163,13 @@ Memory Management
 		}
 		//DO NOT WORRY ABOUT PAGE BOUNDARIES WITH DATA AND CODE OVERLAPPING
 		//You will need to comment out the following two sections of code after the for loop. This is for uniprogramming
-		[copy code segment]	- executable->ReadAt(_/*where to read to*/,_/*how many bytes to read, nachos page is 128 bytes*/,_/*where to read from*/); //take one of these statements and put it in the for loop 
+		[copy code segment]	- executable->ReadAt(_/*where to read to*/,_/*how many bytes to read, nachos page is 128 bytes*/,_/*where to read from*/);
+		 //take one of these statements and put it in the for loop 
 		[copy init segment]
 
 
 		int ppn = memMap->Find();
-		mainMemroy[ppn * PageSize]		//This is used to access the physical memory data
+		mainMemory[ppn * PageSize]		//This is used to access the physical memory data
 
 
 	 Stack Cannot Be Shared

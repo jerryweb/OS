@@ -23,6 +23,9 @@
 #include "../threads/synch.h"
 
 extern "C" { int bzero(char *, int); };
+BitMap *memMap;
+
+
 
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
     table = new void *[size];
@@ -146,12 +149,14 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
+    DEBUG('a', "Initializing address space... size %d\n", 
+                    size);
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
                         // we need to increase the size
 						// to leave room for the stack
     // stackpage = divRoundUp(size, PageSize)+1;
 
-    size = numPages * PageSize;
+    size = numPages * PageSize; //page size is 128 bytes
 
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
@@ -163,36 +168,55 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 // first, set up the translation 
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
-	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = i;
-	pageTable[i].valid = TRUE;
-	pageTable[i].use = FALSE;
-	pageTable[i].dirty = FALSE;
-	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
-					// a separate page, we could set its 
-					// pages to be read-onl
+    	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+    	pageTable[i].physicalPage = i;
+    	pageTable[i].valid = TRUE;
+    	pageTable[i].use = FALSE;
+    	pageTable[i].dirty = FALSE;
+    	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
+    					// a separate page, we could set its 
+    					// pages to be read-only
+        int ppn = memMap->Find();
+       // memMap->Clear(ppn);
+
+        if (noffH.code.size > 0) {
+            DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+                noffH.code.virtualAddr, noffH.code.size);
+            executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
+                noffH.code.size, noffH.code.inFileAddr + i*PageSize);
+        }
+            if (noffH.initData.size > 0) {
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
+            noffH.initData.virtualAddr, noffH.initData.size);
+        executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
+            noffH.initData.size, noffH.initData.inFileAddr + i*PageSize);
+        }
+
     }
     
+    //int ppn = memMap->Find();   //physical page number
+    //memMap->Clear(ppn); 
+    //machine->mainMemory[ppn * PageSize];
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
     //need to delete this once we start using exec and the constructor gets called
     //more than once
-    bzero(machine->mainMemory, size);
+    //bzero(machine->mainMemory, size);
 
 // then, copy in the code and data segments into memory
-    if (noffH.code.size > 0) {
-        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
-			noffH.code.virtualAddr, noffH.code.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-			noffH.code.size, noffH.code.inFileAddr);
-    }
+   //  if (noffH.code.size > 0) {
+   //      DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+			// noffH.code.virtualAddr, noffH.code.size);
+   //      executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
+			// noffH.code.size, noffH.code.inFileAddr);
+   //  }
 
-    if (noffH.initData.size > 0) {
-        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
-			noffH.initData.virtualAddr, noffH.initData.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-			noffH.initData.size, noffH.initData.inFileAddr);
-    }
+   //  if (noffH.initData.size > 0) {
+   //      DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
+			// noffH.initData.virtualAddr, noffH.initData.size);
+   //      executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
+			// noffH.initData.size, noffH.initData.inFileAddr);
+   //  }
 
 }
 
