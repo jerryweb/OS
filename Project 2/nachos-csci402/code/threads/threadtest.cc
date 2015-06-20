@@ -232,8 +232,8 @@ void ManagerTest() {
 			Luggage* l = new Luggage;
 			l->airlineCode = -1;
 			l->weight = rand() % 30 + 30;
-            bagsPerAirline[airline]++;
-            bagWeightPerAirline[airline] += l->weight;
+            		bagsPerAirline[airline]++;
+            		bagWeightPerAirline[airline] += l->weight;
 			bags->Append((void*) l);
 		}
 		Passenger* P = new Passenger(i, bags, ticket, airport);

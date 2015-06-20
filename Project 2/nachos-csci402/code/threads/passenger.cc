@@ -164,10 +164,13 @@ void Passenger::findShortestLiaisonLine() {
 void Passenger::Screening() {
 	int myLine = 0;
 	airport->screenQueuesLock->Acquire();
+	//find the shortest line of screening officers
 	myLine = findShortestLine(airport->screenQueues, false, true, false);
 
+	//Append myself to the line
 	airport->screenQueues[myLine]->Append((void *) this);
 
+	//if current screen officer is on free wait siganl him
 	if (airport->screenState[myLine] == SO_FREE) {
 		airport->screenLocks[myLine]->Acquire();
 		airport->screenFreeCV[myLine]->Signal(airport->screenLocks[myLine]);
@@ -183,6 +186,7 @@ void Passenger::Screening() {
 	airport->screenCV[myLine]->Signal(airport->screenLocks[myLine]);
 	airport->screenLocks[myLine]->Release();
 
+	//proceed to security inspecting
 	if (!airport->securityInspectorList->IsEmpty())
 		Inspecting();
 }
