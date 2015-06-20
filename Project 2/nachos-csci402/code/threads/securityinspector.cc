@@ -121,7 +121,7 @@ void SecurityInspector::Inspect() {
 
 			//wait for confirmation from passeger
 			//correspond to passenger.cc line 240
-			airport->boardCV[id]->Wait(airport->securityLocks[id]);
+			airport->securityFinishCV[id]->Wait(airport->securityLocks[id]);
 			airport->securityQueuesLock->Acquire();
 
 			//update clear count here

@@ -37,6 +37,9 @@ class Manager {
         int* checkinPassengerCount;
         int* securityInspectorPassengerCount;
 
+        bool* clearAirline;
+        int clearAirlineCount;
+
 };
 
 #endif

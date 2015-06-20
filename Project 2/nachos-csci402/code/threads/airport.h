@@ -150,9 +150,8 @@ public:
     Condition** screenQueuesCV;
     Condition** returnQueuesCV;
     Condition** securityQueuesCV;
-    Condition** boardCV;
+    Condition** securityFinishCV;
     Condition** securityFreeCV;
-    //Condition** endCV;
 
 	//  Manager variables
     

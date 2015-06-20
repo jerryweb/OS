@@ -247,10 +247,10 @@ void Passenger::Inspecting() {
 	if (securityPass) {
 		//tell inspector I acknowledge I can board now
 		airport->securityLocks[myLine]->Acquire();
-		airport->boardCV[myLine]->Signal(airport->securityLocks[myLine]);
+		airport->securityFinishCV[myLine]->Signal(airport->securityLocks[myLine]);
 		airport->securityLocks[myLine]->Release();
 
-		printf("Passenger %d of Airline %d reached the gate %d\n", id, airline,
+		printf("*********************Passenger %d of Airline %d reached the gate %d\n", id, airline,
 				boardingPass.gate);
 
 		//add passenger himself to boarding queue
@@ -293,10 +293,10 @@ void Passenger::Inspecting() {
 
 		//tell inspector I acknowledge I can board now
 		airport->securityLocks[myLine]->Acquire();
-		airport->boardCV[myLine]->Signal(airport->securityLocks[myLine]);
+		airport->securityFinishCV[myLine]->Signal(airport->securityLocks[myLine]);
 		airport->securityLocks[myLine]->Release();
 
-		printf("Passenger %d of Airline %d reached the gate %d\n", id, airline,
+		printf("*****************Passenger %d of Airline %d reached the gate %d\n", id, airline,
 				boardingPass.gate);
 
 		//add passenger himself to boarding queue

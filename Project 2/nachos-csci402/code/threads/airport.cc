@@ -107,7 +107,7 @@ Airport::Airport(){
     screenQueuesCV = new Condition*[3];
     securityQueuesCV = new Condition*[3];
     returnQueuesCV = new Condition*[3];
-    boardCV = new Condition*[3];
+    securityFinishCV = new Condition*[3];
     screenFreeCV = new Condition*[3];
     securityFreeCV = new Condition*[3];
 
@@ -129,7 +129,7 @@ Airport::Airport(){
 
         screenCV[i] = new Condition("screenCV");
         screenFreeCV[i] = new Condition("screenFreeCV");
-        boardCV[i] = new Condition("boardCV");
+        securityFinishCV[i] = new Condition("securityFinishCV");
         securityFreeCV[i] = new Condition("securityFreeCV");
 
         screenQueuesCV[i] = new Condition("screenQueuesCV");
@@ -243,7 +243,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 	returnQueues = new List*[security];
 	screenLocks = new Lock*[security];
 	securityLocks = new Lock*[security];
-    boardCV = new Condition*[security];
+    securityFinishCV = new Condition*[security];
     screenCV = new Condition*[security];
 	for (i = 0; i < security; i++) {
 
@@ -253,7 +253,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 		screenLocks[i] = new Lock("screenLocks");
 		securityLocks[i] = new Lock("securityLocks");
 		screenCV[i] = new Condition("screenCV");
-        boardCV[i] = new Condition("boardCV");
+        securityFinishCV[i] = new Condition("securityFinishCV");
 	}
 }
 
@@ -277,5 +277,5 @@ Airport::~Airport() {
     delete[] securityLocks;
     delete securityQueuesLock;
     delete[] screenCV;
-    delete[] boardCV;
+    delete[] securityFinishCV;
 }

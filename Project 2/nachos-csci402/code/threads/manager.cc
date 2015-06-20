@@ -11,6 +11,12 @@ Manager::Manager(Airport* airport_) {
 	checkinPassengerCount = new int[airport->numAirlines];
 	securityInspectorPassengerCount = new int[airport->numAirlines];
 
+	clearAirline = new bool[airport->numAirlines];
+	for (int i = 0; i < (airport->numAirlines); i++) {
+		clearAirline[i] = false;
+	}
+	clearAirlineCount = 0;
+
 	//Prevent Garbage values
 }
 
@@ -80,33 +86,44 @@ void Manager::MakeRounds() {
 
 		// check for boarding announcement
 		for (int a = 0; a < airport->numAirlines; a++) {
-			airport->airlineLock[a]->Acquire();
-			if (securityInspectorPassengerCount[a]
-							>= airport->airlines[a]->ticketsIssued)
-			/*if (airport->airlines[a]->seatsAssigned
-					>= airport->airlines[a]->ticketsIssued
-					&& liaisonPassengerCount[a]
-							>= airport->airlines[a]->ticketsIssued
-					&& checkinPassengerCount[a]
-							>= airport->airlines[a]->ticketsIssued
-					&& securityInspectorPassengerCount[a]
-							>= airport->airlines[a]->ticketsIssued
-					&& airport->boardingQueue[a]->Size()
-							>= airport->airlines[a]->ticketsIssued
-					&& liaisonBaggageCount[a]
-							>= airport->airlines[a]->totalBagCount
-					&& cargoHandlersBaggageCount[a]
-							>= airport->airlines[a]->totalBagCount
-					&& airport->aircraft[a]->Size()
-							>= airport->airlines[a]->totalBagCount)*/ { // Everything matches up.
-				printf("*****************Airport manager gives a boarding call to airline %d\n",
-						a);
-				printf("******************manager line 104*********\n");
-				airport->boardingCV[a]->Broadcast(airport->boardingLock[a]);
-				printf("******************manager line 106*********\n");
+			if (!clearAirline[a]) {
+				airport->airlineLock[a]->Acquire();
+				if (securityInspectorPassengerCount[a]
+						>= airport->airlines[a]->ticketsIssued)
+				/*		&& airport->airlines[a]->seatsAssigned
+								>= airport->airlines[a]->ticketsIssued
+						&& liaisonPassengerCount[a]
+								>= airport->airlines[a]->ticketsIssued
+						&& checkinPassengerCount[a]
+								>= airport->airlines[a]->ticketsIssued
+						&& securityInspectorPassengerCount[a]
+								>= airport->airlines[a]->ticketsIssued
+						&& airport->boardingQueue[a]->Size()
+								>= airport->airlines[a]->ticketsIssued
+						&& liaisonBaggageCount[a]
+								>= airport->airlines[a]->totalBagCount
+						&& cargoHandlersBaggageCount[a]
+								>= airport->airlines[a]->totalBagCount
+						&& airport->aircraft[a]->Size()
+								>= airport->airlines[a]->totalBagCount)*/ { // Everything matches up.
+					printf(
+							"*****************Airport manager gives a boarding call to airline %d\n",
+							a);
+					airport->boardingLock[a]->Acquire();
+					airport->boardingCV[a]->Broadcast(airport->boardingLock[a]);
+					clearAirline[a] = true;
+					clearAirlineCount++;
+					airport->boardingLock[a]->Release();
+				}
+				airport->airlineLock[a]->Release();
+				printf("******************manager line 109*********\n");
 			}
-			airport->airlineLock[a]->Release();
-			printf("******************manager line 109*********\n");
+		}
+
+		printf("*******clear airline count %d*******\n", clearAirlineCount);
+
+		if (clearAirlineCount == airport->numAirlines) {
+			currentThread->Finish();
 		}
 
 		for (int i = 0; i < 50; i++) //this makes the manager give up the CPU otherwise he would hog the CPU
@@ -233,10 +250,11 @@ void Manager::SecurityDataRequest(SecurityInspector *SI) {
 	}
 
 	SecurityInspector* si;
-	for (int i = 0; i < (airport->securityInspectorList->Size()); i++) {
-		si = (SecurityInspector*)airport->securityInspectorList->Remove();
+	int securityNum = airport->securityInspectorList->Size();
+	for (int i = 0; i < securityNum; i++) {
+		si = (SecurityInspector*) airport->securityInspectorList->Remove();
 		int* count = si->getClearCount();
-		for (int j = 0; i < (airport->numAirlines); i++) {
+		for (int j = 0; j < (airport->numAirlines); j++) {
 			securityInspectorPassengerCount[j] += count[j];
 		}
 		airport->securityInspectorList->Append(si);
