@@ -179,6 +179,7 @@ void StartupOutput(Airport* airport) {
 			if (j != 0)
 				printf(", ");
 			Luggage* l = (Luggage*) bags->Remove();
+			bags->Append(l);
 			printf("%d", l->weight);
 		}
 		printf("\n");
