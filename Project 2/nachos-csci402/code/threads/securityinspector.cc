@@ -82,8 +82,7 @@ Passenger* SecurityInspector::CheckForPassengers() {
 
 			printf("Security inspector %d is suspicious of the passenger %d\n",
 					id, p->getID());
-			printf(
-					"Security inspector %d asks passenger %d to go for further examination\n",
+			printf("Security inspector %d asks passenger %d to go for further examination\n",
 					id, p->getID());
 
 		}
@@ -136,7 +135,7 @@ void SecurityInspector::Inspect() {
 			airport->securityQueuesLock->Release();
 
 		//if p = NULL, that means both normal and return queues are empty
-		//put mysel on break,potential manager code here
+		//put myself on break,potential manager code here
 		//passenger.cc code line
 		} else {
 			airport->securityQueuesLock->Release();

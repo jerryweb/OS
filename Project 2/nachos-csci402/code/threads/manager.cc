@@ -59,6 +59,7 @@ void Manager::PrintCount()
         printf("From airline check-in staff: Baggage weight of airline %d = %d\n", a, checkinBaggageWeight[a]              );
         printf("From cargo handlers: Baggage weight of airline %d = %d\n",         a, cargoHandlersBaggageWeight[a]        );
     }
+    printf("\n");
 }
 
 void Manager::MakeRounds() {
@@ -116,8 +117,6 @@ void Manager::MakeRounds() {
 		for (int a = 0; a < airport->numAirlines; a++) {
 			if (!clearAirline[a]) {
 				airport->airlineLock[a]->Acquire();
-                //printf("manager: checking airline %d; pass cleared = %d, tickets issued = %d; bags loaded = %d, bag count = %d\n", a, securityInspectorPassengerCount[a], airport->airlines[a]->ticketsIssued, airport->aircraft[a]->Size(), airport->airlines[a]->totalBagCount);
-                //PrintCount();
 				if (securityInspectorPassengerCount[a] >= airport->airlines[a]->ticketsIssued
 					&& airport->aircraft[a]->Size()    >= airport->airlines[a]->totalBagCount) {
 					printf("Airport manager gives a boarding call to airline %d\n", a);
@@ -249,7 +248,6 @@ void Manager::CargoRequest(Cargo *CH) {
 			airport->cargoDataLock[CH->getID()]->Acquire();
 			//Records the total weight per airline and stores into an array
 			for (int k = 0; k < airport->numAirlines; k++) {
-				//printf("*****updating cargo count for cargohandler %d*********\n",i);
 				cargoHandlersBaggageWeight[k] += CH->getWeight(k);
 				cargoHandlersBaggageCount[k] += CH->getLuggage(k);
 			}

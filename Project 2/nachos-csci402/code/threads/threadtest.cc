@@ -147,21 +147,9 @@ void StartupOutput(Airport* airport) {
 			airport->screenOfficerList->Size());
 	printf("Total number of passengers = %d\n", airport->passengerList->Size());
 
-	int* passengersPerAirline = new int[airport->numAirlines];
-	for (int i = 0; i < airport->numAirlines; i++) {
-		passengersPerAirline[i] = 0;
-	}
-	//Static counter for number of passengers per airline for 3 airlines
-	for (int i = 0; i < airport->passengerList->Size(); i++) {
-		Passenger *P = (Passenger*) airport->passengerList->Remove();
-		airport->passengerList->Append((void *) P);
-
-		passengersPerAirline[P->getTicket().airline];
-	}
-
 	for (int h = 0; h < airport->numAirlines; h++) {
 		printf("Number of passengers for airline %d = %d\n",
-				airport->airlines[h]->id, passengersPerAirline[h]);
+				airport->airlines[h]->id, airport->airlines[h]->ticketsIssued);
 	}
 
 	//This prints out the number bags and their weights for each passenger 
@@ -789,8 +777,8 @@ void AirportSim() {
 	}
 
 // Create a new airport using given numbers.
-	Airport* airport = new Airport(airlines, passengers, liaisons, checkins,
-			security, cargos);
+	Airport* airport = new Airport(airlines, passengers, liaisons, checkins, security, cargos);
+    printf("Airport created.\n");
 
 // Initialize data classes and threads.
 	int* passengersPerAirline = new int[airlines];
@@ -822,16 +810,19 @@ void AirportSim() {
 		Thread* t = new Thread("Passenger");
 		passengerThreadList->Append((void*) t);
 	}
+    printf("Passengers and luggage created.\n");
 	for (i = 0; i < airlines; i++) {
 		airport->airlines[i] = new Airline(i, passengersPerAirline[i],
 				bagsPerAirline[i], bagWeightPerAirline[i]);
 	}
+    printf("Airlines created.\n");
 	for (i = 0; i < liaisons; i++) {
 		Liaison* l = new Liaison(i, airport);
 		airport->liaisonList->Append((void*) l);
 		Thread* t = new Thread("Liaison");
 		liaisonThreadList->Append((void*) t);
 	}
+    printf("Liaisons created.\n");
 	for (i = 0; i < airlines * 6; i++) {
 		if (i % 6 != 0 && i % 6 <= checkins) {
 			CheckIn* ci = new CheckIn(i / 6, i, airport);
@@ -840,6 +831,7 @@ void AirportSim() {
 			checkinThreadList->Append((void*) t);
 		}
 	}
+    printf("Check-in staff created.\n");
 	for (i = 0; i < security; i++) {
 		// Screeners
 		ScreenOfficer* so = new ScreenOfficer(i, airport);
@@ -852,14 +844,17 @@ void AirportSim() {
 		Thread* ti = new Thread("SecurityInspector");
 		securityThreadList->Append((void*) ti);
 	}
+    printf("Screeners and security created.\n");
 	for (i = 0; i < cargos; i++) {
 		Cargo* c = new Cargo(i, airport);
 		airport->cargoHandlerList->Append((void*) c);
 		Thread* t = new Thread("Cargo");
 		cargoThreadList->Append((void*) t);
 	}
+    printf("Cargo handlers created.\n");
 	Manager* m = new Manager(airport);
 	Thread* tm = new Thread("Manager");
+    printf("Manager created.\n");
 
 // Display initial airport data.
 	StartupOutput(airport);
@@ -968,10 +963,10 @@ void MainMenu() {
 		InspectTest();
 		break;
 	case 9:
-		InspectTest();
+		MTest();
 		break;
 	case 10:
-		MTest();
+		InspectTest();
 		break;
 	case 11:
 		ManagerTest();

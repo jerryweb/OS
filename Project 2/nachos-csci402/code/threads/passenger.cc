@@ -134,7 +134,7 @@ void Passenger::findShortestLiaisonLine() {
 	int myLine = 0;
     
 	airport->liaisonLineLock->Acquire();
-	myLine = findShortestLine(airport->liaisonQueues, false, false, true);// passenger will find shortest line
+	myLine = findShortestLine(airport->liaisonQueues, false, false, false);// passenger will find shortest line
 
 	printf("Passenger %d chose liaison %d with a line length of %d\n", id,
 			myLine, airport->liaisonQueues[myLine]->Size());
@@ -159,6 +159,28 @@ void Passenger::findShortestLiaisonLine() {
 	if (airport->checkInStaffList->Size() > 0)
 		CheckIn();
 
+}
+
+void Passenger::CheckIn() {
+	airport->checkinLineLock[airline]->Acquire();
+    // Find the shortest line to get into. Default is executive.
+	int checkInLine = airline * 6;
+	if (!ticket.executive) {
+		checkInLine = findShortestLine(airport->checkinQueues, true, false, false);
+        printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n",
+				id, airline, checkInLine,
+				airport->checkinQueues[checkInLine]->Size());
+	} else {
+		printf("Passenger %d of Airline %d is waiting in the executive class line\n",
+				id, airline);
+	}
+	airport->checkinQueues[checkInLine]->Append((void *) this);
+	airport->checkinLineCV[checkInLine]->Wait(airport->checkinLineLock[airline]);
+
+	if (airport->screenOfficerList->Size() > 0)
+    {
+		Screening();
+    }
 }
 
 void Passenger::Screening() {
@@ -232,8 +254,7 @@ void Passenger::Inspecting() {
 		if (airport->securityState[myLine] == SC_FREE) {
 
 			airport->securityLocks[myLine]->Acquire();
-			airport->securityFreeCV[myLine]->Signal(
-					airport->securityLocks[myLine]);
+			airport->securityFreeCV[myLine]->Signal(airport->securityLocks[myLine]);
 			airport->securityLocks[myLine]->Release();
 
 		}
@@ -252,7 +273,7 @@ void Passenger::Inspecting() {
     printf("Passenger %d of Airline %d reached the gate %d\n", id, airline, airline);
     airport->boardingQueue[airline]->Append(this);
 
-    //for now, wait on endlock when I'm done
+    //wait for boarding announcement
     airport->boardingCV[airline]->Wait(airport->boardingLock[airline]);
     printf("Passenger %d of Airline %d boarded airline %d\n", id, airline, airline);
     currentThread->Finish();
@@ -278,27 +299,3 @@ bool Passenger::GetSecurityPass() {
 	return securityPass;
 }
 
-void Passenger::CheckIn() {
-	airport->checkinLineLock[airline]->Acquire();
-    // Find the shortest line to get into. Default is executive.
-	int checkInLine = airline * 6;
-	if (!ticket.executive) {
-		checkInLine = findShortestLine(airport->checkinQueues, true, false,
-				false);
-		;
-        printf("Passenger %d of Airline %d chose Airline Check-In staff %d with a line length %d\n",
-				id, airline, checkInLine,
-				airport->checkinQueues[checkInLine]->Size());
-	} else {
-		printf("Passenger %d of Airline %d is waiting in the executive class line\n",
-				id, airline);
-	}
-	airport->checkinQueues[checkInLine]->Append((void *) this);
-	airport->checkinLineCV[checkInLine]->Wait(
-			airport->checkinLineLock[airline]);
-	airport->checkinLineLock[airline]->Acquire();
-	airport->checkinLineLock[airline]->Release();
-
-	if (airport->screenOfficerList->Size() > 0)
-		Screening();
-}
