@@ -19,6 +19,7 @@ class Manager {
 	public:
 		Manager(Airport* airport);
 		~Manager();
+        void PrintCount();
 		void MakeRounds();
 		void LiaisonDataRequest(Liaison *L);
 		void CheckinDataRequest(CheckIn *C);

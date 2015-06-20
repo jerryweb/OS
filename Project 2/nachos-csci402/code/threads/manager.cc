@@ -10,10 +10,11 @@ Manager::Manager(Airport* airport_) {
 	liaisonPassengerCount = new int[airport->numAirlines];
 	checkinPassengerCount = new int[airport->numAirlines];
 	securityInspectorPassengerCount = new int[airport->numAirlines];
-
 	clearAirline = new bool[airport->numAirlines];
 	for (int i = 0; i < (airport->numAirlines); i++) {
 		clearAirline[i] = false;
+		checkinPassengerCount[i] = 0;
+		checkinBaggageWeight[i] = 0;
 	}
 	clearAirlineCount = 0;
 
@@ -29,6 +30,35 @@ Manager::~Manager() {
 	delete[] liaisonPassengerCount;
 	delete[] checkinPassengerCount;
 	delete[] securityInspectorPassengerCount;
+}
+
+void Manager::PrintCount()
+{
+    printf("\n");
+    // Total passenger statistics
+    int totalLiaisonPassengers  = 0;
+    int totalCheckinPassengers  = 0;
+    int totalSecurityPassengers = 0;
+    for (int a = 0; a < airport->numAirlines; a++)
+    {
+        totalLiaisonPassengers  += liaisonPassengerCount[a];
+        totalCheckinPassengers  += checkinPassengerCount[a];
+        totalSecurityPassengers += securityInspectorPassengerCount[a];
+    }
+    printf("Passenger count reported by airport liaison = %d\n",        totalLiaisonPassengers  );
+    printf("Passenger count reported by airline check-in staff = %d\n", totalCheckinPassengers  );
+    printf("Passenger count reported by security inspector = %d\n",     totalSecurityPassengers );
+    
+    // Baggage statistics for each airline
+    for (int a = 0; a < airport->numAirlines; a++)
+    {
+        printf("From setup: Baggage count of airline %d = %d\n",                   a, airport->airlines[a]->totalBagCount  );
+        printf("From airport liaison: Baggage count of airline %d = %d\n",         a, liaisonBaggageCount[a]               );
+        printf("From cargo handlers: Baggage count of airline %d = %d\n",          a, cargoHandlersBaggageCount[a]         );
+        printf("From setup: Baggage weight of airline %d = %d\n",                  a, airport->airlines[a]->totalBagWeight );
+        printf("From airline check-in staff: Baggage weight of airline %d = %d\n", a, checkinBaggageWeight[a]              );
+        printf("From cargo handlers: Baggage weight of airline %d = %d\n",         a, cargoHandlersBaggageWeight[a]        );
+    }
 }
 
 void Manager::MakeRounds() {
@@ -87,6 +117,7 @@ void Manager::MakeRounds() {
 			if (!clearAirline[a]) {
 				airport->airlineLock[a]->Acquire();
                 //printf("manager: checking airline %d; pass cleared = %d, tickets issued = %d; bags loaded = %d, bag count = %d\n", a, securityInspectorPassengerCount[a], airport->airlines[a]->ticketsIssued, airport->aircraft[a]->Size(), airport->airlines[a]->totalBagCount);
+                //PrintCount();
 				if (securityInspectorPassengerCount[a] >= airport->airlines[a]->ticketsIssued
 					&& airport->aircraft[a]->Size()    >= airport->airlines[a]->totalBagCount) {
 					printf("Airport manager gives a boarding call to airline %d\n", a);
@@ -101,30 +132,7 @@ void Manager::MakeRounds() {
 		}
 		if (clearAirlineCount == airport->numAirlines) {
             
-            // Total passenger statistics
-            int totalLiaisonPassengers  = 0;
-            int totalCheckinPassengers  = 0;
-            int totalSecurityPassengers = 0;
-            for (int a = 0; a < airport->numAirlines; a++)
-            {
-                totalLiaisonPassengers  += liaisonPassengerCount[a];
-                totalCheckinPassengers  += checkinPassengerCount[a];
-                totalSecurityPassengers += securityInspectorPassengerCount[a];
-            }
-            printf("Passenger count reported by airport liaison = %d\n",        totalLiaisonPassengers  );
-            printf("Passenger count reported by airline check-in staff = %d\n", totalCheckinPassengers  );
-            printf("Passenger count reported by security inspector = %d\n",     totalSecurityPassengers );
-            
-            // Baggage statistics for each airline
-            for (int a = 0; a < airport->numAirlines; a++)
-            {
-                printf("From setup: Baggage count of airline %d = %d\n",                   a, airport->airlines[a]->totalBagCount  );
-                printf("From airport liaison: Baggage count of airline %d = %d\n",         a, liaisonBaggageCount[a]               );
-                printf("From cargo handlers: Baggage count of airline %d = %d\n",          a, cargoHandlersBaggageCount[a]         );
-                printf("From setup: Baggage weight of airline %d = %d\n",                  a, airport->airlines[a]->totalBagWeight );
-                printf("From airline check-in staff: Baggage weight of airline %d = %d\n", a, checkinBaggageWeight[a]              );
-                printf("From cargo handlers: Baggage weight of airline %d = %d\n",         a, cargoHandlersBaggageWeight[a]        );
-            }
+            PrintCount();
             
 			currentThread->Finish();
 		}
@@ -176,10 +184,13 @@ void Manager::LiaisonDataRequest(Liaison *L) {
 }
 
 void Manager::CheckinDataRequest(CheckIn *C) {
-	//Gather data from liaisons 
-	for (int i = 0; i < airport->numAirlines; i++) {	//prevents multicounting
-		checkinPassengerCount[i] = 0;
-		checkinBaggageWeight[i] = 0;
+	//Gather data from check-in staff: special case, because check-in can close
+	int* newCheckinBaggageWeight  = new int[airport->numAirlines];
+	int* newCheckinPassengerCount = new int[airport->numAirlines];
+	for (int i = 0; i < airport->numAirlines; i++)
+    {
+		newCheckinPassengerCount[i] = 0;
+		newCheckinBaggageWeight[i] = 0;
 	}
 
 	for (int j = 0; j < airport->checkInStaffList->Size(); j++) {
@@ -195,18 +206,23 @@ void Manager::CheckinDataRequest(CheckIn *C) {
 					airport->checkinLock[C->getID()]);
 			airport->checkinManagerCV->Wait(airport->checkinManagerLock);
 
-			//Waits for the signal of corresponding Liaison
+			//Waits for the signal of corresponding CheckIn
 			airport->checkinLock[C->getID()]->Acquire();
 			//Records the number of passengers per airline and stores into an array
-			checkinPassengerCount[C->getAirline()] += C->getPassengers();
-			checkinBaggageWeight[C->getAirline()] += C->getLuggageWeight();
-
-			//Signals liaison that all the data has been collected
+			newCheckinPassengerCount[C->getAirline()] += C->getPassengers();
+			newCheckinBaggageWeight[C->getAirline()]  += C->getLuggageWeight();
+            
+			//Signals checkin that all the data has been collected
 			airport->checkinCV[C->getID()]->Signal(
 					airport->checkinLock[C->getID()]);
 			airport->checkinLock[C->getID()]->Release();
 		}
 
+	}
+	for (int i = 0; i < airport->numAirlines; i++)
+    {
+		if (newCheckinPassengerCount[i] > checkinPassengerCount[i]) checkinPassengerCount[i] = newCheckinPassengerCount[i];
+		if (newCheckinBaggageWeight[i]  > checkinBaggageWeight[i])  checkinBaggageWeight[i]  = newCheckinBaggageWeight[i];
 	}
 }
 
@@ -229,7 +245,7 @@ void Manager::CargoRequest(Cargo *CH) {
 			airport->cargoManagerCV[CH->getID()]->Wait(
 					airport->CargoHandlerManagerLock);
 
-			//Waits for the signal of corresponding Liaison
+			//Waits for the signal of corresponding Cargo
 			airport->cargoDataLock[CH->getID()]->Acquire();
 			//Records the total weight per airline and stores into an array
 			for (int k = 0; k < airport->numAirlines; k++) {
@@ -237,7 +253,7 @@ void Manager::CargoRequest(Cargo *CH) {
 				cargoHandlersBaggageWeight[k] += CH->getWeight(k);
 				cargoHandlersBaggageCount[k] += CH->getLuggage(k);
 			}
-			//Signals liaison that all the data has been collected
+			//Signals cargo that all the data has been collected
 			airport->cargoDataCV[CH->getID()]->Signal(
 					airport->cargoDataLock[CH->getID()]);
 			airport->cargoDataLock[CH->getID()]->Release();
