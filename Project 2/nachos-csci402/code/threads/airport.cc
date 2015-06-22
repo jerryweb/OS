@@ -173,7 +173,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 		RequestingLiaisonData[i] = false;
 		liaisonCV[i] = new Condition("liaisonCV");
 		liaisonLock[i] = new Lock("liaisonLock");
-		if (liaisons >= i) liaisonState[i] = L_NONE;
+		if (liaisons <= i) liaisonState[i] = L_NONE;
         else               liaisonState[i] = L_BUSY;
 	}
 
@@ -216,7 +216,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 	CargoHandlerManagerLock = new Lock("CargoHandlerManagerLock");
 	cargoCV = new Condition("cargoCV");
 	for (i = 0; i < 10; i++) {
-		if (cargos >= i) cargoState[i] = C_NONE;
+		if (cargos <= i) cargoState[i] = C_NONE;
         else             cargoState[i] = C_BUSY;
 		cargoDataCV[i] = new Condition("cargoDataCV");
 		cargoManagerCV[i] = new Condition("cargoManagerCV");
