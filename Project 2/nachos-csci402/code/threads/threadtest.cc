@@ -333,7 +333,7 @@ void ManagerTest() {
 	for (int i = SecurityInspectorThreadArray->Size(); i > 0; i--) {
 		SecurityInspector *SI =
 				(SecurityInspector*) airport->securityInspectorList->Remove();
-		airport->securityInspectorList->Append(SI);
+		airport->securityInspectorList->Append((void *)SI);
 		Thread* tSI = (Thread*) SecurityInspectorThreadArray->Remove();
 		tSI->Fork(StartInspecting, (int(SI)));
 	}
@@ -400,7 +400,7 @@ void LiaisonTest() {
 	Passenger* p0 = new Passenger(0, ticket);
 
 	// Add passengers to queue.
-	airport->liaisonQueues[0]->Append(p0);
+	airport->liaisonQueues[0]->Append((void *)p0);
 
 	// Create Liaison class.
 	Liaison* l = new Liaison(0, airport);
@@ -443,8 +443,8 @@ void PassengerFindsCorrectCISLine() {
 	for (int i = 0; i < 6; i++) {
 		for (int j = 0; j < cisLineLengths[i]; j++) {
 			Passenger* p = new Passenger();
-			airport->checkinQueues[i]->Append(p);
-			airport->passengerList->Append(p);
+			airport->checkinQueues[i]->Append((void *)p);
+			airport->passengerList->Append((void *)p);
 		}
 	}
 
@@ -465,11 +465,11 @@ void PassengerFindsCorrectCISLine() {
 	// Create passenger classes.
 
 	Passenger* p0 = new Passenger(0, ticket0, 0, airport);
-	airport->passengerList->Append(p0);
+	airport->passengerList->Append((void *)p0);
 	Passenger* p1 = new Passenger(1, ticket1, 0, airport);
-	airport->passengerList->Append(p1);
+	airport->passengerList->Append((void *)p1);
 	Passenger* p2 = new Passenger(2, ticket2, 0, airport);
-	airport->passengerList->Append(p2);
+	airport->passengerList->Append((void *)p2);
 
 	// Create threads.
 	Thread* t0 = new Thread("Passenger0");
@@ -502,9 +502,9 @@ void CheckInTest() {
 	Passenger* p2 = new Passenger(2);
 
 	// Add passengers to queues.
-	airport->checkinQueues[0]->Append(p0);
-	airport->checkinQueues[1]->Append(p1);
-	airport->checkinQueues[1]->Append(p2);
+	airport->checkinQueues[0]->Append((void *)p0);
+	airport->checkinQueues[1]->Append((void *)p1);
+	airport->checkinQueues[1]->Append((void *)p2);
 
 	// Create CIS class.
 	CheckIn* ci = new CheckIn(0, 1, airport);
@@ -589,41 +589,90 @@ void CargoTest() {
 
 void ScreenTest() {
 	Airport* airport = new Airport();
-
+	List* PassengerThreadArray = new List();
+	List* SecurityInspectorThreadArray = new List();
+	List* ScreenOfficerThreadArray = new List();
 	//declare passenger array
-	Passenger** screenPassenger = new Passenger*[6];
+	// Passenger** screenPassenger = new Passenger*[6];
 
 	//declare a single officer
-	ScreenOfficer** sOfficer = new ScreenOfficer*[3];
-	SecurityInspector** sInspector = new SecurityInspector*[3];
-	for (int i = 0; i < 3; i++) {
-		sOfficer[i] = new ScreenOfficer(i, airport);
-		airport->screenOfficerList->Append((void *) sOfficer[i]);
-		sInspector[i] = new SecurityInspector(i, airport);
-		airport->securityInspectorList->Append(sInspector[i]);
-	}
+	// ScreenOfficer** sOfficer = new ScreenOfficer*[3];
+	// SecurityInspector** sInspector = new SecurityInspector*[3];
+
 
 	for (int i = 0; i < 6; i++) {
-		screenPassenger[i] = new Passenger(i, airport);
+		Passenger* P = new Passenger(i, airport);
+		airport->passengerList->Append((void*) P);
+		// screenPassenger[i] = new Passenger(i, airport);
+		// airport->passengerList->Append((void *)screenPassenger[i] );
+		Thread* tP = new Thread("Passenger");
+		PassengerThreadArray->Append((void*) tP);
+	}
+
+		//generates Screening Officers
+	for (int s = 0; s < 3; s++) {
+		ScreenOfficer* SO = new ScreenOfficer(s, airport);
+		airport->screenOfficerList->Append((void *) SO);
+		Thread* tSO = new Thread("Screening Officer");
+		ScreenOfficerThreadArray->Append((void *) tSO);
+	}
+
+	//generates security inspectors
+	for (int i = 0; i < 3; i++) {
+		SecurityInspector* SI = new SecurityInspector(i, airport);
+		airport->securityInspectorList->Append(SI);
+		Thread* tSI = new Thread("Security Inspector");
+		SecurityInspectorThreadArray->Append(tSI);
 	}
     
+	// for (int i = 0; i < 3; i++) {
+	// 	sOfficer[i] = new ScreenOfficer(i, airport);
+	// 	airport->screenOfficerList->Append((void *) sOfficer[i]);
+	// 	sInspector[i] = new SecurityInspector(i, airport);
+	// 	airport->securityInspectorList->Append((void *)sInspector[i]);
+	// }
 //spawning all the passenger and officer threads for the test,then fork them
-	Thread** passengerThreads = new Thread*[6];
-	for (int i = 0; i < 6; i++) {
-		passengerThreads[i] = new Thread("Passenger");
-		passengerThreads[i]->Fork(StartScreeningTest,
-				(int(screenPassenger[i])));
+	// Thread** passengerThreads = new Thread*[6];
+	// for (int i = 0; i < 6; i++) {
+	// 	passengerThreads[i] = new Thread("Passenger");
+	// 	passengerThreads[i]->Fork(StartScreeningTest,
+	// 			(int(screenPassenger[i])));
+	// }
+
+	for (int i = PassengerThreadArray->Size(); i > 0; i--) {
+		Passenger *P = (Passenger*) airport->passengerList->Remove();
+		// airport->passengerList->Remove();
+		airport->passengerList->Append((void *) P);
+		Thread *t = (Thread*) PassengerThreadArray->Remove();
+		// PassengerThreadArray->Remove();
+		t->Fork(StartScreeningTest, (int(P)));
 	}
 
-	Thread** officerThreads = new Thread*[3];
-	Thread** inspectorThreads = new Thread*[3];
-
-	for (int i = 0; i < 3; i++) {
-		officerThreads[i] = new Thread("Officer");
-		officerThreads[i]->Fork(StartScreening, (int(sOfficer[i])));
-		inspectorThreads[i] = new Thread("Inspector");
-		inspectorThreads[i]->Fork(StartInspecting, (int(sInspector[i])));
+	for (int p = ScreenOfficerThreadArray->Size(); p > 0; p--) {
+		ScreenOfficer *SO =
+				(ScreenOfficer*) airport->screenOfficerList->Remove();
+		airport->screenOfficerList->Append((void *) SO);
+		Thread* tSO = (Thread*) ScreenOfficerThreadArray->Remove();
+		tSO->Fork(StartScreening, (int(SO)));
 	}
+
+	for (int i = SecurityInspectorThreadArray->Size(); i > 0; i--) {
+		SecurityInspector *SI =
+				(SecurityInspector*) airport->securityInspectorList->Remove();
+		airport->securityInspectorList->Append((void *)SI);
+		Thread* tSI = (Thread*) SecurityInspectorThreadArray->Remove();
+		tSI->Fork(StartInspecting, (int(SI)));
+	}
+
+	// Thread** officerThreads = new Thread*[3];
+	// Thread** inspectorThreads = new Thread*[3];
+
+	// for (int i = 0; i < 3; i++) {
+	// 	officerThreads[i] = new Thread("Officer");
+	// 	officerThreads[i]->Fork(StartScreening, (int(sOfficer[i])));
+	// 	inspectorThreads[i] = new Thread("Inspector");
+	// 	inspectorThreads[i]->Fork(StartInspecting, (int(sInspector[i])));
+	// }
 
 }
 

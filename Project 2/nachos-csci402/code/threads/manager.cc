@@ -276,31 +276,37 @@ void Manager::SecurityDataRequest(SecurityInspector *SI) {
 	//gather clear passenger count from all security inspector
 
 	for (int i = 0; i < securityNum; i++){ 
-		airport->securityMangerLock->Acquire();
-
 		SI = (SecurityInspector*) airport->securityInspectorList->Remove();
 		airport->securityInspectorList->Append(SI);
-		printf("Requesting data from inspector %d\n", SI->getID());
-		airport->RequestingInspectorData[SI->getID()] = true;
-		airport->securityFreeCV[SI->getID()]->Signal(
-			airport->securityLocks[SI->getID()]);
 
-		airport->securityManagerCV[SI->getID()]->Wait(airport->securityMangerLock);
-			//Waits for the signal of corresponding inspector		
-		airport->securityLocks[SI->getID()]->Acquire();
+		//if(airport->securityState[SI->getID()] == SC_FREE){
+			airport->securityMangerLock->Acquire();
 
-		int* count = SI->getClearCount();
-		for (int j = 0; j < (airport->numAirlines); j++) {
-			securityInspectorPassengerCount[j] += count[j];
-			printf("inspector %d passenger count for airline %d is %d\n", 
-				SI->getID(), j, securityInspectorPassengerCount[j]);
-		}
+
+			airport->RequestingInspectorData[SI->getID()] = true;
+			airport->securityFreeCV[SI->getID()]->Signal(
+				airport->securityLocks[SI->getID()]);
+			printf("Requesting data from inspector %d\n", SI->getID());
+			airport->securityManagerCV[SI->getID()]->Wait(airport->securityMangerLock);
+				//Waits for the signal of corresponding inspector		
+			airport->securityLocks[SI->getID()]->Acquire();
+
+			int* count = SI->getClearCount();
+			for (int j = 0; j < (airport->numAirlines); j++) {
+				securityInspectorPassengerCount[j] += count[j];
+
+				printf("inspector %d passenger count for airline %d is %d\n", 
+					SI->getID(), j, securityInspectorPassengerCount[j]);
+			}
+
+			//Signals liaison that all the data has been collected
+			printf("Finished collecting data from inspector %d\n", SI->getID());
+			airport->securityFreeCV[SI->getID()]->Signal(
+					airport->securityLocks[SI->getID()]);
+			airport->securityLocks[SI->getID()]->Release();
+		//}
+
 	}
 
-	//Signals liaison that all the data has been collected
-	printf("Finished collecting data from inspector %d\n", SI->getID());
-	airport->securityFreeCV[SI->getID()]->Signal(
-			airport->securityLocks[SI->getID()]);
-	airport->securityLocks[SI->getID()]->Release();
 
 }

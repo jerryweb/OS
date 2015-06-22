@@ -151,7 +151,9 @@ void Passenger::findShortestLiaisonLine() {
 
 	//Give liaison information
 	airport->liaisonCV[myLine]->Signal(airport->liaisonLock[myLine]);
-	airport->liaisonLock[myLine]->Release();
+	//wait for liaison confirmation
+	airport->liaisonCV[myLine]->Wait(airport->liaisonLock[myLine]);
+
 
 	printf("Passenger %d of Airline %d is directed to the airline counter.\n",
 			id, airline);
@@ -192,22 +194,28 @@ void Passenger::Screening() {
 
 	//Append myself to the line
 	airport->screenQueues[myLine]->Append((void *) this);
-
-	//if current screen officer is on free wait siganl him
-	if (airport->screenState[myLine] == SO_FREE) {
-		airport->screenLocks[myLine]->Acquire();
-		airport->screenFreeCV[myLine]->Signal(airport->screenLocks[myLine]);
-		airport->screenLocks[myLine]->Release();
+	printf("Passenger %d is getting into Screening officer %d line\n", id, myLine);
+	//if current screen officer is busy then wait
+	if (airport->screenState[myLine] == SO_BUSY) {
+		printf("passenger %d waiting for available screening %d\n", id, myLine);
+		
+		airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
+		// airport->screenLocks[myLine]->Acquire();
+		// airport->screenFreeCV[myLine]->Signal(airport->screenLocks[myLine]);
+		// airport->screenLocks[myLine]->Release();
+	}
+	else{
+		// airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
+		airport->screenQueuesLock->Release();
 	}
 
-	airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
-    
 	airport->screenLocks[myLine]->Acquire();
 
 	// Give bag to officer
 	printf("Passenger %d gives the hand-luggage to screening officer %d\n", id, myLine);
 	airport->screenCV[myLine]->Signal(airport->screenLocks[myLine]);
-	airport->screenLocks[myLine]->Release();
+	airport->screenCV[myLine]->Wait(airport->screenLocks[myLine]);
+
 
 	//proceed to security inspecting
 	if (!airport->securityInspectorList->IsEmpty())
@@ -216,9 +224,9 @@ void Passenger::Screening() {
 
 void Passenger::Inspecting() {
 	srand(time(NULL));
-	int myLine = 0;
+	int myLine = queueIndex;
 	airport->securityQueuesLock->Acquire();
-	myLine = queueIndex;
+	//myLine = queueIndex;
 
 	//add passenger to the security line
 	airport->securityQueues[myLine]->Append((void *) this);
