@@ -347,8 +347,18 @@ void Yield_Syscall()
 void Exit_Syscall(int status)
 // (EXIT)
 {
-    // currentThread->Finish();
-
+    /*
+    if last thread in process
+        if last process
+            stop nachos
+            interrupt->Halt(c);
+        else
+            reclaim all memory
+    else
+        reclaim stack
+            clear
+            pageTableEntry - valid
+    */
 }
 
 void Acquire_Syscall(int id)

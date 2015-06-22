@@ -75,13 +75,15 @@ Passenger::~Passenger() {
 int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 		bool Securityline) {
 	int location = 0;
-	int minValue = -1;	//this is the size and location of the smallest line
+	int minValue = airport->passengerList->Size();
 
 	if (!CISline && !Screenline && !Securityline) {
 		minValue = list[0]->Size();
 
 		for (int i = 0; i < 7; i++) {
-			if (minValue < 0 || minValue > list[i]->Size()) {
+			if ((minValue < 0 || minValue > list[i]->Size()) &&
+                airport->liaisonState[i] != L_NONE)
+            {
 				minValue = list[i]->Size();
 				location = i;
 			}
@@ -90,11 +92,10 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 
 	else if (CISline && !Screenline && !Securityline) {
 		int CIS_ID = airline * 6 + 1;
-		minValue = airport->passengerList->Size();
 		for (int i = CIS_ID; i < CIS_ID + 5; i++) {
-			if (minValue < 0
-					|| minValue > list[i]->Size()
-							&& airport->checkinState[i] != CI_CLOSED) {
+			if ((minValue < 0 || minValue > list[i]->Size()) && 
+				(airport->checkinState[i] != CI_CLOSED || airport->checkinState[i] != CI_NONE))
+            {
 				minValue = list[i]->Size();
 				location = i;
 			}
