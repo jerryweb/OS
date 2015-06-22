@@ -89,12 +89,13 @@ Airport::Airport(){
 	}
 
 	//Screen & Security Variables
-
+    RequestingInspectorData = new bool[3];
 	screenOfficerList = new List();
 	securityInspectorList = new List();
 
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
+    securityMangerLock =  new Lock("securityMangerLock");
 
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
@@ -110,15 +111,16 @@ Airport::Airport(){
     securityFinishCV = new Condition*[3];
     screenFreeCV = new Condition*[3];
     securityFreeCV = new Condition*[3];
+    securityManagerCV = new Condition*[3];
 
     //endLock = new Lock("endLock");
     //endCV = new Condition*[3];
-
 	for (i = 0; i < 3; i++) {
 		screenLocks[i] = new Lock("screenLocks");
        
 		securityLocks[i] = new Lock("securityLocks");
         
+        RequestingInspectorData[i] = false;
 
         screenState[i] = SO_BUSY;   // Array of states for each liaison.
         securityState[i] = SC_BUSY;
@@ -131,6 +133,7 @@ Airport::Airport(){
         screenFreeCV[i] = new Condition("screenFreeCV");
         securityFinishCV[i] = new Condition("securityFinishCV");
         securityFreeCV[i] = new Condition("securityFreeCV");
+        securityManagerCV[i] = new Condition("securityManagerCV");
 
         screenQueuesCV[i] = new Condition("screenQueuesCV");
         securityQueuesCV[i] = new Condition("securityQueuesCV");
@@ -161,7 +164,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     passengerList = new List();
 
     // Liaison variables
-    RequestingLiaisonData = new bool[7];
+    RequestingLiaisonData = new bool[liaisons];
     liaisonManagerLock = new Lock("liaisonManagerLock");
     liaisonLineLock = new Lock("liaisonLineLock");
     liaisonManagerCV = new Condition("liaisonManagerCV");
@@ -210,7 +213,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     }
 
     // Cargo variables
-    RequestingCargoData = new bool[10];
+    RequestingCargoData = new bool[cargos];
     cargoHandlerList = new List();
     conveyor = new List();
     conveyorLock = new Lock("conveyorLock");
@@ -234,10 +237,14 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     }
 
 	//Screen & Security Variables
+    RequestingInspectorData = new bool[security];
+
     screenOfficerList = new List();
     securityInspectorList = new List();
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
+    securityMangerLock =  new Lock("securityMangerLock");
+
 	screenQueues = new List*[security];
 	securityQueues = new List*[security];
 	returnQueues = new List*[security];
@@ -245,8 +252,12 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 	securityLocks = new Lock*[security];
     securityFinishCV = new Condition*[security];
     screenCV = new Condition*[security];
+    securityManagerCV = new Condition*[security];
+
 	for (i = 0; i < security; i++) {
 
+        securityManagerCV[i] = new Condition("securityManagerCV");
+        RequestingInspectorData[i] = false;
 		screenQueues[i] = new List;
 		securityQueues[i] = new List;
 		returnQueues[i] = new List;

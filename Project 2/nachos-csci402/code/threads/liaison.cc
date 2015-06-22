@@ -91,7 +91,7 @@ void Liaison::DirectPassengers(){
                 airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
                 airport->liaisonManagerLock->Release();
                 airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-                // //Wait for manager to signal that all the data has been collected
+                // Wait for manager to signal that all the data has been collected
                 airport->RequestingLiaisonData[id] = false;
         }
         

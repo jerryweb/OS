@@ -27,6 +27,9 @@ public:
 	bool* RequestingCargoData;      // Array of booleans that inform the
 									// Cargo Handlers if the manager wants data
 	bool* RequestingCheckinData;
+
+	bool* RequestingInspectorData;
+
 	Lock* screenLineLock;
 	Airline** airlines;             // Array of airlines. Index is
 									//  airline ID.
@@ -140,6 +143,7 @@ public:
 	Lock** securityLocks; //Array of locks for security lines (each inspector has a lock)
 						  //index corresponds to inspector id
 
+	Lock* securityMangerLock; 
 
 
 
@@ -152,6 +156,8 @@ public:
     Condition** securityQueuesCV;
     Condition** securityFinishCV;
     Condition** securityFreeCV;
+    Condition** securityDataCV;
+    Condition** securityManagerCV;
 
 	//  Manager variables
     
