@@ -154,7 +154,7 @@ void Passenger::findShortestLiaisonLine() {
 	airport->liaisonLock[myLine]->Release();
 
 	printf("Passenger %d of Airline %d is directed to the airline counter.\n",
-			id, ticket.airline);
+			id, airline);
 
 	//Links to next interaction at the checkin counter
 	if (airport->checkInStaffList->Size() > 0)
