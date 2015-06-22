@@ -348,16 +348,25 @@ void Exit_Syscall(int status)
 // (EXIT)
 {
     /*
-    if last thread in process
-        if last process
+    AddrSpace* space = currentThread->space;
+    if (space->threadTable->Size() == 1)
+    {
+        if (processTable->Size() == 1)
+        {
             stop nachos
             interrupt->Halt(c);
+        }
         else
+        {
             reclaim all memory
+        }
+    }
     else
-        reclaim stack
-            clear
-            pageTableEntry - valid
+    {
+        reclaim stack:
+            clear memory in bitmap
+            set pageTableEntry to valid
+    }
     */
 }
 

@@ -22,6 +22,7 @@ class Table {
     void *Remove(int);
     void lockAcquire();
     void lockRelease();
+    int Size() { return size; }
 };
 
 
