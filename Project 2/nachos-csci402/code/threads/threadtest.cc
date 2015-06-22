@@ -208,7 +208,7 @@ void ManagerTest() {
 		bagsPerAirline[a] = 0;
 		bagWeightPerAirline[a] = 0;
 	}
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 1; i++) {
 		Ticket ticket;
 		int airline = rand() % 3;
 		passengersPerAirline[airline]++;
@@ -600,7 +600,7 @@ void ScreenTest() {
 	// SecurityInspector** sInspector = new SecurityInspector*[3];
 
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 9; i++) {
 		Passenger* P = new Passenger(i, airport);
 		airport->passengerList->Append((void*) P);
 		// screenPassenger[i] = new Passenger(i, airport);

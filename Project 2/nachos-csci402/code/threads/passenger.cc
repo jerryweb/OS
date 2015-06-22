@@ -214,10 +214,11 @@ void Passenger::Screening() {
 	airport->screenCV[myLine]->Signal(airport->screenLocks[myLine]);
 	airport->screenCV[myLine]->Wait(airport->screenLocks[myLine]);
 
+	
 
 	//proceed to security inspecting
-	//if (!airport->securityInspectorList->IsEmpty())
-		//Inspecting();
+	// if (!airport->securityInspectorList->IsEmpty())
+	// 	Inspecting();
 }
 
 void Passenger::Inspecting() {

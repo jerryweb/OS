@@ -67,7 +67,6 @@ void ScreenOfficer::Screen() {
 	bool luggageTest = true;      //for storing hand luggage test result
 	
 	while (true) {
-		printf("%d asdfggggas\n", id);
 		airport->screenQueuesLock->Acquire();
 
 		//this function do the checking and return the pointer
@@ -78,9 +77,10 @@ void ScreenOfficer::Screen() {
 		
 		if (p != NULL) {
 			//wait for passenger's bags
-			printf("%d aaa\n", id);
 			airport->screenCV[id]->Wait(airport->screenLocks[id]);
 			//wait for confirmation that passenger has given bags and moved to inspector
+			
+
 			airport->screenLocks[id]->Acquire();
 			//do hand luggage test, assume 20% chance fail
 			int randNum = rand() % 100 + 1;
@@ -103,7 +103,7 @@ void ScreenOfficer::Screen() {
 			airport->securityQueuesLock->Acquire();
 			//inform passenger the index of next secuirty inspector
 			p->SetQueueIndex(securityIndex);
-			airport->securityQueues[securityIndex]->Append((void *) p);
+			//airport->securityQueues[securityIndex]->Append((void *) p);
 			//this needs to be changed
 			p->SetSecurityPass(luggageTest);
 			
@@ -114,6 +114,7 @@ void ScreenOfficer::Screen() {
 			// airport->screenQueuesCV[id]->Signal(airport->screenQueuesLock);
 			//after confirmation from passenger procced to next loop
 			airport->securityQueuesLock->Release();
+			airport->screenCV[id]->Signal(airport->screenLocks[id]);
 			airport->screenLocks[id]->Release();
 
 		}
@@ -121,11 +122,10 @@ void ScreenOfficer::Screen() {
 		else {
 			// airport->screenQueuesLock->Release();
 			//airport->screenLocks[id]->Acquire();
-			printf("size of my %d queue is %d\n", id, airport->screenQueues[id]->Size());
+			// printf("size of my %d queue is %d\n", id, airport->screenQueues[id]->Size());
 
 			airport->screenCV[id]->Wait(airport->screenLocks[id]);
 		}
-		printf("%d asdfas\n", id);
 	}
 }
 

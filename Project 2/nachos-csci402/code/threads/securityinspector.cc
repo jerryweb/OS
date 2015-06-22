@@ -151,12 +151,12 @@ void SecurityInspector::Inspect() {
 			airport->securityLocks[id]->Acquire();
 			airport->securityManagerCV[id]->Signal(airport->securityMangerLock);
 			airport->securityMangerLock->Release();
-			printf("Giving manager data from inspector %d\n", id);
+			// printf("Giving manager data from inspector %d\n", id);
 			airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
 
 			//Wait for manager to signal that all the data has been passed
 			airport->RequestingInspectorData[id] = false;
-			printf("Manager has confirmed that he has finished recieving my data (inspector %d)\n", id);
+			// printf("Manager has confirmed that he has finished recieving my data (inspector %d)\n", id);
 		}
 	}
 }
