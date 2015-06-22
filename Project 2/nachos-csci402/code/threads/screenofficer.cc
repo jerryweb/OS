@@ -18,8 +18,15 @@ Passenger* ScreenOfficer::CheckForPassengers() {
 
 	//if my line has passenger waiting
 	if (!airport->screenQueues[id]->IsEmpty()) {
+		airport->screenState[id] = SO_BUSY;
 		//start handling the current passenger
+		airport->screenQueuesLock->Acquire();
 		P = (Passenger*) airport->screenQueues[id]->Remove();
+		airport->screenQueuesLock->Release();
+
+		// Give bag to officer
+		printf("Passenger %d gives the hand-luggage to screening officer %d\n",
+				P->getID(), id);
 
 		//do hand luggage test, assume 20% chance fail
 		int randNum = rand() % 100 + 1;
@@ -30,10 +37,12 @@ Passenger* ScreenOfficer::CheckForPassengers() {
 
 		//make decision based on test result
 		if (luggageTest) {
-            printf("Screening officer %d is suspicious of the hand luggage of passenger %d\n",
-                    id, P->getID());
+			printf(
+					"Screening officer %d is suspicious of the hand luggage of passenger %d\n",
+					id, P->getID());
 		} else {
-            printf("Screening officer %d is not suspicious of the hand luggage of passenger %d\n",
+			printf(
+					"Screening officer %d is not suspicious of the hand luggage of passenger %d\n",
 					id, P->getID());
 		}
 
@@ -43,18 +52,19 @@ Passenger* ScreenOfficer::CheckForPassengers() {
 				false, true);
 		//inform passenger the index of next secuirty inspector
 		P->SetQueueIndex(securityIndex);
-		printf("Screening officer %d directs passenger %d to security inspector %d\n",
+		P->SetSecurityPass(luggageTest);
+		printf(
+				"Screening officer %d directs passenger %d to security inspector %d\n",
 				id, P->getID(), securityIndex);
 		airport->securityQueuesLock->Release();
 
 		//signal passenger to proceed
-		airport->screenQueuesCV[id]->Signal(airport->screenQueuesLock);
-		airport->screenState[id] = SO_BUSY;
+		airport->screenQueuesCV[id]->Signal(airport->screenLocks[id]);
 
-	//if no passenger in line set state to free
+		//if no passenger in line set state to free
 	} else {
-		P = NULL;
 		airport->screenState[id] = SO_FREE;
+		P = NULL;
 	}
 
 	return P;
@@ -66,15 +76,13 @@ void ScreenOfficer::Screen() {
 	srand(time(NULL));
 
 	while (true) {
-		airport->screenQueuesLock->Acquire();
+		airport->screenLocks[id]->Acquire();
 
 		//this function do the checking and return the pointer
 		//points to current passenger if available
 		p = CheckForPassengers();
 
 		if (p != NULL) {
-			airport->screenQueuesLock->Release();
-			airport->screenLocks[id]->Acquire();
 			//wait for passenger's acknowledgement
 			airport->screenCV[id]->Wait(airport->screenLocks[id]);
 			//after confirmation from passenger procced to next loop
@@ -82,11 +90,8 @@ void ScreenOfficer::Screen() {
 
 		//if p = NULL then wait on free condition
 		else {
-			airport->screenQueuesLock->Release();
-			airport->screenLocks[id]->Acquire();
 			airport->screenFreeCV[id]->Wait(airport->screenLocks[id]);
 		}
-
 	}
 }
 

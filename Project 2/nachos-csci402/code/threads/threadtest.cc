@@ -591,7 +591,7 @@ void ScreenTest() {
 	Airport* airport = new Airport();
 
 	//declare passenger array
-	Passenger** screenPassenger = new Passenger*[6];
+	Passenger** screenPassenger = new Passenger*[5];
 
 	//declare a single officer
 	ScreenOfficer** sOfficer = new ScreenOfficer*[3];
@@ -603,13 +603,13 @@ void ScreenTest() {
 		airport->securityInspectorList->Append(sInspector[i]);
 	}
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 5; i++) {
 		screenPassenger[i] = new Passenger(i, airport);
 	}
     
 //spawning all the passenger and officer threads for the test,then fork them
-	Thread** passengerThreads = new Thread*[6];
-	for (int i = 0; i < 6; i++) {
+	Thread** passengerThreads = new Thread*[5];
+	for (int i = 0; i < 5; i++) {
 		passengerThreads[i] = new Thread("Passenger");
 		passengerThreads[i]->Fork(StartScreeningTest,
 				(int(screenPassenger[i])));
