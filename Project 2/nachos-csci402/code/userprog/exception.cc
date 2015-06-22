@@ -271,15 +271,17 @@ void kernel_function(int vaddr)
 
     //currentThread->space->getNumPages() += 8;
     machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 16);
+
     // Run the new program.
     machine->Run();
 }
+
 void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
 // Creates and runs a new thread in the current process. If there
 //  is an error, will return without forking the new thread.
 {
     char *buf = new char[len+1];	// Kernel buffer: filename
-
+    
     if (! buf)
     {
         printf("%s","Can't allocate kernel buffer in Exec\n");
@@ -297,6 +299,11 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
+    //reallocate the page table
+    // TranslationEntry* oldPageTable = t->space->getPageTable();
+    // TranslationEntry* newPageTable =
+    //  new TranslationEntry[t->space->getNumPages() + ]
+    t->space->setNewPageTable();
 
     // update thread table
     t->space->threadTable->Put(t);
@@ -304,13 +311,14 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
-void exec_thread()
+void exec_thread(int n)
 {
     /* Initialize the register by using currentThread->space. */
     currentThread->space->InitRegisters();
     currentThread->space->RestoreState();
     machine->Run();
 }
+
 int Exec_Syscall(unsigned int vaddr, int len)
 // Creates a new process and its kernel thread, and returns
 //  the id of the process in the global processTable. Returns
@@ -333,7 +341,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
 
     buf[len]='\0';
     
-    OpenFile* fileHandle = filesystem->Open(buf);
+    OpenFile* fileHandle = fileSystem->Open(buf);
     
     AddrSpace* p = new AddrSpace(fileHandle);
     Thread* t = new Thread("Kernel thread");

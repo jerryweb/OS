@@ -42,8 +42,9 @@
 
 #ifdef USER_PROGRAM
 #include "machine.h"
-#include "addrspace.h"
 #endif
+
+class AddrSpace;
 
 // CPU register state to be saved on context switch.  
 // The SPARC and MIPS only need 10 registers, but the Snake needs 18.

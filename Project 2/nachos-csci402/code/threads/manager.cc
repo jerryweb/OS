@@ -307,6 +307,4 @@ void Manager::SecurityDataRequest(SecurityInspector *SI) {
 		}
 
 	}
-
-
 }

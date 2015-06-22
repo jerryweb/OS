@@ -73,7 +73,8 @@ Passenger::~Passenger() {
 // minValue variables that are passed in
 //----------------------------------------------------------------------
 int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
-		bool Securityline) {
+		bool Securityline) 
+{
 	int location = 0;
 	int minValue = airport->passengerList->Size();
 
@@ -217,8 +218,8 @@ void Passenger::Screening() {
 	
 
 	//proceed to security inspecting
-	// if (!airport->securityInspectorList->IsEmpty())
-	// 	Inspecting();
+	if (!airport->securityInspectorList->IsEmpty())
+		Inspecting();
 }
 
 void Passenger::Inspecting() {

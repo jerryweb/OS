@@ -208,7 +208,7 @@ void ManagerTest() {
 		bagsPerAirline[a] = 0;
 		bagWeightPerAirline[a] = 0;
 	}
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 20; i++) {
 		Ticket ticket;
 		int airline = rand() % 3;
 		passengersPerAirline[airline]++;

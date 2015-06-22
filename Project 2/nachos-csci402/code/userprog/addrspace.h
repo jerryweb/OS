@@ -22,6 +22,8 @@
 #define MaxOpenFiles 256
 #define MaxChildSpaces 256
 
+class TranslationEntry;
+
 class AddrSpace {
   public:
     AddrSpace(OpenFile *executable);	// Create an address space,
@@ -34,12 +36,16 @@ class AddrSpace {
     unsigned int getNumPages() { return numPages; }
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
+    
     Table fileTable;			// Table of openfiles
     Table* threadTable;
+    TranslationEntry* getPageTable() { return pageTable; }
+    void setNewPageTable(bool adding);
 
  private:
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
+    // int codeSize;
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
     // int stackPage;  //stack page location of the threads

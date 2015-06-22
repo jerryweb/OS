@@ -226,6 +226,7 @@ void Condition::Wait(Lock* conditionLock)
     interrupt->SetLevel(old);
     // conditionLock->Acquire();
 }
+
 void Condition::Signal(Lock* conditionLock)
 {
     //printf("%s signals %s\n", currentThread->getName(), name);

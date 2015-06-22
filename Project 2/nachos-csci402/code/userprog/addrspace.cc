@@ -136,8 +136,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     //Keep track of all of the threads that belong to the process
     threadTable = new Table(numOfThreads);
-    // stackPage =;
-
+\
     // Don't allocate the input or output to disk files
     fileTable.Put(0);
     fileTable.Put(0);
@@ -149,12 +148,11 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
-    DEBUG('a', "Initializing address space... size %d\n", 
-                    size);
+    DEBUG('a', "Initializing address space... size %d\n", size);
+
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
                         // we need to increase the size
 						// to leave room for the stack
-    // stackpage = divRoundUp(size, PageSize)+1;
 
     size = numPages * PageSize; //page size is 128 bytes
 
@@ -166,32 +164,24 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
 // first, set up the translation 
+    int ppn = 0;
     pageTable = new TranslationEntry[numPages];
+
     for (i = 0; i < numPages; i++) {
-    	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-    	pageTable[i].physicalPage = i;
+    	ppn = memMap->Find();
+        
+        pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+    	pageTable[i].physicalPage = ppn; //ppn not i
     	pageTable[i].valid = TRUE;
     	pageTable[i].use = FALSE;
     	pageTable[i].dirty = FALSE;
     	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
     					// a separate page, we could set its 
     					// pages to be read-only
-        int ppn = memMap->Find();
-       // memMap->Clear(ppn);
-
-        if (noffH.code.size > 0) {
             DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
                 noffH.code.virtualAddr, noffH.code.size);
             executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
-                noffH.code.size, noffH.code.inFileAddr + i*PageSize);
-        }
-            if (noffH.initData.size > 0) {
-        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
-            noffH.initData.virtualAddr, noffH.initData.size);
-        executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
-            noffH.initData.size, noffH.initData.inFileAddr + i*PageSize);
-        }
-
+                PageSize, noffH.code.inFileAddr + i*PageSize);
     }
     
     //int ppn = memMap->Find();   //physical page number
@@ -241,6 +231,48 @@ AddrSpace::~AddrSpace()
 //	will be saved/restored into the currentThread->userRegisters
 //	when this thread is context switched out.
 //----------------------------------------------------------------------
+
+void
+AddrSpace::setNewPageTable(){
+    //unsigned int tempNumPages = numPages;
+    //unsigned int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
+    unsigned int previousNumPages = numPages;
+    numPages += divRoundUp(UserStackSize,PageSize); //decrement on exit
+    TranslationEntry *tempTable = new TranslationEntry[numPages];
+
+    int ppn = 0;
+    //copy over old Page Table data
+    for (unsigned int i = 0; i < previousNumPages; i++) {
+        
+        tempTable[i].virtualPage = pageTable[i].virtualPage;   // for now, virtual page # = phys page #
+        tempTable[i].physicalPage = pageTable[i].physicalPage; //ppn not i
+        tempTable[i].valid = pageTable[i].valid;
+        tempTable[i].use = pageTable[i].use;
+        tempTable[i].dirty = pageTable[i].dirty;
+        tempTable[i].readOnly = pageTable[i].readOnly;  // if the code segment was entirely on 
+                        // a separate page, we could set its 
+                        // pages to be read-only
+
+    }
+
+
+    for (unsigned int i = previousNumPages; i < numPages; ++i)
+    {
+        ppn = memMap->Find();
+        
+        tempTable[i].virtualPage = i;   // for now, virtual page # = phys page #
+        tempTable[i].physicalPage = ppn; //ppn not i
+        tempTable[i].valid = TRUE;
+        tempTable[i].use = FALSE;
+        tempTable[i].dirty = FALSE;
+        tempTable[i].readOnly = FALSE;
+    }
+
+    delete pageTable; 
+    pageTable = tempTable;
+
+    RestoreState();
+}
 
 void
 AddrSpace::InitRegisters()
