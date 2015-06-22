@@ -257,9 +257,7 @@ void Close_Syscall(int fd) {
     }
 }
 
-  //*********************//
- // New syscalls below. //
-//*********************//
+/* New syscalls below. */
 
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
@@ -267,7 +265,7 @@ void kernel_function(int vaddr)
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
-    machine->WriteRegister(NextPCReg, addr + 4);\
+    machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
     // Allocate stack pages? (pretty sure this isn't how to do it)
 
@@ -277,11 +275,8 @@ void kernel_function(int vaddr)
     machine->Run();
 }
 void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
-// Creates and runs a new thread:
-//  First, creates an address space for the thread from the parent process.
-//  Next, give this thread its own set of stack pages.
-//  Finally, fork new thread with an internal Nachos kernel fork.
-// If there is an error, will return without forking the new thread.
+// Creates and runs a new thread in the current process. If there
+//  is an error, will return without forking the new thread.
 {
     char *buf = new char[len+1];	// Kernel buffer: filename
 
@@ -309,8 +304,17 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
+void exec_thread()
+{
+    /* Initialize the register by using currentThread->space. */
+    currentThread->space->InitRegisters();
+    currentThread->space->RestoreState();
+    machine->Run();
+}
 int Exec_Syscall(unsigned int vaddr, int len)
-// (EXEC)
+// Creates a new process and its kernel thread, and returns
+//  the id of the process in the global processTable. Returns
+//  -1 if the file name given is invalid.
 {
     char *buf = new char[len+1];	// Kernel buffer: filename
 
@@ -329,45 +333,53 @@ int Exec_Syscall(unsigned int vaddr, int len)
 
     buf[len]='\0';
     
-    // create new address space
+    OpenFile* fileHandle = filesystem->Open(buf);
     
-
-    //add it to the process table
-    // processTable->put(space);
-    return 0;
+    AddrSpace* p = new AddrSpace(fileHandle);
+    Thread* t = new Thread("Kernel thread");
+    t->space = p;
+    p->threadTable->Put(t);
+    
+    int id = processTable->Put(p);
+    
+    t->Fork(exec_thread, 0);
+    
+    return id;
 }
 
 void Yield_Syscall()
 // Yields the current thread.
 {
-    currentThread->Yield();
     printf("Yield_Syscall was called; yielding current thread.\n");
+    currentThread->Yield();
 }
 
 void Exit_Syscall(int status)
 // (EXIT)
 {
-    /*
     AddrSpace* space = currentThread->space;
     if (space->threadTable->Size() == 1)
     {
         if (processTable->Size() == 1)
         {
+            /*
             stop nachos
             interrupt->Halt(c);
+            */
         }
         else
         {
-            reclaim all memory
+            // reclaim all memory
         }
     }
     else
     {
+        /*
         reclaim stack:
             clear memory in bitmap
             set pageTableEntry to valid
+        */
     }
-    */
 }
 
 void Acquire_Syscall(int id)
