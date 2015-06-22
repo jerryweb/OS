@@ -196,9 +196,7 @@ void Passenger::Screening() {
 	airport->screenQueues[myLine]->Append((void *) this);
 	printf("Passenger %d is getting into Screening officer %d line\n", id, myLine);
 	//if current screen officer is busy then wait
-	if (airport->screenState[myLine] == SO_BUSY) {
-		printf("passenger %d waiting for available screening %d\n", id, myLine);
-		
+	if (airport->screenState[myLine] == SO_BUSY) {		
 		airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
 		// airport->screenLocks[myLine]->Acquire();
 		// airport->screenFreeCV[myLine]->Signal(airport->screenLocks[myLine]);
@@ -218,8 +216,8 @@ void Passenger::Screening() {
 
 
 	//proceed to security inspecting
-	if (!airport->securityInspectorList->IsEmpty())
-		Inspecting();
+	//if (!airport->securityInspectorList->IsEmpty())
+		//Inspecting();
 }
 
 void Passenger::Inspecting() {
@@ -229,7 +227,7 @@ void Passenger::Inspecting() {
 	//myLine = queueIndex;
 
 	//add passenger to the security line
-	airport->securityQueues[myLine]->Append((void *) this);
+	//airport->securityQueues[myLine]->Append((void *) this);
 
 	printf("Passenger %d moves to security inspector %d\n", id, myLine);
 

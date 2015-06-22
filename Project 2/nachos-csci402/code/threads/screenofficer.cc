@@ -54,6 +54,7 @@ Passenger* ScreenOfficer::CheckForPassengers() {
 	} else {
 		P = NULL;
 		airport->screenState[id] = SO_FREE;
+
 	}
 
 	return P;
@@ -64,18 +65,20 @@ void ScreenOfficer::Screen() {
 	Passenger* p = NULL;
 	srand(time(NULL));
 	bool luggageTest = true;      //for storing hand luggage test result
+	
 	while (true) {
+		printf("%d asdfggggas\n", id);
 		airport->screenQueuesLock->Acquire();
-		// printf("size of my %d queue is %d\n", id, airport->screenQueues[id]->Size());
+
 		//this function do the checking and return the pointer
 		//points to current passenger if available
 		p = CheckForPassengers();
 		airport->screenLocks[id]->Acquire();
 		airport->screenQueuesLock->Release();
-
+		
 		if (p != NULL) {
 			//wait for passenger's bags
-
+			printf("%d aaa\n", id);
 			airport->screenCV[id]->Wait(airport->screenLocks[id]);
 			//wait for confirmation that passenger has given bags and moved to inspector
 			airport->screenLocks[id]->Acquire();
@@ -94,12 +97,13 @@ void ScreenOfficer::Screen() {
 			}
 
 			//find the available secuirty inspector for the passenger
-			airport->securityQueuesLock->Acquire();
+			
 			int securityIndex = p->findShortestLine(airport->securityQueues, false,
 					false, true);
-
+			airport->securityQueuesLock->Acquire();
 			//inform passenger the index of next secuirty inspector
 			p->SetQueueIndex(securityIndex);
+			airport->securityQueues[securityIndex]->Append((void *) p);
 			//this needs to be changed
 			p->SetSecurityPass(luggageTest);
 			
@@ -109,18 +113,19 @@ void ScreenOfficer::Screen() {
 			// //signal passenger to proceed
 			// airport->screenQueuesCV[id]->Signal(airport->screenQueuesLock);
 			//after confirmation from passenger procced to next loop
-			airport->screenLocks[id]->Release();
 			airport->securityQueuesLock->Release();
-			
-		}
+			airport->screenLocks[id]->Release();
 
+		}
 		//if p = NULL then wait on free condition
 		else {
-			airport->screenQueuesLock->Release();
+			// airport->screenQueuesLock->Release();
 			//airport->screenLocks[id]->Acquire();
-			airport->screenFreeCV[id]->Wait(airport->screenLocks[id]);
-		}
+			printf("size of my %d queue is %d\n", id, airport->screenQueues[id]->Size());
 
+			airport->screenCV[id]->Wait(airport->screenLocks[id]);
+		}
+		printf("%d asdfas\n", id);
 	}
 }
 
