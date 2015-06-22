@@ -909,26 +909,16 @@ void MainMenu() {
 	while (choice < 0 || choice > 12) {
 		printf("CHOOSE ONE (PLEASE ONLY ENTER A NUMBER):\n");
 		printf("0:  Lock and CV test code.\n");
-		printf(
-				"1:  Passenger selects the shortest line for the airport liaison.\n");
-		printf(
-				"2:  Passenger is directed by the Liaison to the correct airline counters.\n");
-		printf(
-				"3:  Economy class passengers enter the shortest line while Executive class passengers enter their correct line.\n");
-		printf(
-				"4:  Executive class passengers are given priority over the economy class passengers at the check-in kiosks.\n");
-		printf(
-				"5:  Screening officer chooses an available security inspector each time a passenger comes in.\n");
-		printf(
-				"6:  Cargo handlers choose bags from the conveyor system each time and go on a break if there are no bags.\n");
-		printf(
-				"7:  Handing over of the hand luggage by the passenger to the screening officer.\n");
-		printf(
-				"8:  Passenger returns to the same security inspector after further questioning.\n");
-		printf(
-				"9:  Baggage weights of all the passengers of a particular airline should match the weights of the bags reported by the cargo handlers.\n");
-		printf(
-				"10: Handing over of boarding pass by the passenger to the security inspector.\n");
+		printf("1:  Passenger selects the shortest line for the airport liaison.\n");
+		printf("2:  Passenger is directed by the Liaison to the correct airline counters.\n");
+		printf("3:  Economy class passengers enter the shortest line while Executive class passengers enter their correct line.\n");
+		printf("4:  Executive class passengers are given priority over the economy class passengers at the check-in kiosks.\n");
+		printf("5:  Screening officer chooses an available security inspector each time a passenger comes in.\n");
+		printf("6:  Cargo handlers choose bags from the conveyor system each time and go on a break if there are no bags.\n");
+		printf("7:  Handing over of the hand luggage by the passenger to the screening officer.\n");
+		printf("8:  Passenger returns to the same security inspector after further questioning.\n");
+		printf("9:  Baggage weights of all the passengers of a particular airline should match the weights of the bags reported by the cargo handlers.\n");
+		printf("10: Handing over of boarding pass by the passenger to the security inspector.\n");
 		printf("11: Hardcoded airport simulation.\n");
 		printf("12: Full airport simulation.\n");
 

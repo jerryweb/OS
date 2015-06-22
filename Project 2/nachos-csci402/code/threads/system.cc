@@ -88,9 +88,9 @@ Initialize(int argc, char **argv)
 /*TODO: add the Process tables here*/
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
-    int maxNumLocks = 20;
-    int maxNumCV = 20;
-    int maxNumProc = 5;
+    int maxNumLocks = 2048;
+    int maxNumCV = 2048;
+    int maxNumProc = 64;
     //Create the lock and CV tables
     lockTable = new Table(maxNumLocks);
     CVTable = new Table(maxNumCV);

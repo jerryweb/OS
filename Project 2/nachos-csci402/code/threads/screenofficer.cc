@@ -5,7 +5,6 @@
 ScreenOfficer::ScreenOfficer(int ID, Airport* AIRPORT) {
 	id = ID;
 	airport = AIRPORT;
-	airport->screenState[id] = SO_BUSY;
 }
 
 ScreenOfficer::~ScreenOfficer() {

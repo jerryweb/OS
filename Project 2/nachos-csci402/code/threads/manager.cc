@@ -87,7 +87,7 @@ void Manager::MakeRounds() {
 					counter++;
 				}
 			}
-			//If all handlers are on break, broadcast
+			//If all handlers are on break, signal them
 			if (counter == airport->cargoHandlerList->Size()) {
 				printf("Airport manager calls back all the cargo handlers from break\n");
 
