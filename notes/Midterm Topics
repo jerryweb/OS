@@ -1,0 +1,33 @@
+Midterm Topics
+	Intro to OS 
+	- Processes: sharing 
+	- Threads //process has multiple execution streams
+		sharing issues - race conditions OOEATR (order of execution affects the results) 
+							//write this when asked the definition of race condtion
+			- mutual exclusion
+			- atomic operations -> locks, semaphores, C.V.s // these are all monitors
+			* critical section
+
+		memory management
+			- virtual memory
+			- demand paged virtual memory
+			- page replacement
+			- swap file
+
+			// know the final flow of the MMU for the exam
+		CPU scheduling
+
+	Organization
+	 10 -20 short answer
+	 30 -50 Nachos
+	 	* P1: A new airport "employee" 				//write ACTUAL code 
+	 	* P2: A syscall
+	 		- start.s: tell me about copy/paste 	//example "there are 8 or 9 lines that you need to copy and relable"
+	 		- syscall.h 2 things: new syscall # 	//this number should not be used in project 2 in YOUR project
+	 							  Func. prototype
+	 		- exception handler						//exmaple: here is the case that goes into the switch block, etc. 
+	 		- Show a sample user program
+
+	 Rest Big Theory
+			virtual memory
+			CPU scheduling
