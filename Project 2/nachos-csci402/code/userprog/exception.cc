@@ -355,8 +355,11 @@ void Yield_Syscall()
 }
 
 void Exit_Syscall(int status)
-// (EXIT)
+// Exits the current running thread, accounting for the
+//  number of remaining threads and processes. Parameter
+//  is ignored for now.
 {
+    // where does currentThread->Finish() go?
     AddrSpace* space = currentThread->space;
     if (space->threadTable->Size() == 1)
     {
