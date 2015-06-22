@@ -129,6 +129,8 @@ Lock::~Lock() {
 //  
 
 void Lock::Acquire() {            
+    //printf("%s acquires %s\n", currentThread->getName(), name);
+    
     IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
     
     if(isHeldByCurrentThread()){ //currentThread is already the lockOwner of the lock
@@ -151,6 +153,8 @@ void Lock::Acquire() {
 }
 
 void Lock::Release() {
+    //printf("%s releases %s\n", currentThread->getName(), name);
+    
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     
     if(!isHeldByCurrentThread()){           //prints an error message if currentThread 
@@ -195,6 +199,8 @@ Condition::~Condition()
 }
 void Condition::Wait(Lock* conditionLock)
 {
+    //printf("%s waits on %s\n", currentThread->getName(), name);
+    
     IntStatus old = interrupt->SetLevel(IntOff);
     
     if (conditionLock == NULL)
@@ -221,6 +227,8 @@ void Condition::Wait(Lock* conditionLock)
 }
 void Condition::Signal(Lock* conditionLock)
 {
+    //printf("%s signals %s\n", currentThread->getName(), name);
+    
     IntStatus old = interrupt->SetLevel(IntOff);
     
     if (waitList->IsEmpty())
@@ -248,6 +256,8 @@ void Condition::Signal(Lock* conditionLock)
 }
 void Condition::Broadcast(Lock* conditionLock)
 {
+    //printf("%s broadcasts on %s\n", currentThread->getName(), name);
+    
     if (conditionLock == NULL)
     {   // Make sure that the parameter is a valid lock.
         printf("Condition::Broadcast (%s): parameter conditionLock is not a valid Lock*\n", name);
