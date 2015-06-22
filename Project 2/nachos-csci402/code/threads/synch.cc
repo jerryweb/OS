@@ -224,6 +224,7 @@ void Condition::Wait(Lock* conditionLock)
     waitList->Append(currentThread);
     currentThread->Sleep();
     interrupt->SetLevel(old);
+    // conditionLock->Acquire();
 }
 void Condition::Signal(Lock* conditionLock)
 {
