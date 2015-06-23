@@ -30,6 +30,7 @@ BitMap *memMap;
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
     table = new void *[size];
     lock = new Lock("TableLock");
+    count = 0;
 }
 
 Table::~Table() {
@@ -60,6 +61,7 @@ int Table::Put(void *f) {
     lock->Release();
     if ( i != -1)
 	table[i] = f;
+    count++;
     return i;
 }
 
@@ -75,6 +77,7 @@ void *Table::Remove(int i) {
 	    map.Clear(i);
 	    f = table[i];
 	    table[i] = 0;
+        count--;
 	}
 	lock->Release();
     }
@@ -180,6 +183,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     					// pages to be read-only
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
             noffH.code.virtualAddr, noffH.code.size);
+
         executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
             PageSize, noffH.code.inFileAddr + i*PageSize);
     }

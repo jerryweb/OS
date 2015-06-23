@@ -262,6 +262,7 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
+    printf("entering kernel function\n");
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
@@ -299,9 +300,10 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     //reallocate the page table
 
     t->space->setNewPageTable();
-
     // update thread table
     t->space->threadTable->Put(t);
+    printf("thread table size %d\n", t->space->threadTable->getCount());
+
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
@@ -361,22 +363,30 @@ void Exit_Syscall(int status)
 //  number of remaining threads and processes. Parameter
 //  is ignored for now.
 {
+
     // where does currentThread->Finish() go?
     AddrSpace* space = currentThread->space;
-    if (space->threadTable->Size() == 1)
+    if (space->threadTable->getCount() == 1)
     {
-        if (processTable->Size() == 1)
+       
+
+        if (processTable->getCount() == 1)
         {
             /*
             stop nachos
             interrupt->Halt(c);
             */
-        }
+            printf("ending\n");
+            
+         }
         else
         {
             // reclaim all memory
+             printf("calling current thread finish\n");
+            currentThread->Finish();
         }
     }
+
     else
     {
         /*

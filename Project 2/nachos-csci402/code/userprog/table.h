@@ -14,6 +14,7 @@ class Table {
     void **table;
     Lock *lock;
     int size;
+    int count; //This holds the count of the actual things in the table
  public:
     Table(int);
     ~Table();
@@ -23,6 +24,7 @@ class Table {
     void lockAcquire();
     void lockRelease();
     int Size() { return size; }
+    int getCount() { return count; }
 };
 
 
