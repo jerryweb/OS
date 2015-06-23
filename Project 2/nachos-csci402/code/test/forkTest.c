@@ -11,10 +11,9 @@
  */
 
 #include "syscall.h"
-int a[3];
-int b, c;
 
-int bsFunction(){
+
+void testFuction(){
 	int hello = 0;
 	Printf("Fort Test Fucntion\n", 19, 0,0);
 }
@@ -22,6 +21,7 @@ int bsFunction(){
 int
 main()
 {
-	Printf("Fort Test Fucntion\n", 19, 0,0);
-    Fork(bsFunction, "funk", 4);
+	
+    Fork(testFuction, "funk", 4);
+
 }

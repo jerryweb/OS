@@ -178,10 +178,10 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
     					// a separate page, we could set its 
     					// pages to be read-only
-            DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
-                noffH.code.virtualAddr, noffH.code.size);
-            executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
-                PageSize, noffH.code.inFileAddr + i*PageSize);
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+            noffH.code.virtualAddr, noffH.code.size);
+        executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
+            PageSize, noffH.code.inFileAddr + i*PageSize);
     }
     
     //int ppn = memMap->Find();   //physical page number
@@ -252,7 +252,6 @@ AddrSpace::setNewPageTable(){
         tempTable[i].readOnly = pageTable[i].readOnly;  // if the code segment was entirely on 
                         // a separate page, we could set its 
                         // pages to be read-only
-
     }
 
 
