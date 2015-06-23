@@ -15,7 +15,7 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "addrspace.h"
+#include "../userprog/addrspace.h"
 #include "thread.h"
 #include "switch.h"
 #include "synch.h"
