@@ -1,777 +1,118 @@
-Title:  Writeup for Project 1, Summer 2015
- Date:  06/10/15
+Title:  Writeup for Project 2, Summer 2015
+ Date:  06/25/15
  Group:	Name		Email				SS#
 		Jerry Webb	jerryweb@usc.edu	1288504108
 		Andrew Lee	lee533@usc.edu		7540910244
 		Hao Cui		hcui@usc.edu		1454367516
 
-
 I. Requirements:
-    Part 1: Implement locks and condition variables by filling in the empty framework provided. The locks and condition variables must successfully pass the test in the lockTest.cc file. There are 5 tests within that file.
-    
-    Part 2: Create a multi-threaded airport simulation with the following components:
-             - Passengers, who enter the airport with a ticket and luggage and proceed through the simulation until boarding their airplane.
-             - Liaisons, who direct passengers to the correct check-in area.
-             - Check-in staff, who give passengers boarding passes and process their luggage.
-             - Cargo handlers, who transfer processed luggage to their proper airplanes.
-             - Screening officers, who check passengers and send them to a security inspector.
-             - Security inspectors, who clear passengers checked by the screening officers.
-             - A manager, who ensures that all staff are working and allows passengers to board their airplanes at the end of the simulation.
+    Implement syscalls:
+        Fork: create and run a new thread.
+        Exec: create and run a new process.
+        Exit: exit the current thread and clean up memory.
+        Yield: yield the current thread.
+        CreateLock: create a lock stored in the kernel.
+        Acquire: acquire a lock stored in the kernel.
+        Release: release a lock stored in the kernel.
+        DestroyLock: destroy a lock stored in the kernel.
+        CreateCondition: create a condition stored in the kernel.
+        Wait: wait on a condition stored in the kernel.
+        Signal: signal a condition stored in the kernel.
+        Broadcast: broadcast on a condition stored in the kernel.
+        DestroyCondition: destroy a condition stored in the kernel.
+        Printf: print a given string and int parameters to the console.
+    Write tests to make sure these syscalls work as intended, both positive and negative.
+    Convert the airport from project 1 to use the syscalls and run a test where at least two instances run concurrently.
 
 II. Assumptions:
-	For the airport simulation:
-     - Each airline only has one airplane.
-     - Arbitrary upper limit of 6 airlines (requirements state >3).
-     - All airlines have the same number of check-in staff.
-     - Everyone who keeps track of statistics for the manager does so individually, and the manager polls everyone and adds the results to get the full picture.
-     - Passengers are randomly assigned to airlines and given luggage.
-     - Passengers will enter a check-in line regardless of whether the staff is on break or not.
-     - Each screening officer has a line, and the passenger finds the shortest one.
-     - Arbitrary limit of 1-10 screeners and inspectors.
-     - The range of passengers for the main simulation is 20 to 100.
-     - The range of Airport Liaisons for the main simulation is 5 to 7.
-     - The range of Check-in Staff for the main simulation is 3 to 5 per airline with a maximum of 15 total.
-     - The range of Cargo Handlers is 6 to 10 for the main simulation. 
-     - Once initial number of Passengers are created and the Threads are forked at the beginning of the program, no addition passengers can be added to the main simulation.
-     - The reason we are mentioning main simulation is due to the special cases for each test.
-     - The manager will never go on break during any simulation.
-     - When prompted to enter a number, the user will enter a positive integer or 0.
+	
 
 III. Design:
-- This section is to cover your logic and ideas as to how  you are going to solve the problem presented.  This should include a description of classes, algorithms, etc.
-
-    Part 1: 
-    - Locks contain two queues, readyQueue and waitQueue, and a state which can be BUSY or FREE. There are 2 main functions utilized by the lock class: Acquire and Release. When a lock is acquired by a thread, only that specific thread is able to use the CPU and run its critical section. Once the critical section is completed, the thread releases the lock.
-        acquire()
-        {
-            disable interrupts
-            if current thread owns lock, restore interrupts and return
-            if lock is FREE, make lock BUSY and make self owner
-            else, add self to lock wait queue and sleep
-            restore interrupts
-        }
-        release()
-        {
-            disable interrupts
-            if current thread does not own lock, print error message, restore interrupts and return
-            if there is a thread waiting, remove a thread from wait queue, call scheduler->ReadyToRun on that thread, and make them lock owner
-            else, make lock FREE and set lock owner to NULL
-            restore interrupts
-        }
-    - The CV class has 3 functions (Wait, Signal, and Broadcast; each takes in a lock), a waitList, and a waitLock. When a thread waits on a CV, it adds itself to the CV's wait list and goes to sleep. Another thread can wake a sleeping thread by signalling the first thread in the wait list or broadcasting to wake all threads in the list.
-        wait
-        {
-            disable interrupts
-            if passed-in lock is not valid, print error, restore interrupts, return
-            if wait lock is null (first thread to call wait), use passed-in lock as wait lock
-            if wait lock is not the same as passed-in lock, print error, restore interrupts, return
-            release passed-in lock
-            add self to CV wait queue and go to sleep
-            restore interrupts
-        }
-        signal
-        {
-            disable interrupts
-            if no waiting threads, restore interrupts and return
-            if wait lock is not the same as passed-in lock, print error, restore interrupts, return
-            remove one thread from CV wait queue, run scheduler->ReadyToRun for that thread
-            if no more waiting threads, set wait lock to null
-            restore interrupts
-        }
-        broadcast
-        {
-            if wait lock is not the same as passed-in lock, print error and return
-            while there are still waiting threads, signal using the passed-in lock
-        }
-    - We added a Size() function to the list class, which essentially returns the size of the the list. This is allowed all functions that counted or accessed the array and lists of functions throughout the code to be dynamic and avoid looking outside of the bounds of the list. We also added a First() function, which returns the first element of the list without removing it.
-
-    Part 2: Each component (passenger, liaison, CIS, etc.) in the airport simulation has its own class; there is also an "Airport" class for public data: these include variables such as locks, lists, and states for liaisons, cargo handlers, etc. At the start of the simulation, all the liaisons should be set to the Busy state so that the passengers will automatically enter their lines. All the passengers should be forked first, followed by liaisons, then check-in staff and cargo handlers, then screening and security officers and finally the manager. 
     
-        Passenger:
-            // liaison interaction
-            acquire liaisonLineLock
-            find shortest line, add self to line
-            if liaison l is BUSY, wait on liaisonLineCV (using liaisonLineLock)
-            else, release liaisonLineLock
-            acquire liaison's liaisonLock
-            signal liaison's liaisonCV (using liaison's liaisonLock) // simulates giving liaison information
-            release liaison's liaisonLock // allows liaison to give information
-            // check-in interaction
-            acquire airline's checkinLineLock
-            if ticket is executive, go to executive line
-            else, find the shortest economy line
-            add self to line
-            wait on line's checkinLineCV (using airline's checkinLineLock) // allows check-in staff to give information
-            (acquire airline's checkinLineLock)
-            (print statement)
-            (release airline's checkinLineLock)
-            // screener interaction
-            // security interaction
-            // final interaction
-        
-        Liaison (main loop):
-            acquire liaisonLineLock
-            check for passengers:
-                if line is not empty:
-                    signal liaison's liaisonLineCV (using liaisonLineLock)
-                    remove passenger from queue
-                    set state to BUSY
-                    give passenger counter data
-                else, set state to FREE
-            acquire liaison's liaisonLock
-            release liaisonLineLock
-            if the liaison is helping a customer:
-                wait on liaison's liaisonCV (using liaison's liaisonLock) // wait for passenger to acknowledge
-                acquire liaison's liaisonLock
-                record passenger statistics
-                release liaison's liaisonLock
-            else, wait on liaison's liaisonCV (using liaison's liaisonLock) // wait for passenger to show up)
-            if the manager is requesting data from the liaison:
-                acquire liaisonManagerLock
-                acquire liaison's liaisonLock
-                signal liaisonManagerCV (using liaisonManagerLock) // acknowledge manager's request
-                release liaisonManagerLock
-                wait on liaison's liaisonCV (using liaison's liaisonLock)
-                confirm message sent
-        
-        CheckIn (main loop):
-            acquire airline's checkinLineLock
-            if the staff is not CLOSED, get the next passenger to help:
-                if the executive line is not empty, take the next passenger in the line
-                else if the staff's economy line is not empty, take the next passenger in the staff's line
-                else:
-                    acquire staff's checkinLock
-                    set state to BREAK
-                    release airline's checkinLineLock
-                    wait on staff's checkinBreakCV (using staff's checkinLock) // manager will wake staff up
-                    set state to BUSY
-                    acquire airline's checkinLineLock
-            release airline's checkinLineLock
-            if the staff is helping a customer:
-                acquire airline's airlineLock
-                read passenger's ticket
-                assign passenger seat number, increment count of passengers for airline
-                give passenger boarding pass
-                signal staff's checkinLineCV (using airline's checkinLineLock)
-                release airline's airlineLock
-                acquire conveyorLock
-                add passenger's baggage to conveyor, keeping track of how many there are
-                release conveyorLock
-            if the manager is requesting data from the staff:
-                acquire checkinManagerLock
-                acquire staff's checkinLock
-                signal checkinManagerCV (using checkinManagerLock) // acknowledge manager's request
-                release checkinManagerLock
-                wait on staff's checkinCV (using staff's checkinLock)
-                confirm message sent
-            acquire airline's airlineLock
-            if all passengers of the airline have checked in:
-                acquire staff's checkinLock
-                set state to CLOSED
-                release airline's airlineLock
-                wait on staff's checkinBreakCV (using staff's checkinLock) // will be woken up by manager one last time to report data
-                acquire airline's airlineLock
-                confirm closed status to manager
-            release airline's airlineLock
-                
-        ScreenOfficer (Main Loop):
-            acquire screenLineLock
-            if his queue of passangers is not empty
-                signal the passenger waiting in his queue and remove the passenger from the queue
-                set state to BUSY
-            else
-                set state to FREE
-            acquire screenLocks[id of the Screening Officer]
-            if he had a passneger in his queue
-                release screenLineLock
-                wait on the officer's screenCV for screenLocks[id]
-                //passenger will respond releasing the lock
-                acquire screenLocks[id]
-                acquire securityQueuesLock // This is the lock that is also used by the Security inspector to get passengers from his queue 
-                find which inspector is available or atleast has the shortest queue 
-                append passenger to the shortest Security Inspector queue
-                randomly generate a PASS/FAIL report and give it to the inspector
-                signal passenger using the screenCV with screenLocks[id] 
-                signal the selected security inspector using the securitylineCV[location of the shortest line] with the securityQueuesLock
-                release both locks
-            else
-                release screenLineLock
-                wait on the screenCV for the screenLocks[id]
-        
-        SecurityInspector:
-            
-        
-        Cargo (main loop):
-            acquire conveyorLock
-            if the conveyor is empty:
-                acquire handler's cargoLock
-                set state to BREAK
-                release conveyorLock
-                wait on handler's cargoDataCV (using handler's cargoLock) // manager will wake handler up
-                set state to BUSY
-            else:
-                remove bag from conveyor and put on proper airplane, recording data for manager
-                release conveyorLock
-            if the manager is requesting data from the handler:
-                acquire CargoHandlerManagerLock
-                acquire handler's cargoDataLock
-                signal cargoManagerCV (using CargoHandlerManagerLock) // acknowledge manager's request
-                release CargoHandlerManagerLock
-                wait on handler's cargoCV (using handler's cargoDataLock)
-                confirm message sent
-        
-        Manager (main loop):
-            // wake up cargo handlers
-            acquire conveyorLock
-            if conveyor is not empty:
-                if all handlers are on break:
-                    for each handler:
-                        acquire handler's cargoLock
-                        signal handler's cargoDataCV (using handler's cargoLock)
-                        release handler's cargoLock
-            // get data from liaisons
-            reset data to prevent multicounting
-            for each liaison:
-                if the liaison is FREE
-                    acquire liaisonManagerLock
-                    signal liaison's liaisonCV (using liaison's liaisonLock)
-                    wait on liaisonManagerCV (using liaisonManagerLock) // wait for acknowledgement of request
-                    acquire liaison's liaisonLock
-                    record data
-                    signal liaison's liaisonCV (using liaison's liaisonLock)
-                    release liaison's liaisonLock
-            // get data from cargo handlers
-            reset data to prevent multicounting
-            for each handler:
-                if handler is on BREAK:
-                    acquire CargoHandlerManagerLock
-                    signal handler's cargoDataCV (using handler's cargoDataLock)
-                    wait on cargoManagerCV (using CargoHandlerManagerLock) // wait for acknowledgement of request
-                    acquire handler's cargoDataLock
-                    record data
-                    signal handler's cargoDataCV (using handler's cargoDataLock)
-                    release handler's cargoDataLock
-            // get data from check-in staff
-            reset data to prevent multicounting
-            for each staff:
-                if staff has not confirmed closed status:
-                    acquire checkinManagerLock
-                    signal staff's checkinCV (using staff's checkinLock)
-                    wait on checkinManagerCV (using checkinManagerLock) // wait for acknowledgement of request
-                    acquire staff's checkinLock
-                    record data
-                    signal staff's checkinCV (using staff's checkinLock)
-                    release staff's checkinLock
-            // get data from security inspectors
-            // final check and boarding announcement
-            for each airline:
-                acquire airline's airlineLock
-                if all passengers are in boarding area and all luggage is on plane, signal airline's boardingCV (using airline's boardingLock) // boarding announcement
-                release airline's airlineLock
 
 IV. Implementation:
-	+ Files Modified - all files are located in the threads directory except for Makefile.common, which is located in the code directory.
-        Makefile.common
-        list.cc
-        list.h
-        main.cc
-        synch.cc
-        synch.h
-        threadtest.cc
-        system.h
-        system.cc
+	+ Files Modified
+        in code:
+            Makefile.common
+        in code\test:
+            Makefile
+            start.s
+        in code\threads:
+            airline.h/.cc
+            airport.h/.cc
+            airportobjects.h
+            cargo.h/.cc
+            checkin.h/.cc
+            liaison.h/.cc
+            list.h/.cc
+            lockTest.cc         ???
+            manager.h/.cc
+            passenger.h/.cc
+            screenofficer.h/.cc
+            securityinspector.h/.cc
+            synch.h/.cc
+            system.h/.cc
+            thread.h/.cc        ???
+            threadtest.cc
+        in code\userprog:
+            addrspace.h/.cc
+            bitmap.h/.cc        ???
+            exception.cc
+            progtest.cc         ???
+            syscall.h
+            table.h
 
-	+ Files added - all files are located in the threads directory.
-        airline.cc
-        lockTest.cc
-        airport.cc
-        airline.cc
-        cargo.cc
-        checkin.cc
-        liaison.cc
-        manager.cc
-        passenger.cc
-        screenofficer.cc
-        securityinspector.cc
-
-        airport.h
-        passenger.h
-        airportobjects.h
-        airport.h
-        airline.h
-        cargo.h
-        checkin.h
-        liaison.h
-        screenofficer.h
-        securityinspector.h
-        manager.h
+	+ Files added
+        in code\test:
+            condTest.c
+            execTest.c
+            forkTest.c
+            lockTest.c
+            printfTest.c
 
 	+ Data Structures added, and the file they were added to.
         Classes: 
-            Passenger - added to passenger.h 
-            Liaison - added to liaison.h
-            Airport - added to airport.h
-            Airline - added to airline.h
-            Cargo - added to cargo.h
-            Checkin - added to checkin.h
-            Manager - added to manager.h
-            ScreenOfficer - added to screenofficer.h
-            SecurityInspector -add to securityinspector.h
+            
 
         Structs:
-            Luggage - added to airportobjects.h
-            Ticket - added to airportobjects.h
-            BoardingPass - added to airportobjects.h
+            
 
         Enums:
-            LiasionState - added to airportobjects.h
-            CheckinState - added to airportobjects.h
-            CargoState - added to airportobjects.h
-            AirlineState -added to airportobjects.h
-
-        Arrays and Lists:
-            - In manager.h:   
-                List** airlineLuggage  
-                int* liaisonBaggageCount           
-                int* cargoHandlersBaggageWeight
-                int* checkinBaggageWeight          
-                int* cargoHandlersBaggageCount
-                int* liaisonPassengerCount 
-                int* checkinPassengerCount
-                int* securityInspectorPassengerCount
-            - In cargo.h:
-                int* luggage
-                int* weight
-            - In liaison.h
-                int* passengers
-                int* luggageCount
-                int* totalLuggageWeight
-            - In airport.h
-                bool* RequestingLiaisonData
-                bool* RequestingCargoData
-                bool* RequestingCheckinData
-                Airline** airlines
-                List* airlineState[3]
-                List* passengerList
-                List* liaisonQueues[7]
-                List* liaisonList
-                List* conveyor
-                List* cargoHandlerList 
-                Lock* liaisonManagerLock
-                Lock* liaisonLineLock
-                Lock* liaisonLock[7]
-                CargoState cargoState[10] 
-                List** aircraft
-                int* clearPassengerCount 
-                List* securityInspectorList
-                List** screenQueues
-                List** securityQueues
-                List** returnQueues.
-                List* screeningOfficerList
-                LiaisonState liaisonState[7]
-                bool* finalCheckin
-                List** checkinQueues 
-                List* checkInStaffList
-                CheckinState* checkinState
             
-            Locks
-             - In airport.h    
-                Lock** airlineLock
-                Lock** checkinLineLock
-                Lock** checkinLock
-                Lock* checkinManagerLock 
-                Lock* conveyorLock             
-                Lock* CargoHandlerManagerLock  
-                Lock* cargoLock[10]
-                Lock* cargoDataLock[10]
-                Lock** screenLocks
-                Lock* screenQueuesLock 
-                Lock** securityLocks 
-                Lock* securityQueuesLock 
-                Lock* updateClearCount
 
-            Conditions
-             - In airport.h
-                Condition* liaisonLineCV[7]
-                Condition* liaisonManagerCV
-                Condition* liaisonCV[7]
-                Condition** checkinLineCV
-                Condition** checkinCV
-                Condition** checkinBreakCV
-                Condition* checkinManagerCV
-                Condition* cargoCV             
-                Condition* cargoDataCV[10] 
-                Condition* cargoManagerCV[10]
-                Condition** inspectorWaitPassengerCV
-                Condition** passengerWaitInspectorCV
-                Condition** passengerWaitOfficerCV    
-                Condition** officerWaitPassengerCV
-                Condition** inspectorWaitRePassengerCV
-                Condition** rePassengerWaitInspectorCV
-                Condition** inspectorWaitQuestioningCV  
+        Arrays, Lists, and Tables:
+            
 
 	+ Data Structures modified, and the file they were added to.
-			class Lock		-- in file synch.cc/synch.h
-			{
-				//. Modified fields.
-                List* waitQueue
-                List* readyQueue
-                Thread* lockOwner
-                enum State {FREE, BUSY};
-                State lockState;
-			}
-
-            class Condition -- in file synch.cc/synch.h
-            {
-                Lock* waitLock;
-                List* waitList;
-            }
+        
 
 	+ Functions added and in which file.
-        - In Passenger.cc/Passenger.h
-            Passenger(int ID, List* bags, Ticket T, Airport* A)
-            Passenger(int ID, Ticket t, int airlineCode, Airport* a)
-            Passenger(int ID, Ticket t)
-            Passenger(int ID, Airport* a)
-            Passenger(int ID)
-            Passenger()
-            Passenger(int ID,int qIndex,Airport* AIRPORT)
-            Passenger(int ID,int qIndex,Airport* AIRPORT,int airlineCode,SecurityInspector** INSPECTORLIST)
-            Passenger(Airport* AIRPORT)
-            ~Passenger();
-            int findShortestLine(List** list, bool CISline)
-            void findShortestLiaisonLine()
-            void CheckIn()
-            Ticket getTicket()
-            List* getLuggage()
-            int getID()
-            void Screening()
-            void Inspecting()
-            void SetQueueIndex(int qIndex)
-            void SetSecurityPass(bool pnp)
-            bool GetSecurityPass()
-            BoardingPass GetBoardingPass()
-            void SetBoardingPass(BoardingPass BP)
-            int GetAirline()
-            void SetAirline(int airline_)
-
-        - In airport.cc/airport.h
-            Airport()
-            Airport(int airlines, int passengers, int liaisons, int checkins, int security, int cargo)
-            ~Airport()
-
-        - In cargo.cc/cargo.h
-            Cargo(int id, Airport* airport)
-            ~Cargo()
-            void StartCargo()
-            int getID()
-            int getLuggage(int airline)
-            int getWeight(int airline)
-
-        - In checkin.cc/checkin.h
-            CheckIn(int airline, int id, Airport* airport)
-            ~CheckIn()
-            Passenger* FindPassenger(int execLine)
-            void StartCheckInStaff()
-            int getID()
-            int getAirline()
-            int getPassengers()
-            int getLuggageCount()
-            int getLuggageWeight()
-
-        - In liaison.cc/liaison.h
-            Liaison(int ID, Airport* airport)
-            ~Liaison()
-            void DirectPassengers()
-            int getID()
-            Passenger* CheckForPassengers()
-            int getPassengers(int airline)
-            int getLuggageCount(int airline)
-            int getLuggageWeight(int airline)   
-
-        - In manager.cc/manager.h
-            Manager(Airport* airport)
-            ~Manager()
-            void MakeRounds()
-            void LiaisonDataRequest(Liaison *L)
-            void CheckinDataReuqest(CheckIn *C)
-            void CargoRequest(Cargo *CH)
-            void SecurityDataRequest()
-
-        - In main.cc/threadtest.cc
-            void MailTest(int networkID)
-            void TestSuite()
-            void ManagerTest()
-            void LiaisonTest()
-            void PassengerFindsShortestLiaisonLine()
-            void PassengerFindsCorrectCISLine()
-            void CheckInTest()
-            void CargoTest()
-            void ScreenTest()
-            void InspectTest()
-            void MTest()
-
-        - In synch.cc/synch.h
-            bool isHeldByCurrentThread()
-
-        - In screenofficer.cc/screenofficer.h
-            ScreenOfficer(int ID, Airport* AIRPORT)
-            ~ScreenOfficer()
-            int getID()
-            void Screen()
-            Passenger* CheckForPassengers()
-
-    //Need to finish adding functions to threadtest
-        - In threadtest.cc
-            void StartFindShortestLiaisonLine(int arg)
-            void StartFindCorrectCISLine(int arg)
-            void StartLiaisonTest(int arg)
-            void StartLiaisonThread(int arg)
-            void StartCargo(int arg)
-            void StartManager(int arg)
-            void StartCheckInTest(int arg)
-            void StartCheckInStaff(int arg)
-            void StartScreening(int arg)
-            void StartScreeningTest(int arg)
-            void StartInspecting(int arg)
-            void StartInspectingTest(int arg)
-            void StartupOutput(Airport* airport)
+        
 
 	+ Functions modified and in which file.
-            class Lock       -- in file synch.cc/synch.h 
-            {
-                void Acquire()
-                void Release()
-            }
-
-            class Condition  -- in file synch.cc/synch.h
-            {
-                void Wait(Lock *conditionLock)
-                void Signal(Lock *conditionLock)
-                void Broadcast(Lock *conditionLock)
-            }
-
-            int main         -- in file main.cc
-            {
-                main(int argc, char **argv)
-            }
+        
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
-        All tests are run from the code/threads folder, using the command "nachos".
-        The arguments that correspond with each test are:
-         "-T":        Lock and CV test code.
-         "-findL":    Passenger selects the shortest line for the airport liaison.
-         "-liaison":  Passenger is directed by the Liaison to the correct airline counters.
-         "-findCIS":  Economy class passengers enter the shortest line while Executive class
-                        passengers enter their correct line.
-         "-checkin":  Executive class passengers are given priority over the economy class
-                        passengers at the check-in kiosks.
-         "-screen":   Screening officer chooses an available security inspector each time
-                        a passenger comes in.
-         "-cargo":    Cargo handlers choose bags from the conveyor system each time and go
-                        on a break if there are no bags.
-         "-screen":   Handing over of the hand luggage by the passenger to the screening officer.
-         "-inspect":  Passenger returns to the same security inspector after further questioning.
-         "-mtest":    Baggage weights of all the passengers of a particular airline should
-                        match the weights of the bags reported by the cargo handlers.
-         "-inspect":  Handing over of boarding pass by the passenger to the security inspector.
-         "-manager":  Hardcoded airport simulation.
-         "-airport":  Full airport simulation.
-         "-menu":     Menu allowing choice between all tests.
+        nachos -x ../test/<xTest>
+
     + Test Output
-        See Discussion/Experiment expectation and the output guidelines - the tests
-         do not introduce any new outputs, and the expected results are described
-         under "Intended result:".
+        
 
 VI. Discussion:
 	+ Experiment expectation.  (What you hope will happen.)
-        For PassengerFindsShortestLiaisonLine Test:
-            This is the test to show that the passenger chooses the correct line.
-            Liaison Queues 0 through 5 are filled with dummy sizes all greater
-            than queue 6 to demonstrate passenger finding shortest queue (size 0)
-            Adds dummy passengers into the liaison queues:
-               line 0: 6
-               line 1: 5
-               line 2: 4
-               line 3: 3
-               line 4: 2
-               line 5: 1
-               line 6: 0
-            Sets liaison to busy
-              Initializes 1 passenger (id 0) and runs it.
-              Intended result:
-               Passenger 0 will go to line 6 (length 0).
         
-        For LiaisonTest Test
-           Adds 1 passengers into liaison 0's queue:
-            id 0, ticket.airline 2
-           Initializes 1 Liaison thread (id 0) and runs it.
-           Intended result:
-            The Liaison will direct the passenger to airline 2.
-
-        For CheckInTest
-           Adds 3 passengers into the airline 0 check-in queue:
-            id 0, executive (line 0)
-            id 1, economy (line 1)
-            id 2, economy (line 1)
-           Initializes 1 CIS thread (id 1; airline 0) and runs it.
-           Intended result:
-            The CIS will choose to help the executive passenger.
-            The economy line will stay at length 2.
-	
-        For CargoTest
-           Adds 7 bags onto the conveyor:
-            airline 0, weight 30
-            airline 1, weight 42
-            airline 2, weight 54
-            airline 0, weight 30
-            airline 1, weight 45
-            airline 0, weight 45
-            airline 1, weight 60
-           Initializes 6 cargo (0-5) threads and runs them.
-           Intended result:
-            The bags will be added to the proper airplane in the
-             order in which they were added to the conveyor.
-             After all bags are finished, the cargo handlers
-             will all go on break.
-             
-        For ScreenTest
-        	Adds 10 passengers to the screening queues with the following pattern:
-        	screen queue 1: P0,P1,P2,P3
-        	screen queue 2: P4,P5,P6
-        	screen queue 3: P7,P8,P9
-        	
-        	Adds 6 dummy passengers to the security queues with the following pattern:
-        	security queue 1: size 1
-        	security queue 2: size 2
-        	security queue 3: size 3
-        	
-        	Initialize 10 Passenger threads
-        	Initialize 3 ScreenOfficer threads
-        	Run all these threads
-        	Intended Result:
-        	security queue 0: dummy,P0,P1,P3
-        	security queue 1: dummy,dummy,P2,P4
-        	security queue 2: dummy,dummy,dummy,P5
-        	
-        For InspectTest
-        	Create then add 5 passengers to one security queue
-        	Create 1 security inspector at this security queue
-        	The passengers will all finish checking, some goes to return line but eventually
-        	they will all be allowed to aboard	
-        	    
-
-        For AirportSim
-            This should simulate the entire airport running from start to finish as mentioned in the guidelines. 
 
     + Experiment result.  (What actually happens.)
-        For PassengerFindsShortestLiaisonLine Test, LiaisonTest Test, CheckInTest, and CargoTest all generate the correct output that is listed above in the experiment expectation.
-
-        A final boarding call and confirmation to the manager that all passengers have boarded would eliminate this problem because the final call would only allow the manager to gather data from all parties one last time before displaying the data at the end. Instead the simulation will run in an infinite loop, as the manager will keep asking for data. 
         
-        The Screening Officer runs into a segmentation fault once it attempts to aquire the screenLineLock. We were unable to determine the cause, however, we also noticed that the address of the screenLocks[id] did not exist. This issue only occured with the Screening Officer. 
 
 
 	+ Explanation
-        As mentioned in the previous section, our simulation will not completely finish due to the fact that the two portions (screening officer and passenger interaction along with manager screening officer interaction and once the passenger is directed to the gate) are not connect. All of these functions, however, do work separately within different tests. All functions not concerning the security officer and screening officer will work in one simulation including the collection of data by the manager from check-in staff, liaisons, and cargo handlers. However due to the inability of the passengers to fully board the plane, the output will not show the correct values. This is due to this specific loop:
-            for(int i = 0; i < airport->numAirlines; i++){ 
-                liaisonPassengerCount[i] = 0;
-                liaisonBaggageCount[i] = 0;
-            }
-
-            and
-
-            for(int i = 0; i < airport->numAirlines; i++){       
-                checkinPassengerCount[i] = 0;
-                checkinBaggageWeight[i] = 0;
-            }
-            '
-            and
-            
-            for(int i = 0; i < airport->numAirlines; i++){
-                cargoHandlersBaggageCount[i] = 0;
-                cargoHandlersBaggageWeight[i] = 0;
-            }.
-
-        These functions prevent double and multi-counting of data when the manager requests data from each thread. A final boarding call and confirmation to the manager that all passengers have boarded would eliminate this problem because the final call would only allow the manager to gather data from all parties one last time before displaying the data at the end. Instead the simulation will run in an infinite loop, as the manager will keep asking for data. 
-
-        For the Screening Officer, we think it may be a physical memory issue due to the bus errors we recieve whenever we try to aquire the screenLocks[id]. As mentioned ealier, when attempting to acquire a single lock, such as screenlineLock, we recieve a segmentation fault. Upon debugging we found that this fault happens after the Passenger thread sleeps and trnasfers the CPU to the Screening Officer's thread, which has led us to believe that it may be an memory issue with this specific class. The passenger is able to acquire the same lock the the screening officer is not. 
+        
 
 VIII. Miscellaneous:
-
-The Putty terminal locked us out when we were testing our simulation due to us exceeding the process limit. We were sent an email by ITS explaining what had happed:
-
-Our computing policies were instituted to help maximize the resources
-available to our user community.  We expect you to act responsibly and
-with consideration to others.  Please do not run more than 20 processes
-at one time on the SCF timesharing hosts.  You may want to check for and
-kill old processes if you are disconnected, using
-        /usr/ucb/ps aux | grep jerryweb   ; kill PID
-as you may have processes from several old login sessions.
-
-As outlined in our policies, this message registers a warning.
-Additional abuses may result in harsher penalties.
-
-For the complete list of policies, go to:
-
-  http://www.usc.edu/its/policies
-
-Thank you for your cooperation. This message was generated automatically.
-
-  Information Technology Services,  Information Infrastructure Core
-  Univ of Southern California, consult@usc.edu, 213(740)5555, 90089-0251
-
-
-
-USER       PID %CPU %MEM   SZ  RSS TT       S    START  TIME COMMAND
-jerryweb 10755  0.0  0.013488 6792 ?        S 19:57:53  0:53 /usr/lsd/openssh/default/sbin/sshd -R
-jerryweb 10757  0.0  0.0 3816 3384 pts/29   S 19:57:53  0:00 -tcsh
-jerryweb 11570  0.0  0.0 6168 4824 pts/29   T 19:58:24  0:02 nachos -manager
-jerryweb 16990  0.0  0.0 6168 4824 pts/29   T 20:09:16  0:01 nachos -manager
-jerryweb 18008  0.0  0.0 6168 4824 pts/29   T 20:14:12  0:02 nachos -manager -rs 7
-jerryweb 18105  0.0  0.0 6168 4792 pts/29   T 20:14:46  0:01 nachos -manager
-jerryweb 18232  0.0  0.0 6168 4792 pts/29   T 20:15:25  0:01 nachos -manager
-jerryweb 18962  0.0  0.0 6168 4824 pts/29   T 20:18:07  0:01 nachos -manager
-jerryweb 19213  0.0  0.0 6168 4792 pts/29   T 20:19:12  0:01 nachos -manager
-jerryweb 20581  0.0  0.0 6168 4792 pts/29   T 20:24:37  0:01 nachos -manager
-jerryweb 21786  0.0  0.0 6168 4824 pts/29   T 20:30:07  0:01 nachos -manager
-jerryweb 21800  0.0  0.0 6168 4824 pts/29   T 20:30:12  0:03 nachos -manager -rs 0
-jerryweb 21816  0.0  0.0 6168 4824 pts/29   T 20:30:19  0:02 nachos -manager -rs 1
-jerryweb 21847  0.0  0.0 6168 4824 pts/29   T 20:30:33  0:00 nachos -manager -rs 100
-jerryweb 21862  0.0  0.0 6168 4824 pts/29   T 20:30:39  0:00 nachos -manager -rs 10
-jerryweb 22004  0.0  0.0 6168 4824 pts/29   T 20:31:33  0:00 nachos -manager -rs 5
-jerryweb 22009  0.0  0.0 6168 4824 pts/29   T 20:31:37  0:00 nachos -manager -rs 2
-jerryweb 22019  0.0  0.0 6168 4824 pts/29   T 20:31:40  0:00 nachos -manager -rs 20
-jerryweb 23271  0.0  0.0 6168 4824 pts/29   T 20:37:37  0:00 nachos -manager -rs 20
-jerryweb 23583  0.0  0.0 6168 4824 pts/29   T 20:38:30  0:00 nachos -manager
-jerryweb 24433  0.0  0.0 6168 4840 pts/29   T 20:42:51  0:00 nachos -manager
-jerryweb 27814  0.0  0.0 6168 4824 pts/29   T 20:58:20  0:01 nachos -manager -rs 0
-jerryweb 27907  0.0  0.0 6168 4824 pts/29   T 20:58:45  0:01 nachos -manager -rs 1
-jerryweb 27929  0.0  0.0 6168 4824 pts/29   T 20:58:54  0:01 nachos -manager -rs 5
-jerryweb 27940  0.0  0.0 6168 4824 pts/29   T 20:58:58  0:00 nachos -manager -rs 50
-jerryweb 28216  0.0  0.0 6168 4840 pts/29   T 21:00:14  0:00 nachos -manager
-jerryweb 28227  0.0  0.0 6168 4840 pts/29   T 21:00:19  0:00 nachos -manager -0
-jerryweb 28274  0.0  0.0 6168 4840 pts/29   T 21:00:35  0:01 nachos -manager -rs 0
-jerryweb 28315  0.0  0.0 6168 4840 pts/29   T 21:00:52  0:00 nachos -manager -rs 1
-jerryweb 28326  0.0  0.0 6168 4840 pts/29   T 21:00:56  0:01 nachos -manager -rs 0
-jerryweb 28362  0.0  0.0 6168 4840 pts/29   T 21:01:11  0:00 nachos -manager -rs 1
-jerryweb 28373  0.0  0.0 6168 4840 pts/29   T 21:01:14  0:00 nachos -manager -rs 5
-jerryweb 28387  0.0  0.0 6168 4840 pts/29   T 21:01:19  0:01 nachos -manager -rs 9
-jerryweb 28395  0.0  0.0 6168 4840 pts/29   T 21:01:23  0:00 nachos -manager -rs 11
-jerryweb 28408  0.0  0.0 6168 4840 pts/29   T 21:01:25  0:01 nachos -manager -rs 100
-jerryweb 28472  0.0  0.0 6168 4840 pts/29   T 21:01:41  0:01 nachos -manager -rs 2
-jerryweb 28510  0.0  0.0 6168 4840 pts/29   T 21:01:44  0:00 nachos -manager -rs 4
-jerryweb 28521  0.0  0.0 6168 4840 pts/29   T 21:01:49  0:00 nachos -manager -rs 6
-jerryweb 28526  0.0  0.0 6168 4840 pts/29   T 21:01:52  0:00 nachos -manager -rs 7
-jerryweb 28567  0.0  0.0 6168 4840 pts/29   T 21:01:54  0:00 nachos -manager -rs 8
-jerryweb 28581  0.0  0.0 6168 4840 pts/29   T 21:01:59  0:00 nachos -manager -rs 13
-jerryweb 28592  0.0  0.0 6168 4840 pts/29   T 21:02:02  0:00 nachos -manager -rs 12
-jerryweb 28634  0.0  0.0 6168 4840 pts/29   T 21:02:05  0:00 nachos -manager -rs 14
-jerryweb 28644  0.0  0.0 6168 4840 pts/29   T 21:02:08  0:01 nachos -manager -rs 15
-jerryweb 28699  0.0  0.0 6168 4840 pts/29   T 21:02:20  0:00 nachos -manager -rs 16
-jerryweb 28724  0.0  0.0 6168 4840 pts/29   T 21:02:24  0:00 nachos -manager -rs 24
-jerryweb 28781  0.0  0.0 6168 4840 pts/29   T 21:02:38  0:01 nachos -manager -rs 27
-jerryweb 29277  0.0  0.013424 6712 ?        S 21:04:43  0:00 /usr/lsd/openssh/default/sbin/sshd -R
-jerryweb 29281  0.0  0.0 3296 2512 ?        S 21:04:43  0:00 tcsh -c /usr/lsd/openssh/default/libexec/sftp-server -l QUIET
-jerryweb 29283  0.0  0.0 7392 3592 ?        S 21:04:43  0:00 /usr/lsd/openssh/default/libexec/sftp-server -l QUIET
+    Security unfinished
+    
+    
+    
+    
