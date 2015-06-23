@@ -13,7 +13,7 @@ main()
     /* Create with bad name string: ID -1 */
     badLockID = CreateLock((char*)0, -1);
     Printf("Lock ID = %d\n", 13, 1, badLockID);
-    /* Create with good name string */
+    /* Create with good name string: ID 0 */
     goodLockID = CreateLock("Test", 4);
     Printf("Lock ID = %d\n", 13, 1, goodLockID);
     /* Acquire bad lock IDs - will print errors */
