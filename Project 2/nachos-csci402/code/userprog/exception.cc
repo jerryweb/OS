@@ -268,8 +268,6 @@ void kernel_function(int vaddr)
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
-    // Allocate stack pages? (pretty sure this isn't how to do it)
-
     machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 8);
 
     // Run the new program.
@@ -298,10 +296,9 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     buf[len]='\0';
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
-    t->space->setNewPageTable();
     //reallocate the page table
 
-    t->space->setNewPageTable();
+    //t->space->setNewPageTable();
     // update thread table
     t->space->threadTable->Put(t);
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.

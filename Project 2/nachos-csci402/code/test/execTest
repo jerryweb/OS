@@ -1,7 +1,3 @@
-/* forkTest.c
-
- */
-
 #include "syscall.h"
 
 
@@ -13,7 +9,6 @@ void testFuction(){
 int
 main()
 {
-	
-    Fork(testFuction, "funk", 4);
+	Exec_Syscall()
 
 }
