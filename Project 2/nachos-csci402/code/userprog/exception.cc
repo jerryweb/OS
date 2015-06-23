@@ -262,19 +262,13 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
-        printf("in kernel_function, writing registers\n");
-
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
-    printf("writing next instruction\n");
     machine->WriteRegister(NextPCReg, addr + 4);
-    printf("RestoreState\n");
     currentThread->space->RestoreState();
     // Allocate stack pages? (pretty sure this isn't how to do it)
-    printf("stack pointer and registers\n");
-    //currentThread->space->getNumPages() += 8;
-    machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 16);
+    machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 8);
 
     // Run the new program.
     machine->Run();
@@ -300,19 +294,12 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     }
 
     buf[len]='\0';
-    printf("creating thread\n");
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
     //reallocate the page table
-    // TranslationEntry* oldPageTable = t->space->getPageTable();
-    // TranslationEntry* newPageTable =
-    //  new TranslationEntry[t->space->getNumPages() + ]
-    printf("address space created, creating new page table\n");
     t->space->setNewPageTable();
     // update thread table
-    printf("adding thread to thread table\n");
     t->space->threadTable->Put(t);
-    printf("forking kernel_function\n");
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
@@ -657,6 +644,7 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     if (numParams < 0 || numParams > 4)
     {
         printf("%s","Invalid number of parameters in Printf\n");
+        return;
     }
     
     char *buf = new char[len+1];	// Kernel buffer: name
@@ -682,7 +670,7 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     for (int i = 0; i < numParams; i++)
     {
         parameters[i] = parameter % 1000;
-        parameter / 1000;
+        parameter = parameter / 1000;
     }
     switch (numParams)
     {
@@ -693,13 +681,13 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
             printf(buf, parameters[0]);
             break;
         case 2:
-            printf(buf, parameters[0], parameters[1]);
+            printf(buf, parameters[1], parameters[0]);
             break;
         case 3:
-            printf(buf, parameters[0], parameters[1], parameters[2]);
+            printf(buf, parameters[2], parameters[1], parameters[0]);
             break;
         case 4:
-            printf(buf, parameters[0], parameters[1], parameters[2], parameters[3]);
+            printf(buf, parameters[3], parameters[2], parameters[1], parameters[0]);
             break;
         default:
             printf("%s","Invalid number of parameters in Printf\n");
