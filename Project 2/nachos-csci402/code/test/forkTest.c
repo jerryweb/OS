@@ -14,9 +14,14 @@
 int a[3];
 int b, c;
 
+int bsFunction(){
+	int hello = 0;
+	Printf("Fort Test Fucntion\n", 19, 0,0);
+}
+
 int
 main()
 {
-    Halt();
-    /* not reached */
+	Printf("Fort Test Fucntion\n", 19, 0,0);
+    Fork(bsFunction, "funk", 4);
 }

@@ -262,13 +262,17 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
+        printf("in kernel_function, writing registers\n");
+
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
+    printf("writing next instruction\n");
     machine->WriteRegister(NextPCReg, addr + 4);
+    printf("RestoreState\n");
     currentThread->space->RestoreState();
     // Allocate stack pages? (pretty sure this isn't how to do it)
-
+    printf("stack pointer and registers\n");
     //currentThread->space->getNumPages() += 8;
     machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 16);
 
@@ -296,18 +300,19 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     }
 
     buf[len]='\0';
-    
+    printf("creating thread\n");
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
     //reallocate the page table
     // TranslationEntry* oldPageTable = t->space->getPageTable();
     // TranslationEntry* newPageTable =
     //  new TranslationEntry[t->space->getNumPages() + ]
+    printf("address space created, creating new page table\n");
     t->space->setNewPageTable();
-
     // update thread table
+    printf("adding thread to thread table\n");
     t->space->threadTable->Put(t);
-
+    printf("forking kernel_function\n");
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 

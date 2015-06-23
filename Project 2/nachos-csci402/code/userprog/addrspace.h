@@ -40,7 +40,7 @@ class AddrSpace {
     Table fileTable;			// Table of openfiles
     Table* threadTable;
     TranslationEntry* getPageTable() { return pageTable; }
-    void setNewPageTable(bool adding);
+    void setNewPageTable();
 
  private:
     TranslationEntry *pageTable;	// Assume linear page table translation
