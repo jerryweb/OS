@@ -353,6 +353,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
     
     AddrSpace* p = new AddrSpace(fileHandle);
     Thread* t = new Thread("Kernel thread");
+
     t->space = p;
     p->threadTable->Put(t);
     
@@ -380,8 +381,9 @@ void Exit_Syscall(int status)
 //  is ignored for now.
 {
     AddrSpace* space = currentThread->space;
-    if (space->threadTable->getCount() == 1){
 
+
+    if (space->threadTable->getCount() == 1){
         if (processTable->getCount() == 1){
             //stop nachos
             interrupt->Halt();
@@ -392,7 +394,6 @@ void Exit_Syscall(int status)
             // reclaim all memory
              printf("calling current thread finish\n");
             currentThread->Finish();
-
         }
     }
 

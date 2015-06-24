@@ -189,7 +189,7 @@ Fork,Exec,Exit
 		 		-Locks 								//forget about using destroys in the airport simulation
 		 		-CVs 
 		 		//if you were to implement, the manager would do all of the destroys
-		 	Case 1: Last executing thread in lastprocess
+		 	Case 1: Last executing thread in last process
 		 			stop Nachos
 		 			interrupt->Halt(c);
 

@@ -196,7 +196,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     //need to delete this once we start using exec and the constructor gets called
     //more than once
     //bzero(machine->mainMemory, size);
-    id = processTable->Put(p);
+
+    id = processTable->Put(this);           //adds a process to the process table
     
 }   
 
