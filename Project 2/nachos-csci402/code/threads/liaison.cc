@@ -54,10 +54,12 @@ void Liaison::DirectPassengers(){
     
     while(true){
         // Check line for passengers.
+    	 airport->liaisonLock[id]->Acquire();
+
         airport->liaisonLineLock->Acquire();
         p = CheckForPassengers();
 
-        airport->liaisonLock[id]->Acquire();
+       // airport->liaisonLock[id]->Acquire();
         airport->liaisonLineLock->Release();
         if(p != NULL){
             airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
@@ -91,7 +93,7 @@ void Liaison::DirectPassengers(){
                 airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
                 airport->liaisonManagerLock->Release();
                 airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-                // //Wait for manager to signal that all the data has been collected
+                // Wait for manager to signal that all the data has been collected
                 airport->RequestingLiaisonData[id] = false;
         }
         

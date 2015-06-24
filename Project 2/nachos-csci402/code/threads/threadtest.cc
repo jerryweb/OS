@@ -208,7 +208,7 @@ void ManagerTest() {
 		bagsPerAirline[a] = 0;
 		bagWeightPerAirline[a] = 0;
 	}
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 10; i++) {
 		Ticket ticket;
 		int airline = rand() % 3;
 		passengersPerAirline[airline]++;
@@ -252,13 +252,13 @@ void ManagerTest() {
 		}
 	}
 
-	//Generates Cargo Handlers; there should be 10 in total 
+	/*/Generates Cargo Handlers; there should be 10 in total
 	for (int q = 0; q < 10; q++) {
 		Cargo* cargo = new Cargo(q, airport);
 		airport->cargoHandlerList->Append((void *) cargo);
 		Thread *tCH = new Thread("Cargo_Handler");
 		CargoHandlerTreadArray->Append((void *) tCH);
-	}
+	}*/
 
 	//generates Screening Officers
 	for (int s = 0; s < 3; s++) {
@@ -312,7 +312,7 @@ void ManagerTest() {
 		tCIS->Fork(StartCheckInStaff, (int(CIS)));
 	}
 
-	//Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
+	/*Fork all of the Cargo Handlers Threads from the array of Cargo Handlers threads
 	for (int m = CargoHandlerTreadArray->Size(); m > 0; m--) {
 		Cargo *CH = (Cargo*) airport->cargoHandlerList->First();
 		airport->cargoHandlerList->Remove();
@@ -320,7 +320,7 @@ void ManagerTest() {
 		Thread *tCH = (Thread*) CargoHandlerTreadArray->First();
 		CargoHandlerTreadArray->Remove();
 		tCH->Fork(StartCargo, (int(CH)));
-	}
+	}*/
 
 	for (int p = ScreenOfficerThreadArray->Size(); p > 0; p--) {
 		ScreenOfficer *SO =
