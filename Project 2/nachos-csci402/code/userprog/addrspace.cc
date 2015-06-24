@@ -139,7 +139,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     //Keep track of all of the threads that belong to the process
     threadTable = new Table(numOfThreads);
-\
+
     // Don't allocate the input or output to disk files
     fileTable.Put(0);
     fileTable.Put(0);
@@ -196,23 +196,9 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     //need to delete this once we start using exec and the constructor gets called
     //more than once
     //bzero(machine->mainMemory, size);
-
-// then, copy in the code and data segments into memory
-   //  if (noffH.code.size > 0) {
-   //      DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
-			// noffH.code.virtualAddr, noffH.code.size);
-   //      executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-			// noffH.code.size, noffH.code.inFileAddr);
-   //  }
-
-   //  if (noffH.initData.size > 0) {
-   //      DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
-			// noffH.initData.virtualAddr, noffH.initData.size);
-   //      executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-			// noffH.initData.size, noffH.initData.inFileAddr);
-   //  }
-
-}
+    id = processTable->Put(p);
+    
+}   
 
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
