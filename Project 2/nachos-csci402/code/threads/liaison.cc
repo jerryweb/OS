@@ -26,8 +26,11 @@ Passenger* Liaison::CheckForPassengers()
     Passenger* p;
     if (airport->liaisonQueues[id]->Size() > 0)
     {   // If line is not empty, signal next passenger.
-        airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);
+      //  airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);
+    	airport->liaisonLineCV[id]->Signal(airport->liaisonLock[id]);
+    	airport->liaisonLineLock->Acquire();
         p = (Passenger*)airport->liaisonQueues[id]->Remove();
+        airport->liaisonLineLock->Release();
        
         printf("Airport Liaison %d directed passenger %d of airline %d\n", 
                 id, p->getID(), p->getTicket().airline);
@@ -56,11 +59,11 @@ void Liaison::DirectPassengers(){
         // Check line for passengers.
     	 airport->liaisonLock[id]->Acquire();
 
-        airport->liaisonLineLock->Acquire();
+     //   airport->liaisonLineLock->Acquire();
         p = CheckForPassengers();
 
        // airport->liaisonLock[id]->Acquire();
-        airport->liaisonLineLock->Release();
+      //  airport->liaisonLineLock->Release();
         if(p != NULL){
             airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
             //Wait for passenger to give liaison information
@@ -83,18 +86,25 @@ void Liaison::DirectPassengers(){
                 airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
          
         } 
+
+        airport->liaisonLock[id]->Acquire();
+
         if(airport->RequestingLiaisonData[id]){     //prevent race conditions with other liaisons
                
                 airport->liaisonManagerLock->Acquire();
                
                 //Give manager data
                 
-                airport->liaisonLock[id]->Acquire();
+               // airport->liaisonLock[id]->Acquire();
                 airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
                 airport->liaisonManagerLock->Release();
-                airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+
                 // Wait for manager to signal that all the data has been collected
                 airport->RequestingLiaisonData[id] = false;
+
+                airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+                // Wait for manager to signal that all the data has been collected
+               // airport->RequestingLiaisonData[id] = false;
         }
         
     }

@@ -90,8 +90,6 @@ public:
 	Condition* checkinManagerCV;
 	Lock* checkinManagerLock;       // for interaction with manager
 
-	//Lock* checkinQueuesLock;
-
 	// Cargo variables
 	List* conveyor;                 // Conveyor belt for bag transfer
 									//  from check-in to cargo (list of

@@ -115,7 +115,7 @@ void Manager::MakeRounds() {
 		//These functions gather data from each of the thread classes
 		LiaisonDataRequest(L);
 
-		//CargoRequest(CH);
+		CargoRequest(CH);
 
 		CheckinDataRequest(C);
 
@@ -126,9 +126,9 @@ void Manager::MakeRounds() {
 			if (!clearAirline[a]) {
 				airport->airlineLock[a]->Acquire();
 				if (securityInspectorPassengerCount[a]
-						>= airport->airlines[a]->ticketsIssued)
-						//&& airport->aircraft[a]->Size()    >= airport->airlines[a]->totalBagCount)
-						{
+						>= airport->airlines[a]->ticketsIssued
+						&& airport->aircraft[a]->Size()
+								>= airport->airlines[a]->totalBagCount) {
 					printf(
 							"Airport manager gives a boarding call to airline %d\n",
 							a);

@@ -53,6 +53,7 @@ Airport::Airport(){
     checkinState = new CheckinState[numCheckin];
     checkinManagerLock = new Lock("checkinManagerLock");
     checkinManagerCV = new Condition("checkinManagerCV");
+
 	for (i = 0; i < numAirlines; i++) {
 		checkinLineLock[i] = new Lock("checkinLineLock");
 	}
