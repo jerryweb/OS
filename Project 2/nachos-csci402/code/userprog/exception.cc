@@ -273,8 +273,9 @@ void kernel_function(int vaddr)
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
-
-    machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 8);
+    threadTable->getCount() - getThreadTableLocation()
+    //printf("stack pointer: %d\n", (currentThread->space->getNumPages() - 8) * PageSize );
+    machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
 
     // printf("running thread %s\n", currentThread->getName());
     
@@ -399,7 +400,7 @@ void Exit_Syscall(int status)
             printf("memMap test for thread return true\n");
             //memMap->Clear(currentThread->getThreadTableLocation());
         }
-
+        //use the known vpn indicies to find the correspeonding ppn to clear and set the valid bit false
 
         // Reclaim all memory associated with the Address AddSP if this is the last 
         // thread in the process
@@ -467,23 +468,7 @@ void Exit_Syscall(int status)
             currentThread->Finish();
         }
     }
-        // if (processTable->getCount() == 1){
-        //     //stop nachos
-            
 
-        // }
-        
-
-        /*
-        reclaim stack:
-            clear memory in bitmap
-            set pageTableEntry to valid
-        */
-        // printf("Thread table count is %d for process %d\n",
-        //  space->threadTable->getCount(), space->getID());
-        // printf("calling current thread finish for thread %s\n", currentThread->getName());
-        // currentThread->Finish();
-    
 }
 
 void Acquire_Syscall(int id)

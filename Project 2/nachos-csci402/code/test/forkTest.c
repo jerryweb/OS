@@ -22,6 +22,7 @@ void ThreadBfunc(){
 int main(){
 	
     Fork(ThreadAfunc, "Thread A", 8);
+    //Yield();
     Fork(ThreadBfunc, "Thread B", 8);
 
 }

@@ -187,6 +187,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
             PageSize, noffH.code.inFileAddr + i*PageSize);
     }
+
+
     currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
 
     id = processTable->Put(this);           //adds a process to the process table
@@ -229,6 +231,7 @@ AddrSpace::setNewPageTable(){
     //unsigned int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
     unsigned int previousNumPages = numPages;
     numPages += divRoundUp(UserStackSize,PageSize); //decrement on exit
+    printf("numPages = %d\n", numPages);
     TranslationEntry *tempTable = new TranslationEntry[numPages];
 
     int ppn = 0;
@@ -256,6 +259,7 @@ AddrSpace::setNewPageTable(){
 
     delete pageTable; 
     pageTable = tempTable;
+    printf("size of pageTable: %d\n", numPages);
 
     RestoreState();
 }
