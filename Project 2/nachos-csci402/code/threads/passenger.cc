@@ -229,7 +229,7 @@ void Passenger::Inspecting() {
 
 	airport->securityLocks[myLine]->Acquire();
 	//always do a signal to wake potential free security inspector
-	//airport->securityFreeCV[myLine]->Signal(airport->securityLocks[myLine]);
+	airport->securityFreeCV[myLine]->Signal(airport->securityLocks[myLine]);
 	//wait on security inspector to do checking
 	airport->securityQueuesCV[myLine]->Wait(airport->securityLocks[myLine]);
 
@@ -252,7 +252,7 @@ void Passenger::Inspecting() {
 				id, myLine);
 
 		//always do a signal to wake potential free security inspector
-		//airport->securityFreeCV[myLine]->Signal(airport->securityLocks[myLine]);
+		airport->securityFreeCV[myLine]->Signal(airport->securityLocks[myLine]);
 		//wait for inspector to clear my boarding status
 		printf(")))))))))))))))))))))))passenger %d signal security after questioning\n",id);
 		airport->returnQueuesCV[myLine]->Wait(airport->securityLocks[myLine]);

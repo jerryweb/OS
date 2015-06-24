@@ -153,8 +153,9 @@ void SecurityInspector::Inspect() {
 			//airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
 			airport->securityQueuesCV[id]->Signal(airport->securityLocks[id]);
 			airport->returnQueuesCV[id]->Signal(airport->securityLocks[id]);
-			airport->securityLocks[id]->Release();
-			currentThread->Yield();
+			airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
+			//airport->securityLocks[id]->Release();
+			//currentThread->Yield();
 		}
 	}
 }
