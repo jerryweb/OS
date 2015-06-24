@@ -272,6 +272,8 @@ void kernel_function(int vaddr)
 
     machine->WriteRegister(StackReg, currentThread->space->getNumPages() * PageSize - 8);
 
+    printf("running thread %s\n", currentThread->getName());
+    
     // Run the new program.
     machine->Run();
 }
