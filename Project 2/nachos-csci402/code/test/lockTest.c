@@ -20,9 +20,9 @@ void LockThreadTest1()
 void LockThreadTest2()
 {
     Printf("Start thread 2\n", 13, 0, 0);
-    /*Acquire(goodLockID);
+    Acquire(goodLockID);
     Yield();
-    Release(goodLockID);*/
+    Release(goodLockID);
     Exit(0);
 }
 
