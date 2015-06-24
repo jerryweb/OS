@@ -187,6 +187,10 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
             PageSize, noffH.code.inFileAddr + i*PageSize);
     }
+
+    threadTable->Put(currentThread);        //adds the thread to the thread table
+
+    id = processTable->Put(this);           //adds a process to the process table
     
     //int ppn = memMap->Find();   //physical page number
     //memMap->Clear(ppn); 
@@ -197,7 +201,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     //more than once
     //bzero(machine->mainMemory, size);
 
-    id = processTable->Put(this);           //adds a process to the process table
+
+
     
 }   
 
@@ -235,22 +240,18 @@ AddrSpace::setNewPageTable(){
     //copy over old Page Table data
     for (unsigned int i = 0; i < previousNumPages; i++) {
         
-        tempTable[i].virtualPage = pageTable[i].virtualPage;   // for now, virtual page # = phys page #
+        tempTable[i].virtualPage = pageTable[i].virtualPage;   
         tempTable[i].physicalPage = pageTable[i].physicalPage; //ppn not i
         tempTable[i].valid = pageTable[i].valid;
         tempTable[i].use = pageTable[i].use;
         tempTable[i].dirty = pageTable[i].dirty;
-        tempTable[i].readOnly = pageTable[i].readOnly;  // if the code segment was entirely on 
-                        // a separate page, we could set its 
-                        // pages to be read-only
+        tempTable[i].readOnly = pageTable[i].readOnly;  
     }
-
 
     for (unsigned int i = previousNumPages; i < numPages; ++i)
     {
         ppn = memMap->Find();
-        
-        tempTable[i].virtualPage = i;   // for now, virtual page # = phys page #
+        tempTable[i].virtualPage = i;   
         tempTable[i].physicalPage = ppn; //ppn not i
         tempTable[i].valid = TRUE;
         tempTable[i].use = FALSE;

@@ -39,6 +39,8 @@ StartProcess(char *filename)
 
     currentThread->space = space;
 
+    // space->threadTable->Put(currentThread);  //moved to address space constructor
+
     delete executable;			// close file
 
     space->InitRegisters();		// set the initial register values

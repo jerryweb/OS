@@ -354,6 +354,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
     Thread* t = new Thread("Kernel thread");
 
     t->space = p;
+
     p->threadTable->Put(t);
     
     // int id = processTable->Put(p);
@@ -391,6 +392,8 @@ void Exit_Syscall(int status)
         
         else{
             // reclaim all memory
+            // printf("Thread table count is %d for process %d\n",
+            // space->threadTable->getCount(), space->getID());
              printf("calling current thread finish\n");
             currentThread->Finish();
         }
@@ -403,7 +406,8 @@ void Exit_Syscall(int status)
             clear memory in bitmap
             set pageTableEntry to valid
         */
-        printf("Thread table count %d\n", space->threadTable->getCount());
+        printf("Thread table count is %d for process %d\n",
+         space->threadTable->getCount(), space->getID());
         printf("calling current thread finish for thread %s\n", currentThread->getName());
         currentThread->Finish();
     }
