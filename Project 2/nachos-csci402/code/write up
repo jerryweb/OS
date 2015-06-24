@@ -25,7 +25,7 @@ I. Requirements:
     Convert the airport from project 1 to use the syscalls and run a test where at least two instances run concurrently.
 
 II. Assumptions:
-	
+	The application programmer can count. (i.e. they always supply the correct number of characters when passing one in via syscall.)
 
 III. Design:
     

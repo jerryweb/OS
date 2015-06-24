@@ -576,7 +576,7 @@ void Wait_Syscall(int id, int lockID)
     printf("Thread %s: Waiting on Condition, ID %d\n", currentThread->getName(), id);
     
     kCond->condition->Wait(kLock->lock);
-    awakeThreadCount++;                     //increment the number of active threads
+    awakeThreadCount--;                     //decrement the number of active threads
     
     printf("Thread %s: Waited on Condition, ID %d\n", currentThread->getName(), id);
     
@@ -733,6 +733,11 @@ void DestroyLock_Syscall(int id)
         printf("Thread %s: Trying to delete invalid KernelLock, ID %d\n", currentThread->getName(), id);
         return;
     }
+    if (currentThread->space != kLock->owner)
+    {   // Check if current process has access to lock.
+        printf("Thread %s: Trying to delete other process's Lock, ID %d\n", currentThread->getName(), id);
+        return;
+    }
     
     if(!kLock->isToBeDeleted){
         kLock->isToBeDeleted = true;
@@ -762,6 +767,11 @@ void DestroyCondition_Syscall(int id)
     if (kCond == NULL)
     {   // Check if condition has been created (or not yet destroyed).
         printf("Thread %s: Trying to delete invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+        return;
+    }
+    if (currentThread->space != kCond->owner)
+    {   // Check if current process has access to condition.
+        printf("Thread %s: Trying to delete other process's Condition, ID %d\n", currentThread->getName(), id);
         return;
     }
     
