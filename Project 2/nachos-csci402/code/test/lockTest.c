@@ -1,6 +1,7 @@
 /* lockTest.c
  *	Simple program to test whether Lock syscalls work.
  *  Runs through every possible case of every syscall.
+ *  MUST BE RUN WITHOUT -RS TO ENSURE PROPER SEQUENCE
  */
 
 #include "syscall.h"
