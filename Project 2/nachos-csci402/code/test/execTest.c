@@ -7,12 +7,12 @@
 */
 
 #include "syscall.h"
-/*
+
 void testFuction(){
 	Printf("Fort Test Fucntion\n", 19, 0,0);
 	Exit(0);
 }
-*/
+
 int main(){
 	int processLocation = 0;
 
@@ -25,6 +25,7 @@ int main(){
 	/*Tests input with a nonexistant file */
 	processLocation = Exec("../test/FooBar", 14);
 
+	Fork(testFuction, "thread", 7);
 	/*Tests input with a nonexistant file with the incorrect number of
 	characters in the file name.
 	processLocation = Exec("../test/Fooar", 14);*/
