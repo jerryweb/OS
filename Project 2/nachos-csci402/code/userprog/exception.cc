@@ -262,7 +262,8 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
-    printf("entering kernel function\n");
+    printf("entering kernel function for thread %s\n",
+        currentThread->getName());
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
@@ -297,12 +298,15 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     buf[len]='\0';
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
+    printf("Forking thread %s\n",
+        t->getName());
+
     //reallocate the page table
 
     t->space->setNewPageTable();
     // update thread table
     t->space->threadTable->Put(t);
-    printf("thread table size %d\n", t->space->threadTable->getCount());
+    // printf("thread table size %d\n", t->space->threadTable->getCount());
 
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
@@ -366,35 +370,39 @@ void Exit_Syscall(int status)
 
     // where does currentThread->Finish() go?
     AddrSpace* space = currentThread->space;
-    if (space->threadTable->getCount() == 1)
-    {
+    // if (space->threadTable->getCount() == 1)
+    // {
        
 
-        if (processTable->getCount() == 1)
-        {
-            /*
-            stop nachos
-            interrupt->Halt(c);
-            */
-            printf("ending\n");
+    //     if (processTable->getCount() == 1)
+    //     {
             
-         }
-        else
-        {
-            // reclaim all memory
-             printf("calling current thread finish\n");
-            currentThread->Finish();
-        }
-    }
+    //         stop nachos
+    //         interrupt->Halt(c);
+            
+    //         printf("ending\n");
+            
+    //      }
+    //     else
+    //     {
+    //         // reclaim all memory
+    //          printf("calling current thread finish\n");
+    //         currentThread->Finish();
+    //     }
+    // }
 
-    else
-    {
+    // else
+    // {
         /*
         reclaim stack:
             clear memory in bitmap
             set pageTableEntry to valid
         */
-    }
+        printf("Thread table count %d\n", space->threadTable->getCount());
+        printf("calling current thread finish for thread %s\n",
+         currentThread->getName());
+        currentThread->Finish();
+    // }
 }
 
 void Acquire_Syscall(int id)
