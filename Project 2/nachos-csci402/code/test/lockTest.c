@@ -13,15 +13,16 @@ void LockThreadTest1()
     Printf("Start thread 1\n", 15, 0, 0);
     Acquire(goodLockID);
     Yield();
+    Printf("thread1 critical section\n", 25, 0, 0);
     Release(goodLockID);
     Exit(0);
 }
 void LockThreadTest2()
 {
-    Printf("Start thread 2\n", 15, 0, 0);
-    Acquire(goodLockID);
+    Printf("Start thread 2\n", 13, 0, 0);
+    /*Acquire(goodLockID);
     Yield();
-    Release(goodLockID);
+    Release(goodLockID);*/
     Exit(0);
 }
 
@@ -55,8 +56,12 @@ main()
     Printf("Lock ID = %d\n", 13, 1, goodLockID);
 
     Fork(LockThreadTest1, "thread1", 7);
-    
+
     Fork(LockThreadTest2, "thread2", 7);
+
     Yield();
+    Acquire(goodLockID);
+    Printf("main critical section\n", 22, 0, 0);
+    Release(goodLockID);
     Printf("Testing locks on multiple processes\n", 36, 0, 0);
 }
