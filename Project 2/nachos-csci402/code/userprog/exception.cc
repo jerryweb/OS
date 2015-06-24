@@ -284,13 +284,13 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     
     if (! buf)
     {
-        printf("Can't allocate kernel buffer in Exec\n");
+        printf("Can't allocate kernel buffer in Fork\n");
         return;
     }
 
     if( copyin(vaddr2, len, buf) == -1 )
     {
-        printf("Bad pointer passed to Exec\n");
+        printf("Bad pointer %d passed to Fork\n", vaddr2);
         delete[] buf;
         return;
     }
@@ -334,7 +334,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
 
     if( copyin(vaddr, len, buf) == -1 )
     {
-        printf("Bad pointer passed to Exec\n");
+        printf("Bad pointer %d passed to Exec\n", vaddr);
         delete[] buf;
         return -1;
     }
@@ -428,6 +428,8 @@ void Acquire_Syscall(int id)
         return;
     }
     
+    printf("Successfully acquired Lock, ID %d\n", id);
+    
     kLock->lock->Acquire();
     awakeThreadCount--;         //Decrements the number of 
                                 // threads that are active
@@ -454,6 +456,8 @@ void Release_Syscall(int id)
         printf("Trying to release invalid Lock, ID %d\n", id);
         return;
     }
+    
+    printf("Successfully released Lock, ID %d\n", id);
     
     kLock->lock->Release();
     awakeThreadCount++;                     //increment the number of active threads
@@ -483,6 +487,8 @@ void Wait_Syscall(int id, int lockID)
         return;
     }
     
+    printf("Successfully waiting on Condition, ID %d\n", id);
+    
     kCond->condition->Wait(kLock->lock);
     awakeThreadCount++;                     //increment the number of active threads
 }
@@ -509,6 +515,8 @@ void Signal_Syscall(int id, int lockID)
         printf("Trying to signal invalid Condition, ID %d\n", id);
     return;
     }
+    
+    printf("Successfully signalled Condition, ID %d\n", id);
     
     kCond->condition->Signal(kLock->lock);
     awakeThreadCount++;                     //increment the number of active threads
@@ -537,6 +545,8 @@ void Broadcast_Syscall(int id, int lockID)
         return;
     }
     
+    printf("Successfully broadcasted on Condition, ID %d\n", id);
+    
     kCond->condition->Broadcast(kLock->lock);
     //need to add the incrementer for the number of active threads
 }
@@ -556,7 +566,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 
     if( copyin(vaddr, len, buf) == -1 )
     {
-        printf("Bad pointer passed to CreateLock\n");
+        printf("Bad pointer %d passed to CreateLock\n", vaddr);
         delete[] buf;
         return -1;
     }
@@ -570,7 +580,11 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     
     delete[] buf;
     
-    return lockTable->Put(kLock);
+    int id = lockTable->Put(kLock);
+    
+    printf("Successfully created Lock, ID %d\n", id);
+    
+    return id;
 }
 
 int CreateCondition_Syscall(unsigned int vaddr, int len)
@@ -590,7 +604,7 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 
     if( copyin(vaddr, len, buf) == -1 )
     {
-        printf("Bad pointer passed to CreateCondition\n");
+        printf("Bad pointer %d passed to CreateCondition\n", vaddr);
         delete[] buf;
         return -1;
     }
@@ -604,7 +618,11 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     
     delete[] buf;
     
-    return CVTable->Put(kCond);
+    int id = CVTable->Put(kCond);
+    
+    printf("Successfully created Condition, ID %d\n", id);
+    
+    return id;
 }
 
 void DestroyLock_Syscall(int id)
