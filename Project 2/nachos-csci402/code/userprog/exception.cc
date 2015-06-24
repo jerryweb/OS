@@ -193,7 +193,7 @@ void Write_Syscall(unsigned int vaddr, int len, int id) {
 
     if ( id == ConsoleOutput) {
       for (int ii=0; ii<len; ii++) {
-	printf("%c",buf[ii]);
+        printf("%c",buf[ii]);
       }
 
     } else {
@@ -266,8 +266,7 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
-    // printf("entering kernel function for thread %s\n",
-    //     currentThread->getName());
+    // printf("entering kernel function for thread %s\n", currentThread->getName());
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
@@ -366,8 +365,8 @@ int Exec_Syscall(unsigned int vaddr, int len)
     // printf("Thread table location: %d\n", t->getThreadTableLocation());
     // int id = processTable->Put(p);
     
-    printf("Adding a new process to the table. Process Table count is: %d\n",
-        processTable->getCount());
+    //printf("Adding a new process to the table. Process Table count is: %d\n",
+    //    processTable->getCount());
 
     t->Fork(exec_thread, 0);
     
@@ -392,12 +391,12 @@ void Exit_Syscall(int status)
     if(processTable->getCount() != 1){
 
         // reclaim all memory
-        printf("Thread table count is %d for process %d\n", 
-            AddSP->threadTable->getCount(), AddSP->getID());
+        //printf("Thread table count is %d for process %d\n", 
+        //    AddSP->threadTable->getCount(), AddSP->getID());
 
         //not sure if this is correct way to clear memory
         if(memMap->Test(currentThread->getThreadTableLocation())){
-            printf("memMap test for thread return true\n");
+            //printf("memMap test for thread return true\n");
             //memMap->Clear(currentThread->getThreadTableLocation());
         }
         //use the known vpn indicies to find the correspeonding ppn to clear and set the valid bit false
@@ -406,8 +405,8 @@ void Exit_Syscall(int status)
         // thread in the process
         if(AddSP->threadTable->getCount() == 1){
             if(memMap->Test(AddSP->getID())){
-                printf("memMap test return true for process\n");
-                memMap->Clear(AddSP->getID());
+                //printf("memMap test return true for process\n");
+                //memMap->Clear(AddSP->getID());
             }
 
             KernelLock* KL;
@@ -426,8 +425,8 @@ void Exit_Syscall(int status)
 
         AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
 
-        printf("Thread table count is %d for process %d\n", 
-            AddSP->threadTable->getCount(), AddSP->getID());
+        //printf("Thread table count is %d for process %d\n", 
+        //    AddSP->threadTable->getCount(), AddSP->getID());
 
         printf("calling current thread finish\n");
         currentThread->Finish();
@@ -437,12 +436,12 @@ void Exit_Syscall(int status)
 
           //not sure if this is correct way to clear memory
         if(memMap->Test(currentThread->getThreadTableLocation())){
-            printf("memMap test for thread return true\n");
+            //printf("memMap test for thread return true\n");
             //memMap->Clear(currentThread->getThreadTableLocation());
         }
         if(AddSP->threadTable->getCount() == 1){
             if(memMap->Test(AddSP->getID())){
-                printf("memMap test return true for process\n");
+                //printf("memMap test return true for process\n");
                 //memMap->Clear(AddSP->getID());
             }
 
@@ -450,7 +449,7 @@ void Exit_Syscall(int status)
             for(int i = 0; i < lockTable->getCount(); i++){
                  KL = (KernelLock*) lockTable->Get(i);
                 if(AddSP == KL->owner){
-                    printf("DestroyLock called by exit\n");
+                    //printf("DestroyLock called by exit\n");
                     DestroyLock_Syscall(i);
                     //lockTable->Remove(i);
                 }
@@ -730,14 +729,15 @@ void DestroyLock_Syscall(int id)
     }
 
     if((kLock->lock->getWaitQueue()->IsEmpty() &&
-        kLock->lock->getReadyQueue()->IsEmpty() &&
-        kLock->isToBeDeleted) || (awakeThreadCount == 0)){
+        kLock->lock->getOwner() == NULL &&
+        kLock->isToBeDeleted)){// || (awakeThreadCount == 0)){
 
         lockTable->lockAcquire();     // prevent lock corruption when 
                                         // deleting the lock
         printf("Thread %s: Syscall destroying lock %d\n", currentThread->getName(), id);
         kLock->lock = NULL;
         kLock->owner = NULL;  
+        kLock = NULL;
 
         lockTable->lockRelease();
     }
@@ -774,6 +774,7 @@ void DestroyCondition_Syscall(int id)
         printf("Thread %s: Syscall destroying condition %d\n", currentThread->getName(), id);
         kCond->condition = NULL;
         kCond->owner = NULL;
+        kCond = NULL;
 
         CVTable->lockRelease();
     }

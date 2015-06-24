@@ -102,14 +102,12 @@ Semaphore::V()
 //  critical sections.
 //
 //  "debugName" is an arbitrary name, useful for debugging
-//  readyQueue is threads that are ready to be used by the scheduler
 //  waitQueue is the list of threads waiting to wake up (not available to the scheduler)
 //  lockState indicates whether the lock is under a threads possesion or free to use
 //  lockOwner is the thread that currently owns the lock (current thread)
 //----------------------------------------------------------------------
 Lock::Lock(char* debugName) {
     name = debugName;
-    readyQueue = new List();
     waitQueue = new List();
     lockState = FREE;
     lockOwner = NULL;
@@ -121,7 +119,6 @@ Lock::Lock(char* debugName) {
 //  is still waiting on the Lock
 //----------------------------------------------------------------------
 Lock::~Lock() {
-    delete readyQueue;
     delete waitQueue;
 }
 
