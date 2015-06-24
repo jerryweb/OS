@@ -187,13 +187,11 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
             PageSize, noffH.code.inFileAddr + i*PageSize);
     }
-
-    threadTable->Put(currentThread);        //adds the thread to the thread table
+    currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
 
     id = processTable->Put(this);           //adds a process to the process table
     
-    //int ppn = memMap->Find();   //physical page number
-    //memMap->Clear(ppn); 
+
     //machine->mainMemory[ppn * PageSize];
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
@@ -201,9 +199,6 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     //more than once
     //bzero(machine->mainMemory, size);
 
-
-
-    
 }   
 
 //----------------------------------------------------------------------

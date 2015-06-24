@@ -102,6 +102,9 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
+    
+    int getThreadTableLocation() { return threadTableLocation; }
+    void setThreadTableLocation(int loc) { threadTableLocation = loc; }
 
   private:
     // some of the private data for this class is listed above
@@ -111,6 +114,7 @@ class Thread {
 					// (If NULL, don't deallocate stack)
     ThreadStatus status;		// ready, running or blocked
     char* name;
+    int threadTableLocation;
 
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
