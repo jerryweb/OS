@@ -36,13 +36,14 @@ class AddrSpace {
     unsigned int getNumPages() { return numPages; }
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
-    
+    int getID() { return id; }
     Table fileTable;			// Table of openfiles
     Table* threadTable;
     TranslationEntry* getPageTable() { return pageTable; }
     void setNewPageTable();
 
  private:
+    int id;                         //ID of the address space (used for processes)
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     // int codeSize;
