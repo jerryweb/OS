@@ -428,11 +428,13 @@ void Acquire_Syscall(int id)
         return;
     }
     
-    printf("Successfully acquired Lock, ID %d\n", id);
+    printf("Acquiring Lock, ID %d\n", id);
     
     kLock->lock->Acquire();
     awakeThreadCount--;         //Decrements the number of 
                                 // threads that are active
+    
+    printf("Acquired Lock, ID %d\n", id);
 }
 
 void Release_Syscall(int id)
@@ -457,10 +459,13 @@ void Release_Syscall(int id)
         return;
     }
     
-    printf("Successfully released Lock, ID %d\n", id);
+    printf("Releasing Lock, ID %d\n", id);
     
     kLock->lock->Release();
     awakeThreadCount++;                     //increment the number of active threads
+    
+    printf("Released Lock, ID %d\n", id);
+    
 }
 
 void Wait_Syscall(int id, int lockID)
@@ -487,10 +492,13 @@ void Wait_Syscall(int id, int lockID)
         return;
     }
     
-    printf("Successfully waiting on Condition, ID %d\n", id);
+    printf("Waiting on Condition, ID %d\n", id);
     
     kCond->condition->Wait(kLock->lock);
     awakeThreadCount++;                     //increment the number of active threads
+    
+    printf("Waited on Condition, ID %d\n", id);
+    
 }
 void Signal_Syscall(int id, int lockID)
 // Signals the kernel condition with the given ID, using the kernel
@@ -516,10 +524,12 @@ void Signal_Syscall(int id, int lockID)
     return;
     }
     
-    printf("Successfully signalled Condition, ID %d\n", id);
+    printf("Signalling Condition, ID %d\n", id);
     
     kCond->condition->Signal(kLock->lock);
     awakeThreadCount++;                     //increment the number of active threads
+    
+    printf("Signalled Condition, ID %d\n", id);
 }
 void Broadcast_Syscall(int id, int lockID)
 // Broadcasts on the kernel condition with the given ID, using the kernel
@@ -545,10 +555,12 @@ void Broadcast_Syscall(int id, int lockID)
         return;
     }
     
-    printf("Successfully broadcasted on Condition, ID %d\n", id);
+    printf("Broadcasting on Condition, ID %d\n", id);
     
     kCond->condition->Broadcast(kLock->lock);
     //need to add the incrementer for the number of active threads
+    
+    printf("Broadcasted on Condition, ID %d\n", id);
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)

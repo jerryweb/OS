@@ -6,29 +6,46 @@
 int a[3];
 int b, c;
 
+int goodLockID, badLockID;
+
+void LockThreadTest()
+{
+    Printf("Start thread\n", 13, 0, 0);
+    Acquire(goodLockID);
+    Yield();
+    Release(goodLockID);
+    /*Exit(0);*/
+}
+
 int
 main()
 {
-    int goodLockID, badLockID;
-    /* Create with bad name string: ID -1 */
+    Printf("Testing lock ID\n", 16, 0, 0);
+    /* Create with bad name string */
     badLockID = CreateLock((char*)0, -1);
     Printf("Lock ID = %d\n", 13, 1, badLockID);
-    /* Create with good name string: ID 0 */
-    goodLockID = CreateLock("Test", 4);
+    /* Create with good name string */
+    goodLockID = CreateLock("Test1", 5);
     Printf("Lock ID = %d\n", 13, 1, goodLockID);
-    /* Acquire bad lock IDs - will print errors */
+    /* Acquire bad lock IDs */
     Acquire(badLockID);
     Acquire(goodLockID + 1);
     /* Acquire good lock ID */
     Acquire(goodLockID);
     /* Release good lock ID */
     Release(goodLockID);
-    /* Release bad lock IDs - will print errors */
+    /* Release bad lock IDs */
     Release(goodLockID + 1);
     Release(badLockID);
-    /* Destroy bad lock IDs - will print errors */
+    /* Destroy bad lock IDs */
     DestroyLock(badLockID);
     DestroyLock(goodLockID + 1);
     /* Destroy good lock ID */
     DestroyLock(goodLockID);
+    Printf("Testing locks on multiple threads\n", 34, 0, 0);
+    goodLockID = CreateLock("Test2", 5);
+    Fork(LockThreadTest, "thread1", 7);
+    Fork(LockThreadTest, "thread2", 7);
+    Yield();
+    Printf("Testing locks on multiple processes\n", 36, 0, 0);
 }
