@@ -265,22 +265,17 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
-    // printf("entering kernel function for thread %s\n", currentThread->getName());
+    printf("Thread %s: Entering kernel function\n", currentThread->getName());
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
-    
-
-    //(threadTable->getCount() - getThreadTableLocation())
-
-    printf("stack pointer for thread %s: %d\n", currentThread->getName(), 
 
     (currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8) * PageSize);//(currentThread->space->getNumPages() - 8) * PageSize );
     machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
 
-    // printf("running thread %s\n", currentThread->getName());
+    printf("Thread %s: Running\n", currentThread->getName());
     
     // Run the new program.
     machine->Run();
@@ -308,7 +303,8 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     buf[len]='\0';
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
-    // printf("Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
+    
+    printf("Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
 
     //reallocate the page table
 
@@ -401,7 +397,7 @@ void Exit_Syscall(int status)
             for(int i = 0; i < lockTable->getCount(); i++){
                  KL = (KernelLock*) lockTable->Get(i);
                 if(AddSP == KL->owner){
-                    printf("DestroyLock called by exit\n");
+                    printf("Thread %s: DestroyLock called by exit\n", currentThread->getName());
                     DestroyLock_Syscall(i);
                     //lockTable->Remove(i);
                 }
@@ -440,6 +436,7 @@ void Exit_Syscall(int status)
         }
         AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
         printf("calling current thread finish for thread %s\n", currentThread->getName());
+
         currentThread->Finish();
     }
 
@@ -461,7 +458,7 @@ void Exit_Syscall(int status)
 
             for(unsigned int i = 0; i < AddSP->getNumPages(); i++){
                 if(memMap->Test(i)){
-                    printf("clearing page %d for process %d\n", i, AddSP->getID());
+                    //printf("clearing page %d for process %d\n", i, AddSP->getID());
                                         // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
                     memMap->Clear(i);
                     // currentThread->space->getPageTableValidBit(i) = false;
@@ -470,7 +467,7 @@ void Exit_Syscall(int status)
             }
             //stop Nachos
             processTable->Remove(AddSP->getID()); 
-            printf("Ending last process. Ending Nachos Program\n");
+            printf("Thread %s: Finishing last process, ending Nachos\n", currentThread->getName());
             interrupt->Halt();            
         }
 
@@ -478,12 +475,16 @@ void Exit_Syscall(int status)
             for(int i = threadStackLoc; i < (threadStackLoc + 8); i++){
                 printf("i: %d\n", i);
                 if(memMap->Test(i)){
-                    printf("clearing page %d for thread %s\n", i, currentThread->getName());
+
+                    //printf("clearing page %d for thread %s\n", i, currentThread->getName());
+
                     memMap->Clear(i);
                 }
             }
             AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
-            printf("calling current thread finish for thread %s\n", currentThread->getName());
+
+            printf("Thread %s: Finishing\n", currentThread->getName());
+
             currentThread->Finish();
         }
     }
