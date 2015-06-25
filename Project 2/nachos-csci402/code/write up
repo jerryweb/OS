@@ -25,7 +25,8 @@ I. Requirements:
     Convert the airport from project 1 to use the syscalls and run a test where at least two instances run concurrently.
 
 II. Assumptions:
-	The application programmer can count. (i.e. they always supply the correct number of characters when passing one in via syscall.)
+	The application programmer can count (i.e. they always supply the correct number of characters when passing in a char* string in via syscall).
+    Syscalls are always called with the correct type (e.g. no trying to input a char* for a syscall which takes in an int); this should mostly be taken care of by the compiler, but spurious typecasting may or may not be weeded out by error cases depending on the value.
 
 III. Design:
     
@@ -65,9 +66,11 @@ IV. Implementation:
 	+ Files added
         in code\test:
             condTest.c
+            condTestHelper.c
             execTest.c
             forkTest.c
             lockTest.c
+            lockTestHelper.c
             printfTest.c
 
 	+ Data Structures added, and the file they were added to.
@@ -95,6 +98,7 @@ IV. Implementation:
 V. Testing:  (For each test case, you must show)
 	+ How to test
         nachos -x ../test/<xTest>
+        run without -rs to ensure proper sequence of events
 
     + Test Output
         

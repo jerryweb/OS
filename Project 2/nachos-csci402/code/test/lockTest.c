@@ -8,7 +8,7 @@
 
 int goodLockID, badLockID;
 
-void LockThreadTest1()
+void LockThreadTest()
 {
     /* Acquire the lock, then yield back to main thread */
     Acquire(goodLockID);
@@ -24,39 +24,32 @@ int
 main()
 {
     /* PART 1: TEST ID FAILURE CONDITIONS */
-    Printf("Testing lock ID failure conditions\n", 35, 0, 0);
+    Printf("\nTESTING LOCK ID FAILURE CONDITIONS\n\n", 37, 0, 0);
     /* Create with bad name string; ID should always be -1 */
     badLockID = CreateLock((char*)0, -1);
-    Printf("Lock ID = %d\n", 13, 1, badLockID);
+    /* Test syscalls with bad lock IDs */
+    Acquire(badLockID);
+    Release(badLockID);
+    DestroyLock(badLockID);
+    Acquire(1);
+    Release(1);
+    DestroyLock(1);
     /* Create with good name string; ID should always be 0 */
     goodLockID = CreateLock("Test1", 5);
-    Printf("Lock ID = %d\n", 13, 1, goodLockID);
-    /* Acquire bad lock IDs */
-    Acquire(badLockID);
-    Acquire(goodLockID + 1);
-    /* Acquire good lock ID */
+    /* Test syscalls with good lock ID */
     Acquire(goodLockID);
-    /* Release good lock ID */
     Release(goodLockID);
-    /* Release bad lock IDs */
-    Release(goodLockID + 1);
-    Release(badLockID);
-    /* Destroy bad lock IDs */
-    DestroyLock(badLockID);
-    DestroyLock(goodLockID + 1);
-    /* Destroy good lock ID */
     DestroyLock(goodLockID);
-    /* Test all syscalls with the now-deleted lock */
+    /* Test all syscalls with the now-deleted good lock */
     Acquire(goodLockID);
     Release(goodLockID);
     DestroyLock(goodLockID);
     /* PART 2: TEST MULTITHREADED LOCKS */
-    Printf("Testing locks on multiple threads\n", 34, 0, 0);
+    Printf("\nTESTING LOCKS ON MULTIPLE THREADS\n\n", 36, 0, 0);
     /* Create a new lock, since the old one was deleted; ID should always be 1 */
     goodLockID = CreateLock("Test2", 5);
-    Printf("Lock ID = %d\n", 13, 1, goodLockID);
-    /* Fork a new thread, then let it run immediately */
-    Fork(LockThreadTest1, "thread1", 7);
+    /* Fork a new helper thread, then let it run immediately */
+    Fork(LockThreadTest, "thread1", 7);
     Yield();
     /* Try to acquire the lock; won't finish until thread1 runs its "critical section" and does release/destroy/exit */
     Acquire(goodLockID);
@@ -65,12 +58,11 @@ main()
     Release(goodLockID);
     DestroyLock(goodLockID);
     /* PART 3: TEST CROSS-PROCESS LOCK ACCESS */
-    Printf("Testing locks on multiple processes\n", 36, 0, 0);
+    Printf("\nTESTING LOCKS ON MULTIPLE PROCESSES\n\n", 38, 0, 0);
     /* Create a new lock, since the old one was deleted; ID should always be 2 */
     goodLockID = CreateLock("Test3", 5);
-    Printf("Lock ID = %d\n", 13, 1, goodLockID);
-    /* Exec a new process, then let it run immediately */
+    /* Exec a new helper process, then let it run immediately */
     Exec("../test/lockTestHelper", 22);
     Yield();
-    DestroyLock(goodLockID);
+    /* Don't destroy the lock here; Exit() should take care of it */
 }

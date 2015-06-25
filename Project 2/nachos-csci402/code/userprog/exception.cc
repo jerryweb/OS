@@ -272,7 +272,7 @@ void kernel_function(int vaddr)
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
-    threadTable->getCount() - getThreadTableLocation()
+    //threadTable->getCount() - getThreadTableLocation();
     //printf("stack pointer: %d\n", (currentThread->space->getNumPages() - 8) * PageSize );
     machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
 
@@ -377,7 +377,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
 void Yield_Syscall()
 // Yields the current thread.
 {
-    printf("Thread %s: Yield_Syscall was called; yielding current thread.\n", currentThread->getName());
+    printf("Thread %s: Yielding current thread.\n", currentThread->getName());
     currentThread->Yield();
 }
 
@@ -477,7 +477,7 @@ void Acquire_Syscall(int id)
 {
 
     KernelLock* kLock = (KernelLock*) lockTable->Get(id);
-    if (kLock == NULL)
+    if (kLock == NULL || kLock->owner == NULL)
     {   // Check if lock has been created (or not yet destroyed).
         printf("Thread %s: Trying to acquire invalid KernelLock, ID %d\n", currentThread->getName(), id);
         return;
@@ -508,7 +508,7 @@ void Release_Syscall(int id)
 //  will print an error without releasing.
 {
     KernelLock* kLock = (KernelLock*) lockTable->Get(id);
-    if (kLock == NULL)
+    if (kLock == NULL || kLock->owner == NULL)
     {   // Check if lock has been created (or not yet destroyed).
         printf("Thread %s: Trying to release invalid KernelLock, ID %d\n", currentThread->getName(), id);
         return;
@@ -519,7 +519,7 @@ void Release_Syscall(int id)
         return;
     }
     if (kLock->lock == NULL)
-    {   // Make sure lock is valid.
+    {   // Make sure lock is valid. Should never reach here.
         printf("Thread %s: Trying to release invalid Lock, ID %d\n", currentThread->getName(), id);
         return;
     }
@@ -528,8 +528,6 @@ void Release_Syscall(int id)
     
     kLock->lock->Release();
     awakeThreadCount++;                     //increment the number of active threads
-    
-    printf("Thread %s: Released Lock, ID %d\n", currentThread->getName(), id);
     
 }
 
@@ -540,19 +538,24 @@ void Wait_Syscall(int id, int lockID)
 //  an error without waiting.
 {
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
-    if (kCond == NULL)
+    if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
         printf("Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
         return;
     }
     KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (kLock == NULL || kLock->owner == NULL)
+    {   // Check if lock has been created (or not yet destroyed).
+        printf("Thread %s: Trying to wait using invalid KernelLock, ID %d\n", currentThread->getName(), lockID);
+        return;
+    }
     if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
     {   // Check if current process has access to condition and lock.
         printf("Thread %s: Trying to wait on other process's Condition, ID %d\n", currentThread->getName(), id);
         return;
     }
     if (kCond->condition == NULL)
-    {   // Make sure condition is valid.
+    {   // Make sure condition is valid. Should never reach here.
         printf("Thread %s: Trying to wait on invalid Condition, ID %d\n", currentThread->getName(), id);
         return;
     }
@@ -572,19 +575,24 @@ void Signal_Syscall(int id, int lockID)
 //  an error without signalling.
 {
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
-    if (kCond == NULL)
+    if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
         printf("Thread %s: Trying to signal invalid KernelCondition, ID %d\n", currentThread->getName(), id);
         return;
     }
     KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (kLock == NULL || kLock->owner == NULL)
+    {   // Check if lock has been created (or not yet destroyed).
+        printf("Thread %s: Trying to signal using invalid KernelLock, ID %d\n", currentThread->getName(), lockID);
+        return;
+    }
     if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
     {   // Check if current process has access to condition and lock.
         printf("Thread %s: Trying to signal other process's Condition, ID %d\n", currentThread->getName(), id);
         return;
     }
     if (kCond->condition == NULL)
-    {   // Make sure condition is valid.
+    {   // Make sure condition is valid. Should never reach here.
         printf("Thread %s: Trying to signal invalid Condition, ID %d\n", currentThread->getName(), id);
     return;
     }
@@ -593,8 +601,6 @@ void Signal_Syscall(int id, int lockID)
     
     kCond->condition->Signal(kLock->lock);
     awakeThreadCount++;                     //increment the number of active threads
-    
-    printf("Thread %s: Signalled Condition, ID %d\n", currentThread->getName(), id);
 }
 void Broadcast_Syscall(int id, int lockID)
 // Broadcasts on the kernel condition with the given ID, using the kernel
@@ -603,19 +609,24 @@ void Broadcast_Syscall(int id, int lockID)
 //  an error without broadcasting.
 {
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
-    if (kCond == NULL)
+    if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
         printf("Thread %s: Trying to broadcast on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
         return;
     }
     KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+    if (kLock == NULL || kLock->owner == NULL)
+    {   // Check if lock has been created (or not yet destroyed).
+        printf("Thread %s: Trying to broadcast using invalid KernelLock, ID %d\n", currentThread->getName(), lockID);
+        return;
+    }
     if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
     {   // Check if current process has access to condition and lock.
         printf("Thread %s: Trying to broadcast on other process's Condition, ID %d\n", currentThread->getName(), id);
         return;
     }
     if (kCond->condition == NULL)
-    {   // Make sure condition is valid.
+    {   // Make sure condition is valid. Should never reach here.
         printf("Thread %s: Trying to broadcast on invalid Condition, ID %d\n", currentThread->getName(), id);
         return;
     }
@@ -624,8 +635,6 @@ void Broadcast_Syscall(int id, int lockID)
     
     kCond->condition->Broadcast(kLock->lock);
     //need to add the incrementer for the number of active threads
-    
-    printf("Thread %s: Broadcasted on Condition, ID %d\n", currentThread->getName(), id);
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)
@@ -637,13 +646,13 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 
     if (! buf)
     {
-        printf("Thread %s: Can't allocate kernel buffer in CreateLock\n", currentThread->getName());
+        printf("Thread %s: Can't allocate kernel buffer in CreateLock, ID -1\n", currentThread->getName());
         return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
-        printf("Thread %s: Bad pointer %d passed to CreateLock\n", currentThread->getName(), vaddr);
+        printf("Thread %s: Bad pointer %d passed to CreateLock, ID -1\n", currentThread->getName(), vaddr);
         delete[] buf;
         return -1;
     }
@@ -675,13 +684,13 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 
     if (! buf)
     {
-        printf("Thread %s: Can't allocate kernel buffer in CreateCondition\n", currentThread->getName());
+        printf("Thread %s: Can't allocate kernel buffer in CreateCondition, ID -1\n", currentThread->getName());
         return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
-        printf("Thread %s: Bad pointer %d passed to CreateCondition\n", currentThread->getName(), vaddr);
+        printf("Thread %s: Bad pointer %d passed to CreateCondition, ID -1\n", currentThread->getName(), vaddr);
         delete[] buf;
         return -1;
     }
@@ -712,20 +721,20 @@ void DestroyLock_Syscall(int id)
     
     KernelLock* kLock = (KernelLock*) lockTable->Get(id);
     
-    if (kLock == NULL)
+    if (kLock == NULL || kLock->owner == NULL)
     {   // Check if lock has been created (or not yet destroyed).
-        printf("Thread %s: Trying to delete invalid KernelLock, ID %d\n", currentThread->getName(), id);
+        printf("Thread %s: Trying to destroy invalid KernelLock, ID %d\n", currentThread->getName(), id);
         return;
     }
     if (currentThread->space != kLock->owner)
     {   // Check if current process has access to lock.
-        printf("Thread %s: Trying to delete other process's Lock, ID %d\n", currentThread->getName(), id);
+        printf("Thread %s: Trying to destroy other process's Lock, ID %d\n", currentThread->getName(), id);
         return;
     }
     
     if(!kLock->isToBeDeleted){
         kLock->isToBeDeleted = true;
-        printf("Thread %s: Syscall request to destroy lock %d\n", currentThread->getName(), id);
+        printf("Thread %s: Requesting to destroy Lock, ID %d\n", currentThread->getName(), id);
     }
 
     if((kLock->lock->getWaitQueue()->IsEmpty() &&
@@ -734,10 +743,9 @@ void DestroyLock_Syscall(int id)
 
         lockTable->lockAcquire();     // prevent lock corruption when 
                                         // deleting the lock
-        printf("Thread %s: Syscall destroying lock %d\n", currentThread->getName(), id);
+        printf("Thread %s: Destroying Lock, ID %d\n", currentThread->getName(), id);
         kLock->lock = NULL;
-        kLock->owner = NULL;  
-        kLock = NULL;
+        kLock->owner = NULL;
 
         lockTable->lockRelease();
     }
@@ -749,32 +757,31 @@ void DestroyCondition_Syscall(int id)
 {
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     
-    if (kCond == NULL)
+    if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
-        printf("Thread %s: Trying to delete invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+        printf("Thread %s: Trying to destroy invalid KernelCondition, ID %d\n", currentThread->getName(), id);
         return;
     }
     if (currentThread->space != kCond->owner)
     {   // Check if current process has access to condition.
-        printf("Thread %s: Trying to delete other process's Condition, ID %d\n", currentThread->getName(), id);
+        printf("Thread %s: Trying to destroy other process's Condition, ID %d\n", currentThread->getName(), id);
         return;
     }
     
     if(!kCond->isToBeDeleted){
         kCond->isToBeDeleted = true;
-        printf("Thread %s: Syscall request to destroy condition %d\n", currentThread->getName(), id);
+        printf("Thread %s: Requesting to destroy Condition, ID %d\n", currentThread->getName(), id);
     }
 
     if((kCond->condition->getWaitList()->IsEmpty() 
         && (kCond->condition->getWaitLock() == NULL)
-        && kCond->isToBeDeleted) || (awakeThreadCount == 0)){
+        && kCond->isToBeDeleted)){// || (awakeThreadCount == 0)){
 
         CVTable->lockAcquire();   // prevent lock corruption when 
                                     // deleting the condition
-        printf("Thread %s: Syscall destroying condition %d\n", currentThread->getName(), id);
+        printf("Thread %s: Destroying Condition, ID %d\n", currentThread->getName(), id);
         kCond->condition = NULL;
         kCond->owner = NULL;
-        kCond = NULL;
 
         CVTable->lockRelease();
     }
