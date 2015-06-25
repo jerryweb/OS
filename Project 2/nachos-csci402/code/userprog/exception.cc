@@ -54,7 +54,6 @@ struct KernelCondition
 Table* processTable;
 
 
-int awakeThreadCount = 0;
 void DestroyLock_Syscall(int id);
 void DestroyCondition_Syscall(int id);
 
@@ -517,8 +516,6 @@ void Acquire_Syscall(int id)
     printf("Thread %s: Acquiring Lock, ID %d\n", currentThread->getName(), id);
     
     kLock->lock->Acquire();
-    awakeThreadCount--;         //Decrements the number of 
-                                // threads that are active
     
     printf("Thread %s: Acquired Lock, ID %d\n", currentThread->getName(), id);
 }
@@ -548,8 +545,6 @@ void Release_Syscall(int id)
     printf("Thread %s: Releasing Lock, ID %d\n", currentThread->getName(), id);
     
     kLock->lock->Release();
-    awakeThreadCount++;                     //increment the number of active threads
-    
 }
 
 void Wait_Syscall(int id, int lockID)
@@ -584,7 +579,6 @@ void Wait_Syscall(int id, int lockID)
     printf("Thread %s: Waiting on Condition, ID %d\n", currentThread->getName(), id);
     
     kCond->condition->Wait(kLock->lock);
-    awakeThreadCount--;                     //decrement the number of active threads
     
     printf("Thread %s: Waited on Condition, ID %d\n", currentThread->getName(), id);
     
@@ -621,7 +615,6 @@ void Signal_Syscall(int id, int lockID)
     printf("Thread %s: Signalling Condition, ID %d\n", currentThread->getName(), id);
     
     kCond->condition->Signal(kLock->lock);
-    awakeThreadCount++;                     //increment the number of active threads
 }
 void Broadcast_Syscall(int id, int lockID)
 // Broadcasts on the kernel condition with the given ID, using the kernel
@@ -655,7 +648,6 @@ void Broadcast_Syscall(int id, int lockID)
     printf("Thread %s: Broadcasting on Condition, ID %d\n", currentThread->getName(), id);
     
     kCond->condition->Broadcast(kLock->lock);
-    //need to add the incrementer for the number of active threads
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)
@@ -760,7 +752,7 @@ void DestroyLock_Syscall(int id)
 
     if((kLock->lock->getWaitQueue()->IsEmpty() &&
         kLock->lock->getOwner() == NULL &&
-        kLock->isToBeDeleted)){// || (awakeThreadCount == 0)){
+        kLock->isToBeDeleted)){
 
         lockTable->lockAcquire();     // prevent lock corruption when 
                                         // deleting the lock
@@ -796,7 +788,7 @@ void DestroyCondition_Syscall(int id)
 
     if((kCond->condition->getWaitList()->IsEmpty() 
         && (kCond->condition->getWaitLock() == NULL)
-        && kCond->isToBeDeleted)){// || (awakeThreadCount == 0)){
+        && kCond->isToBeDeleted)){
 
         CVTable->lockAcquire();   // prevent lock corruption when 
                                     // deleting the condition
