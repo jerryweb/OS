@@ -23,7 +23,7 @@
 #include "../threads/synch.h"
 
 extern "C" { int bzero(char *, int); };
-BitMap *memMap;
+BitMap **memMap;
 
 
 
@@ -137,6 +137,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     NoffHeader noffH;
     unsigned int i, size;
     int numOfThreads = 30;
+    id = processTable->Put(this);           //adds a process to the process table
 
     //Keep track of all of the threads that belong to the process
     threadTable = new Table(numOfThreads);
@@ -172,7 +173,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     pageTable = new TranslationEntry[numPages];
 
     for (i = 0; i < numPages; i++) {
-    	ppn = memMap->Find();
+    	ppn = memMap[id]->Find();
         
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
     	pageTable[i].physicalPage = ppn; //ppn not i
@@ -192,7 +193,6 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
 
-    id = processTable->Put(this);           //adds a process to the process table
     
 
     //machine->mainMemory[ppn * PageSize];
@@ -253,7 +253,7 @@ AddrSpace::setNewPageTable(){
 
     for (unsigned int i = previousNumPages; i < numPages; ++i)
     {
-        ppn = memMap->Find();
+        ppn = memMap[id]->Find();
         tempTable[i].virtualPage = i;   
         tempTable[i].physicalPage = ppn; //ppn not i
         tempTable[i].valid = TRUE;

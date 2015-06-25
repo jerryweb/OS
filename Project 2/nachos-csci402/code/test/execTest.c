@@ -25,7 +25,7 @@ int main(){
 	/*Tests input with a nonexistant file */
 	processLocation = Exec("../test/FooBar", 14);
 
-	Fork(testFuction, "thread", 7);
+	/*Fork(testFuction, "thread", 7);
 	/*Tests input with a nonexistant file with the incorrect number of
 	characters in the file name.
 	processLocation = Exec("../test/Fooar", 14);*/
