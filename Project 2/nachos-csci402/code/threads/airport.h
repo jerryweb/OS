@@ -66,6 +66,9 @@ public:
 									//  Index corresponds to ID.
 	LiaisonState liaisonState[7];   // Array of states for each liaison.
 									//  Index corresponds to ID.
+	Condition* liaisonFinishCV[7];
+	Condition* liaisonFreeCV[7];
+
 	// Check-in variables
 	bool* finalCheckin;
 	List** checkinQueues;           // Array of check-in queues (list of

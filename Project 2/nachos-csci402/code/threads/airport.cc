@@ -36,6 +36,8 @@ Airport::Airport(){
 		liaisonCV[i] = new Condition("liaisonCV");
 		liaisonLock[i] = new Lock("liaisonLock");
 		liaisonState[i] = L_BUSY;
+		//liaisonFinishCV[i] = new Condition("liaisonFinishCV");
+		liaisonFreeCV[i] = new Condition("liaisonFreeCV");
 	}
 
 	// Check-in variables
