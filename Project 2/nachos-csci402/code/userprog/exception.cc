@@ -318,7 +318,7 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     printf("Thread %s belongs to process %d\n", t->getName(), t->space->getID());
     // printf("Thread table location: %d\n", t->getThreadTableLocation());
 
-    // printf("thread table size %d\n", t->space->threadTable->getCount());
+    printf("thread table size %d\n", t->space->threadTable->getCount());
 
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
@@ -369,7 +369,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
     t->Fork(exec_thread, 0);
     
     int id = p->getID();
-    printf("thread count for process %d: %d\n", p, p->threadTable->getCount());
+    printf("thread count for process %d: %d\n", p->getID(), p->threadTable->getCount());
 
     return id;
 }
@@ -397,7 +397,6 @@ void Exit_Syscall(int status)
         // Reclaim all memory associated with the Address AddSP if this is the last 
         // thread in the process
         if(AddSP->threadTable->getCount() == 1){
-            AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
             KernelLock* KL;
             for(int i = 0; i < lockTable->getCount(); i++){
                  KL = (KernelLock*) lockTable->Get(i);
@@ -417,16 +416,18 @@ void Exit_Syscall(int status)
                     // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
                 }
             }
-
+            
+            printf("process table count: %d\n", processTable->getCount());
             processTable->Remove(AddSP->getID()); 
             printf("process table count: %d\n", processTable->getCount());
-            delete KL;    
+            //delete KL;    
         }
+
         else{
 
             for(int i = threadStackLoc; i < (threadStackLoc + 8); i++){
                 if(memMap->Test(i)){
-                    printf("clearing page %d for thread %s\n", i, currentThread->getName());
+                    printf("clearing page %d for thread  hhh %s\n", i, currentThread->getName());
                     // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
 
                     memMap->Clear(i);
@@ -437,7 +438,7 @@ void Exit_Syscall(int status)
             }
 
         }
-
+        AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
         printf("calling current thread finish for thread %s\n", currentThread->getName());
         currentThread->Finish();
     }
@@ -446,8 +447,8 @@ void Exit_Syscall(int status)
         printf("thread count for process %d: %d\n", AddSP->getID(), AddSP->threadTable->getCount());
 
         if(AddSP->threadTable->getCount() == 1){
-
             AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
+
             KernelLock* KL;
             for(int i = 0; i < lockTable->getCount(); i++){
                  KL = (KernelLock*) lockTable->Get(i);
@@ -468,6 +469,7 @@ void Exit_Syscall(int status)
                 }
             }
             //stop Nachos
+            processTable->Remove(AddSP->getID()); 
             printf("Ending last process. Ending Nachos Program\n");
             interrupt->Halt();            
         }
