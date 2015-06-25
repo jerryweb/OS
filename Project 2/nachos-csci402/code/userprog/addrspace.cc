@@ -62,6 +62,7 @@ int Table::Put(void *f) {
     if ( i != -1)
 	table[i] = f;
     count++;
+    maxCount++;
     return i;
 }
 
@@ -213,6 +214,10 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 AddrSpace::~AddrSpace()
 {
     delete pageTable;
+}
+
+bool AddrSpace::getPageTableValidBit(int i){
+    return pageTable[i].valid;
 }
 
 //----------------------------------------------------------------------

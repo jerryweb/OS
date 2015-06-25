@@ -15,6 +15,8 @@ class Table {
     Lock *lock;
     int size;
     int count; //This holds the count of the actual things in the table
+    int maxCount;
+
  public:
     Table(int);
     ~Table();
@@ -25,6 +27,7 @@ class Table {
     void lockRelease();
     int Size() { return size; }
     int getCount() { return count; }
+    int getMaxCount() { return maxCount; }
 };
 
 

@@ -41,6 +41,7 @@ class AddrSpace {
     Table* threadTable;
     TranslationEntry* getPageTable() { return pageTable; }
     void setNewPageTable();
+    bool getPageTableValidBit(int i);
 
  private:
     int id;                         //ID of the address space (used for processes)

@@ -272,12 +272,13 @@ void kernel_function(int vaddr)
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
-<<<<<<< HEAD
+    
+
     //(threadTable->getCount() - getThreadTableLocation())
-=======
-    //threadTable->getCount() - getThreadTableLocation();
->>>>>>> origin/master
-    //printf("stack pointer: %d\n", (currentThread->space->getNumPages() - 8) * PageSize );
+
+    printf("stack pointer for thread %s: %d\n", currentThread->getName(), 
+
+    (currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8) * PageSize);//(currentThread->space->getNumPages() - 8) * PageSize );
     machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
 
     // printf("running thread %s\n", currentThread->getName());
@@ -391,6 +392,9 @@ void Exit_Syscall(int status)
 //  is ignored for now.
 {
     AddrSpace* AddSP = currentThread->space;
+    int threadStackLoc = currentThread->space->getNumPages() - 
+                ((currentThread->space->threadTable->getMaxCount() - 
+                    currentThread->getThreadTableLocation()) * 8);
 
     if(processTable->getCount() != 1){
 
@@ -423,8 +427,33 @@ void Exit_Syscall(int status)
                 }
             }
 
+            for(int i = 0; i < currentThread->space->getNumPages(); i++){
+                if(memMap->Test(i)){
+                    printf("clearing page %d for process %d\n", i, AddSP->getID());
+                                        // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+                    memMap->Clear(i);
+                    // currentThread->space->getPageTableValidBit(i) = false;
+                    // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+                }
+            }
+
             processTable->Remove(AddSP->getID()); 
             delete KL;    
+        }
+        else{
+
+            for(int i = threadStackLoc; i < (threadStackLoc + 8); i++){
+                if(memMap->Test(i)){
+                    printf("clearing page %d for thread %s\n", i, currentThread->getName());
+                    // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+
+                    memMap->Clear(i);
+
+                    // currentThread->space->getPageTableValidBit(i) = false;
+                    // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+                }
+            }
+
         }
 
         AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
@@ -458,6 +487,16 @@ void Exit_Syscall(int status)
                     //lockTable->Remove(i);
                 }
             }
+
+            for(int i = 0; i < currentThread->space->getNumPages(); i++){
+                if(memMap->Test(i)){
+                    printf("clearing page %d for process %d\n", i, AddSP->getID());
+                                        // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+                    memMap->Clear(i);
+                    // currentThread->space->getPageTableValidBit(i) = false;
+                    // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+                }
+            }
             AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
             //stop Nachos
             printf("Ending last process. Ending Nachos Program\n");
@@ -465,7 +504,15 @@ void Exit_Syscall(int status)
         }
 
         else{
-
+            for(int i = threadStackLoc; i < (threadStackLoc + 8); i++){
+                if(memMap->Test(i)){
+                    printf("clearing page %d for thread %s\n", i, currentThread->getName());
+                                        // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+                    memMap->Clear(i);
+                    // currentThread->space->getPageTableValidBit(i) = false;
+                    // printf("pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
+                }
+            }
             AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
             printf("calling current thread finish\n");
             currentThread->Finish();
