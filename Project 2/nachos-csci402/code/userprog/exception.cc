@@ -273,7 +273,7 @@ void kernel_function(int vaddr)
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
-    threadTable->getCount() - getThreadTableLocation()
+    //(threadTable->getCount() - getThreadTableLocation())
     //printf("stack pointer: %d\n", (currentThread->space->getNumPages() - 8) * PageSize );
     machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
 
