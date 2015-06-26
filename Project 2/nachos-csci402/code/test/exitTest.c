@@ -7,7 +7,7 @@
 #include "syscall.h"
 
 void Threadfunc(){
-	Printf("Fort Test Fucntion for thread A\n", 32, 0,0);
+	Printf("Fork Test Function for thread A\n", 32, 0,0);
 	Exit(0);
 }
 
