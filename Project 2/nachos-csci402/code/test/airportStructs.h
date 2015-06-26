@@ -28,14 +28,12 @@ typedef struct
 typedef struct {
 	int id;
 	int airline;
-	Airport airport;
 	Ticket ticket;
 	BoardingPass boardingPass;
 } Passenger;
 
 typedef struct {
 	int id;
-	Airport airport;
 	int passengers[3];
     int luggageCount[3];
     int luggageWeight[3];
