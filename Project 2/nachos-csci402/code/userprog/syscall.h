@@ -57,7 +57,6 @@
 /* Stop Nachos, and print out performance stats */
 void Halt();
  
-
 /* Address space control operations: Exit, Exec, and Join */
 
 /* This user program is done (status = 0 means exited normally). */
@@ -69,7 +68,6 @@ typedef int SpaceId;
 /* Run the executable, stored in the Nachos file "name", and return the 
  * address space identifier
  */
-
 SpaceId Exec(char *name, int len);
  
 /* Only return once the the user program "id" has finished.
@@ -77,7 +75,6 @@ SpaceId Exec(char *name, int len);
  */
 int Join(SpaceId id);
  
-
 /* File system operations: Create, Open, Read, Write, Close
  * These functions are patterned after UNIX -- files represent
  * both files *and* hardware I/O devices.
@@ -121,8 +118,6 @@ int Read(char *buffer, int size, OpenFileId id);
 /* Close the file, we're done reading and writing to it. */
 void Close(OpenFileId id);
 
-
-
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program. 
  */
@@ -136,7 +131,6 @@ void Fork(void (*func)(), char* name, int len);
  * or not. 
  */
 void Yield();
-
 
 /* Lock and condition syscalls */
 
@@ -190,7 +184,6 @@ void DestroyCondition(int id);
  * Can handle up to 4 integers.
  */
 void Printf(char* string, int len, int numParams, int params);
-
 
 #endif /* IN_ASM */
 
