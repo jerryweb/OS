@@ -187,7 +187,7 @@ void Passenger0(){
 
 	/*p.boardingPass.gate = NULL;
 	p.boardingPass.seatNum = NULL;*/
-	Printf("Passenger %d of airline %d created\n", 35, 2, );
+	Printf("Passenger %d of airline %d created\n", 35, 2, 0);
 	Printf("Forking passenger\n", 18, 0,0);
 	Exit(0);
 }
@@ -250,7 +250,10 @@ void RunLiaison()
         p = liaisonLine[l.id][0];
         if (p != NULL)
         {
-            /* TODO: shift everyone else down one */
+            for (i = 1; i < 21; i++)
+            {
+                liaisonLine[l.id][i-1] = liaisonLine[l.id][i];
+            }
             liaisonState[l.id] = L_BUSY;
             p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
@@ -293,7 +296,7 @@ void RunLiaison()
 
 void RunCheckin()
 {
-    int i, j;
+    int i, j, len;
     int execLine;
     Passenger* p;
     BoardingPass bp;
@@ -322,17 +325,26 @@ void RunCheckin()
         Acquire(checkinLineLock[ci.airline]);
         if (checkinState[ci.id] != CI_CLOSED)
         {
+            len = 0;
             if (checkinLine[execLine][0] != NULL)
             {
                 p = checkinLine[execLine][0];
-                /* TODO: shift everyone else down one */
-                Printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + 99 /* checkinLine[ci.id]->Size() */);
+                for (i = 1; i < 21; i++)
+                {
+                    checkinLine[execLine][i-1] = liaisonLine[execLine][i];
+                    if (checkinLine[execLine][i] != NULL) len++;
+                }
+                Printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + len);
             }
             else if (checkinLine[ci.id][0] != NULL)
             {
                 p = checkinLine[ci.id][0];
-                /* TODO: shift everyone else down one */
-                Printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + 99 /* checkinLine[execLine]->Size() */);
+                for (i = 1; i < 21; i++)
+                {
+                    checkinLine[ci.id][i-1] = liaisonLine[ci.id][i];
+                    if (checkinLine[ci.id][i] != NULL) len++;
+                }
+                Printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + len);
             }
             else
             {
