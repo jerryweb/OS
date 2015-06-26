@@ -97,7 +97,7 @@ Initialize(int argc, char **argv)
     processTable =  new Table(maxNumProc);
 
     //used for finding unused memory pages
-    memMap = new BitMap[NumPhysPages];
+    memMap = new BitMap(NumPhysPages);
 
 
 #endif

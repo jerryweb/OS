@@ -270,7 +270,7 @@ void kernel_function(int vaddr)
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
 
-    (currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8) * PageSize);
+    printf("stack pointer for thread %s: %d\n", currentThread->getName(), (currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8) * PageSize);
     machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
 
     printf("Thread %s: Running\n", currentThread->getName());
@@ -403,7 +403,7 @@ void Exit_Syscall(int status)
                 if(AddSP == KL->owner){
                     printf("Thread %s: DestroyLock called by exit\n", currentThread->getName());
                     DestroyLock_Syscall(i);
-                    lockTable->lockAcquire(i);
+                    lockTable->lockAcquire();
                 }
             }
             lockTable->lockRelease();
@@ -415,7 +415,7 @@ void Exit_Syscall(int status)
                 if(AddSP == KC->owner){
                     printf("Thread %s: DestroyCondition called by exit\n", currentThread->getName());
                     DestroyCondition_Syscall(i);
-                    CVTable->lockAcquire(i);
+                    CVTable->lockAcquire();
                 }
             }
             CVTable->lockRelease();
