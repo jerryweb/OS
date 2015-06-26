@@ -76,14 +76,13 @@ void RunLiaison()
         if (p != NULL)
         {
             /* TODO: shift everyone else down one */
-            Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
-                    l.id*1000*1000 + p.id*1000 + p.ticket.airline);
             liaisonState[l.id] = L_BUSY;
             p.airline = p.ticket.airline;
+            Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
+                    l.id*1000*1000 + p.id*1000 + p.airline);
         }
         else
         {
-            p = NULL;
             liaisonState[l.id] = L_FREE;
         }
         Acquire(liaisonLock[l.id]);
