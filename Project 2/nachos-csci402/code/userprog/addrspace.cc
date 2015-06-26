@@ -139,7 +139,6 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     unsigned int i, size;
     int maxNumThreads = 30;
     id = processTable->Put(this);           //adds a process to the process table
-            printf("process table count: %d\n", processTable->getCount());
 
     //Keep track of all of the threads that belong to the process
     threadTable = new Table(maxNumThreads);
@@ -238,7 +237,6 @@ AddrSpace::setNewPageTable(){
     //unsigned int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
     unsigned int previousNumPages = numPages;
     numPages += divRoundUp(UserStackSize,PageSize); //decrement on exit
-    printf("numPages = %d\n", numPages);
     TranslationEntry *tempTable = new TranslationEntry[numPages];
 
     int ppn = 0;
@@ -266,7 +264,6 @@ AddrSpace::setNewPageTable(){
 
     delete pageTable; 
     pageTable = tempTable;
-    printf("size of pageTable: %d\n", numPages);
 
     RestoreState();
 }

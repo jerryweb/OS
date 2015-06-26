@@ -10,18 +10,17 @@
 
 
 void ThreadAfunc(){
-	Printf("Fork Test Fucntion for thread A\n", 32, 0,0);
+	Printf("Fork Test Function for thread A\n", 32, 0,0);
 	Exit(0);
 }
 
 void ThreadBfunc(){
-	Printf("Fork Test Fucntion for thread B\n", 32, 0,0);
+	Printf("Fork Test Function for thread B\n", 32, 0,0);
 	Exit(0);
 }
 
 int main(){
-
+    Fork((void*)0, "Fail", 4);
     Fork(ThreadAfunc, "Thread A", 8);
     Fork(ThreadBfunc, "Thread B", 8);
-
 }

@@ -97,21 +97,156 @@ IV. Implementation:
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
-        nachos -x ../test/forkTest
-        nachos -x ../test/execTest
-        nachos -x ../test/lockTest
-        nachos -x ../test/condTest
-        run without -rs to ensure proper sequence of events
+        nachos -x ../test/forkTest -d z
+        nachos -x ../test/execTest -d z
+        nachos -x ../test/exitTest -d z
+        nachos -x ../test/lockTest -d z
+        nachos -x ../test/condTest -d z
+        run without "-rs" to ensure proper sequence of events
+        "-d z" is necessary to see print statements
 
     + Test Output
+        forkTest:
+        
+            Fork syscall.
+            Thread main: Invalid function pointer
+            Fork syscall.
+            Thread main: Forking thread Thread A
+            Thread Thread A belongs to process 0
+            thread table size 2
+            Fork syscall.
+            Thread main: Forking thread Thread B
+            Thread Thread B belongs to process 0
+            thread table size 3
+            Exit syscall.
+            Thread main: Finishing
+            Thread Thread A: Entering kernel function
+            stack pointer for thread Thread A: 1792
+            Thread Thread A: Running
+            Printf syscall.
+            Fork Test Function for thread A
+            Exit syscall.
+            Thread Thread A: Finishing
+            Thread Thread B: Entering kernel function
+            stack pointer for thread Thread B: 2816
+            Thread Thread B: Running
+            Printf syscall.
+            Fork Test Function for thread B
+            Exit syscall.
+            Thread Thread B: Finishing last process, ending Nachos
+            
+        execTest:
+        
+            Exec syscall.
+            thread count for process 1: 1
+            Printf syscall.
+            New process location: 1
+            Exec syscall.
+            Unable to open file ../test/FooBar
+            Exit syscall.
+            clearing page 0 for process 0
+            clearing page 1 for process 0
+            clearing page 2 for process 0
+            clearing page 3 for process 0
+            clearing page 4 for process 0
+            clearing page 5 for process 0
+            clearing page 6 for process 0
+            clearing page 7 for process 0
+            clearing page 8 for process 0
+            clearing page 9 for process 0
+            clearing page 10 for process 0
+            clearing page 11 for process 0
+            clearing page 12 for process 0
+            calling current thread finish for thread main
+            Create syscall.
+            Open syscall.
+            Write syscall.
+            Close syscall.
+            Open syscall.
+            Read syscall.
+            Write syscall.
+            testing a write
+            Close syscall.
+            Exit syscall.
+            Thread Kernel thread: Finishing last process, ending Nachos
+        
+        exitTest:
+        
+            Fork syscall.
+            Thread main: Forking thread Thread A
+            Thread Thread A belongs to process 0
+            thread table size 2
+            Exec syscall.
+            thread count for process 1: 1
+            Printf syscall.
+            New process location: 1
+            Exit syscall.
+            clearing page 6 for thread  hhh main
+            clearing page 7 for thread  hhh main
+            clearing page 8 for thread  hhh main
+            clearing page 9 for thread  hhh main
+            clearing page 10 for thread  hhh main
+            clearing page 11 for thread  hhh main
+            clearing page 12 for thread  hhh main
+            clearing page 13 for thread  hhh main
+            calling current thread finish for thread main
+            Thread Thread A: Entering kernel function
+            stack pointer for thread Thread A: 1792
+            Thread Thread A: Running
+            Printf syscall.
+            Fort Test Fucntion for thread A
+            Exit syscall.
+            clearing page 0 for process 0
+            clearing page 1 for process 0
+            clearing page 2 for process 0
+            clearing page 3 for process 0
+            clearing page 4 for process 0
+            clearing page 5 for process 0
+            clearing page 14 for process 0
+            clearing page 15 for process 0
+            clearing page 16 for process 0
+            clearing page 17 for process 0
+            clearing page 18 for process 0
+            clearing page 19 for process 0
+            clearing page 20 for process 0
+            clearing page 21 for process 0
+            calling current thread finish for thread Thread A
+            Create syscall.
+            Open syscall.
+            Write syscall.
+            Close syscall.
+            Open syscall.
+            Read syscall.
+            Write syscall.
+            testing a write
+            Close syscall.
+            Exit syscall.
+            Thread Kernel thread: Finishing last process, ending Nachos
+
+        lockTest:
+        
+            
+        
+        condTest:
+        
+            
         
 
 VI. Discussion:
 	+ Experiment expectation.  (What you hope will happen.)
-        
+        forkTest:
+            First, passes in an invalid function pointer, which fails to fork; then, forks two threads which simply print and exit.
+        execTest:
+            First, execs testfiles (which tests the file system syscalls), then passes in an invalid file name, which fails to exec. (The failed exec should print before testfiles runs.)
+        exitTest:
+            Forks a simple print thread, then execs a process (running testfiles). The main thread exits first (>1 process left, >1 thread left), then the forked thread (>1 process left, 1 thread left), then the other process's main thread (1 process left, 1 thread left). 
+        lockTest:
+            
+        condTest:
+            
 
     + Experiment result.  (What actually happens.)
-        
+        All individual tests work as expected.
 
 	+ Explanation
         

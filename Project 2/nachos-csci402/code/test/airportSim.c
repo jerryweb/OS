@@ -336,6 +336,7 @@ void RunLiaison()
         p = liaisonLine[l.id][0];
         if (p != NULL)
         {
+            Signal(liaisonLineCV[l.id], liaisonLineLock);
             for (i = 1; i < 21; i++)
             {
                 liaisonLine[l.id][i-1] = liaisonLine[l.id][i];
@@ -351,10 +352,8 @@ void RunLiaison()
         }
         Acquire(liaisonLock[l.id]);
         Release(liaisonLineLock);
-
         if (p != NULL)
         {
-
             Wait(liaisonCV[l.id], liaisonLock[l.id]);
 
             Acquire(liaisonLock[l.id]);
