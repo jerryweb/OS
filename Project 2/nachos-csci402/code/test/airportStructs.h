@@ -7,22 +7,6 @@ typedef enum  {C_BUSY, C_BREAK} CargoState;
 typedef enum  {SO_BUSY, SO_FREE} ScreenState;
 typedef enum  {SC_BUSY, SC_FREE} SecurityState;
 
-/*This is the struct that holds all of the public data for the airport*/
-typedef struct 
-{
-	int numAirlines; 
-	struct Passenger* passengerArray[20];
-    struct Liaison* liaisonArray[5];
-    struct Passenger* liaisonQueues[5];
-    int liaisonManagerLock;
-    int liaisonManagerCV;
-    int liaisonLineLock;
-    int liaisonLineCV[5];
-    int liaisonLock[5];
-    int liaisonCV[5];
-    LiaisonState liaisonState[5];
-} Airport;
-
 typedef struct           
 {
 	int airlineCode;     
