@@ -34,11 +34,13 @@ void Cargo::StartCargo()
             }
             airport->conveyorLock->Release();
             airport->cargoDataCV[id]->Wait(airport->cargoLock[id]);
+            airport->conveyorLock->Acquire();
             if (! airport->conveyor->IsEmpty())
             {
                 printf("Cargo Handler %d returned from break\n", id);
                 airport->cargoState[id] = C_BUSY;
             }
+            airport->conveyorLock->Release();
         }
         else if (airport->cargoState[id] == C_BUSY)
         {   // Process bag and load onto airplane.

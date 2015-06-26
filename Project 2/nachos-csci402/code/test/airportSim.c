@@ -21,6 +21,7 @@ Luggage* conveyor[63];
 int conveyorLock;
 int conveyorSize;
 Luggage* aircraft[3][21];
+int aircraftCount[3];
 Passenger* boardingQueue[3][21];
 int boardingCV[3];
 int boardingLock[3];
@@ -63,9 +64,11 @@ Cargo* cargoArray[6];
 int cargoCV;
 int cargoDataCV[6];
 int cargoDataLock[6];
+int cargoManagerLock;
 int cargoManagerCV[6];
 int cargoLock[6];
 CargoState cargoState[6];
+bool requestingCargoData[6];
 
 /* Screener variables */
 /* Security variables */
@@ -90,6 +93,7 @@ void Init()
         airlineLock[i] = CreateLock("AirlineLock", 11);
         boardingCV[i] = CreateCondition("BoardingCV", 10);
         boardingLock[i] = CreateLock("BoardingLock", 12);
+        aircraftCount[i] = 0;
         for (j = 0; j < 21; j++)
         {
             boardingQueue[i][j] = NULL;
@@ -152,6 +156,7 @@ void Init()
     cargoCount = 0;
     cargoArrayLock = CreateLock("CargoArrayLock", 14);
     cargoCV = CreateCondition("CargoCV", 7);
+    cargoManagerLock = CreateLock("CargoManagerLock", 16);
     for (i = 0; i < 6; i++)
     {
         cargoArray[i] = NULL;
@@ -160,6 +165,7 @@ void Init()
         cargoManagerCV[i] = CreateCondition("CargoManagerCV", 14);
         cargoLock[i] = CreateLock("CargoLock", 9);
         cargoState[i] = C_BUSY;
+        requestingCargoData[i] = false;
     }
     /* Screener variables */
     /* Security variables */
@@ -402,11 +408,69 @@ void RunCheckin()
         }
         Release(airlineLock[ci.airline]);
     }
+    Exit(0); /* should never reach this line */
 }
 
 void RunCargo()
 {
+    int i;
+    Luggage* bag;
     
+    Cargo c;
+    Acquire(cargoArrayLock);
+    c.id = cargoCount;
+    cargoCount++;
+    for (i = 0; i < 3; i++)
+    {
+        c.luggage[i] = 0;
+        c.weight[i] = 0;
+    }
+    cargoArray[c.id] = &c;
+    Release(cargoArrayLock);
+    
+    while (true)
+    {
+        Acquire(conveyorLock);
+        if (conveyorSize == 0)
+        {
+            Acquire(cargoLock[c.id]);
+            if (cargoState[c.id] != C_BREAK)
+            {
+                Printf("Cargo Handler %d is going for a break\n", 38, 1, c.id);
+                cargoState[c.id] = C_BREAK;
+            }
+            Release(conveyorLock);
+            Wait(cargoDataCV[c.id], cargoLock[c.id]);
+            Acquire(conveyorLock);
+            if (conveyorSize > 0)
+            {
+                Printf("Cargo Handler %d returned from break\n", 37, 1, c.id);
+                cargoState[c.id] = C_BUSY;
+            }
+            Release(conveyorLock);
+        }
+        else if (cargoState[c.id] == C_BUSY)
+        {
+            bag = conveyor[conveyorSize - 1];
+            conveyor[conveyorSize - 1] = NULL;
+            conveyorSize--;
+            Printf("Cargo Handler %d picked bag of airline %d weighing %d lbs\n", 58, 3, c.id*100*100 + bag->airlineCode*100 + bag->weight);
+            aircraft[bag->airlineCode][aircraftCount[bag->airlineCode]] = bag;
+            c.luggage[bag->airlineCode]++;
+            c.weight[bag->airlineCode] += bag->weight;
+            Release(conveyorLock);
+        }
+        if (requestingCargoData[c.id])
+        {
+            Acquire(cargoManagerLock);
+            Acquire(cargoDataLock[c.id]);
+            Signal(cargoManagerCV[c.id], cargoManagerLock);
+            Release(cargoManagerLock);
+            Wait(cargoDataCV[c.id], cargoDataLock[c.id]);
+            requestingCargoData[c.id] = false;
+        }
+    }
+    Exit(0);
 }
 
 int main()
