@@ -58,21 +58,22 @@ void Passenger0(){
 
 	/*p.boardingPass.gate = NULL;
 	p.boardingPass.seatNum = NULL;*/
-
+	Printf("Passenger %d of airline %d created\n", 35, 2, );
 	Printf("Forking passenger\n", 18, 0,0);
 	Exit(0);
 }
 
 
 int findShortestLine(bool CISline){
+	Passenger p;
 	for(j = 0; j < 20; j++){
 		if(liaisonLine[i][j] == NULL)
 			break;
 		else
-			lineLength[i]++;
+			p.lineLength[i]++;
 	}
 
-	minValue = lineLength[i];
+	p.minValue = p.lineLength[i];
 
 	if(!CISline){
 		for (i = 0; i < 5; i++) {
@@ -81,14 +82,14 @@ int findShortestLine(bool CISline){
 				if(liaisonLine[i][j] == NULL)
 					break;
 				else
-					lineLength[i]++;
+					p.lineLength[i]++;
 			}
-			if(lineLength[i] < minValue){
-				minValue = lineLength[i];
-				location = i;
+			if(p.lineLength[i] < p.minValue){
+				p.minValue = p.lineLength[i];
+				p.location = i;
 			}
 		}
-		return location;
+		return p.location;
 	}
 }
 

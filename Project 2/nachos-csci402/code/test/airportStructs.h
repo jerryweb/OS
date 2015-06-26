@@ -27,7 +27,7 @@ typedef struct
 
 typedef struct {
 	int id;
-	int* lineLength; 		/*used to help calculate shortest line*/
+	int lineLength[5]; 		/*used to help calculate shortest line*/
 	int airline;
 	int location;	/*used to return the shortest line location*/
 	int minValue;
