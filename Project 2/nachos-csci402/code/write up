@@ -97,7 +97,10 @@ IV. Implementation:
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
-        nachos -x ../test/<xTest>
+        nachos -x ../test/forkTest
+        nachos -x ../test/execTest
+        nachos -x ../test/lockTest
+        nachos -x ../test/condTest
         run without -rs to ensure proper sequence of events
 
     + Test Output
@@ -109,7 +112,6 @@ VI. Discussion:
 
     + Experiment result.  (What actually happens.)
         
-
 
 	+ Explanation
         

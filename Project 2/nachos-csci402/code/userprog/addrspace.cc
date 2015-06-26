@@ -137,12 +137,12 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     NoffHeader noffH;
     unsigned int i, size;
-    int numOfThreads = 30;
+    int maxNumThreads = 30;
     id = processTable->Put(this);           //adds a process to the process table
             printf("process table count: %d\n", processTable->getCount());
 
     //Keep track of all of the threads that belong to the process
-    threadTable = new Table(numOfThreads);
+    threadTable = new Table(maxNumThreads);
 
     // Don't allocate the input or output to disk files
     fileTable.Put(0);
