@@ -166,26 +166,19 @@ void Init()
     /* Manager variables */
 }
 
-void Passenger0(){
-    int i;
-	Passenger p;
-	p.id = 0;
-	p.ticket->airline = 0;
-	p.ticket->executive = false;
-	p.myLine = 0;
-	p.CISline = false;
-
-	for(i = 0; i < 3; i++){
-		p.bags[i]->airlineCode = 0;
-		p.bags[i]->weight = 30 + i;
+/*Used to find the number of elements in an array*/
+int findArrayElementCount(Passenger** array){
+	int elementCount = 0;
+	while(true){
+		if(array[elementCount]->id == NULL)
+			break;
+		else
+			elementCount++;
 	}
-
-	/*p.boardingPass.gate = NULL;
-	p.boardingPass.seatNum = NULL;*/
-	Printf("Passenger %d of airline %d created\n", 35, 2, );
-	Printf("Forking passenger\n", 18, 0,0);
-	Exit(0);
+	return elementCount;
 }
+
+
 
 int findShortestLine(bool CISline){
 	Passenger p;
@@ -213,12 +206,63 @@ int findShortestLine(bool CISline){
 				p.location = i;
 			}
 		}
+		Printf("Liaison %d has the shortest line with a length of %d\n",
+		 53, 2, p.location*100 + p.minValue);
 		return p.location;
 	}
+	/*
+	else(CISline){
+		int CIS_ID = airline * 4 + 1;
+		for(i = CIS_ID;  i < CIS_ID +3; i++){
+
+		}
+	}*/
 }
 
 void RunPassenger(){
+    int i;
+	Passenger p;
+	Liaison l;
+	Checkin ci;
+	p.id = 0;
+	p.ticket->airline = 0;
+	p.ticket->executive = false;
+	p.myLine = 0;
+	p.CISline = false;
+
+	for(i = 0; i < 3; i++){
+		p.bags[i]->airlineCode = 0;
+		p.bags[i]->weight = 30 + i;
+	}
+
+	p.boardingPass->gate = NULL;
+	p.boardingPass->seatNum = NULL;
+	Printf("Passenger %d of airline %d created\n", 35, 2, p.id*100 + p.ticket->airline);
+	Printf("Forking passenger\n", 18, 0,0);
 	
+	Acquire(liaisonLineLock);
+	p.myLine = findShortestLine(false);
+	Printf("Passenger %d chose liaison %d\n",
+	 30, 2, p.id*100 + p.myLine);
+
+	liaisonLine[p.myLine][findArrayElementCount(liaisonLine[p.myLine])] = &p;
+	if(liaisonState[p.myLine] == L_BUSY){
+		/*Wait for an available liaison*/
+		Wait(liaisonLineCV[p.myLine], liaisonLineLock);
+		Printf("Passenger %d is giving liaison %d the ticket\n",
+	 44, 2, p.id*100 + p.myLine);
+	}
+	else
+		Release(liaisonLineLock);
+
+	Acquire(liaisonLock[p.myLine]);
+	Printf("Passenger %d is giving liaison %d the ticket\n",
+	 44, 2, p.id*100 + p.myLine);
+	/*Give liaison information*/
+	Signal(liaisonCV[p.myLine], liaisonLock[p.myLine]);
+	/*wait for liaison confirmation*/
+	Wait(liaisonCV[p.myLine], liaisonLock[p.myLine]);
+	Exit(0);
 }
 
 void RunLiaison()
@@ -257,9 +301,12 @@ void RunLiaison()
         }
         Acquire(liaisonLock[l.id]);
         Release(liaisonLineLock);
+
         if (p != NULL)
         {
+
             Wait(liaisonCV[l.id], liaisonLock[l.id]);
+            Printf("FUCK\n", 5,0,0);
             Acquire(liaisonLock[l.id]);
             l.passengers[p->airline]++;
             for (i = 0; i < 3; i++)
@@ -415,17 +462,17 @@ int main()
     
     Init();
 
-    Fork(Passenger0, "Passenger 0", 11);
-    for (i = 0; i < 5; i++)
-    {
+    Fork(RunPassenger, "Passenger 0", 11);
+    /*for (i = 0; i < 5; i++)
+    {*/
         Fork(RunLiaison, "Liaison", 7);
-    }
-    for (i = 0; i < 9; i++)
+    /*}
+   /* for (i = 0; i < 9; i++)
     {
         Fork(RunCheckin, "CheckIn", 7);
     }
     for (i = 0; i < 6; i++)
     {
         Fork(RunCargo, "Cargo", 5);
-    }
+    }*/
 }
