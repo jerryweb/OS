@@ -175,7 +175,7 @@ void Init()
 int findArrayElementCount(Passenger** array){
 	int elementCount = 0;
 	while(true){
-		if(array[elementCount]->id == NULL)
+		if(array[elementCount] == NULL)
 			break;
 		else
 			elementCount++;
@@ -241,8 +241,8 @@ void RunPassenger(){
 		p.bags[i]->weight = 30 + i;
 	}
 
-	p.boardingPass->gate = NULL;
-	p.boardingPass->seatNum = NULL;
+	p.boardingPass->gate = 0;
+	p.boardingPass->seatNum = 0;
 	Printf("Passenger %d of airline %d created\n", 35, 2, p.id*100 + p.ticket->airline);
 	Printf("Forking passenger\n", 18, 0,0);
 	
@@ -262,8 +262,6 @@ void RunPassenger(){
 		Release(liaisonLineLock);
 
 	Acquire(liaisonLock[p.myLine]);
-	Printf("Passenger %d is giving liaison %d the ticket\n",
-	 44, 2, p.id*100 + p.myLine);
 	/*Give liaison information*/
 	Signal(liaisonCV[p.myLine], liaisonLock[p.myLine]);
 	/*wait for liaison confirmation*/
@@ -315,7 +313,6 @@ void RunLiaison()
         {
 
             Wait(liaisonCV[l.id], liaisonLock[l.id]);
-            Printf("FUCK\n", 5,0,0);
             Acquire(liaisonLock[l.id]);
             l.passengers[p->airline]++;
             for (i = 0; i < 3; i++)
