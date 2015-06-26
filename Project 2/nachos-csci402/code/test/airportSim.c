@@ -271,9 +271,9 @@ void PassengerFindShortestLiaisonLine(){
 	liaisonLine[p.myLine][findArrayElementCount(liaisonLine[p.myLine])] = &p;
 	if(liaisonState[p.myLine] == L_BUSY){
 		/*Wait for an available liaison*/
+
 		Wait(liaisonLineCV[p.myLine], liaisonLineLock);
-		Printf("Passenger %d is giving liaison %d the ticket\n",
-	 44, 2, p.id*100 + p.myLine);
+
 	}
 	else
 		Release(liaisonLineLock);
@@ -333,13 +333,18 @@ void RunLiaison()
     while(true)
     {
         Acquire(liaisonLineLock);
+        Printf("Gaf\n", 4, 0,0);
         p = liaisonLine[l.id][0];
         if (p != NULL)
         {
+        	Printf("Gaf\n", 4, 0,0);
+        	Signal(liaisonLineCV[l.id], liaisonLineLock);
+        	Printf("Gaf\n", 4, 0,0);
             for (i = 1; i < 21; i++)
             {
                 liaisonLine[l.id][i-1] = liaisonLine[l.id][i];
             }
+            Printf("Gaf\n", 4, 0,0);
             liaisonState[l.id] = L_BUSY;
             p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
