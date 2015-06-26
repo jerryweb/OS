@@ -37,6 +37,18 @@ int boardingLock[3];
 	Passenger p7;
 	Passenger p8;
 	Passenger p9;
+    Passenger p10;
+	Passenger p11;
+	Passenger p12;
+	Passenger p13;
+	Passenger p14;
+	Passenger p15;
+	Passenger p16;
+	Passenger p17;
+	Passenger p18;
+	Passenger p19;
+	Passenger p20;
+	Passenger p21;	
 int passengerCount;
 int passengerArrayLock;
 Passenger* passengerArray[21];
@@ -130,7 +142,18 @@ void Init()
 	passengerArray[7] = &p7;
 	passengerArray[8] = &p8;
 	passengerArray[9] = &p9;
-
+	passengerArray[10] = &p10;
+	passengerArray[11] = &p11;
+	passengerArray[12] = &p12;
+	passengerArray[13] = &p13;
+	passengerArray[14] = &p14;
+	passengerArray[15] = &p15;
+	passengerArray[16] = &p16;
+	passengerArray[17] = &p17;
+	passengerArray[18] = &p18;
+	passengerArray[19] = &p19;
+	passengerArray[20] = &p20;
+	passengerArray[21] = &p21;
     for (i = 5; i < 21; i++)
     {
         passengerArray[i] = NULL;
@@ -311,7 +334,7 @@ void PassengerFindShortestLiaisonLine(){
 	/*p.id = passengerCount;*/
 	pCount = passengerCount;
 	passengerCount++;
-	passengerArray[pCount]->id = pCount;
+	passengerArray[pCount]c->id = pCount;
 	passengerArray[pCount]->ticket->airline = pCount % 3;
 	passengerArray[pCount]->ticket->executive = false;
 	passengerArray[pCount]->myLine = 0;

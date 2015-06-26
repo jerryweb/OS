@@ -102,7 +102,6 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
-    
     int getThreadTableLocation() { return threadTableLocation; }
     void setThreadTableLocation(int loc) { threadTableLocation = loc; }
     int getThreadID() { return threadID; }
@@ -118,7 +117,6 @@ class Thread {
     char* name;
     int threadTableLocation;
     int stackStartLocation;
-
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()
