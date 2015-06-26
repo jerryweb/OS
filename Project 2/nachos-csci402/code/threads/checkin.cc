@@ -47,7 +47,6 @@ void CheckIn::StartCheckInStaff()
 {
     Passenger* pass = NULL;
     bool exec;
-    int passAirline;
     bool talked = false;
     int execLine = airline * 6;
     BoardingPass bp;
@@ -63,7 +62,6 @@ void CheckIn::StartCheckInStaff()
         // Process ticket, create boarding pass.
         if(pass != NULL){
             airport->airlineLock[airline]->Acquire();
-            passAirline = pass->getTicket().airline;
             exec = pass->getTicket().executive;
             passengers++;
             bp.seatNum = airport->airlines[airline]->seatsAssigned;
@@ -71,19 +69,25 @@ void CheckIn::StartCheckInStaff()
             bp.gate = airline;
             pass->SetBoardingPass(bp);
 
-            if (exec) printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n",
-                              id, airline, pass->getID(), airline);
-            else printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n",
-                         id, airline, pass->getID(), airline);
-            if (exec) airport->checkinLineCV[execLine]->Signal(airport->checkinLineLock[airline]);
-            else airport->checkinLineCV[id]->Signal(airport->checkinLineLock[airline]);
+            if (exec)
+            {
+                printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n",
+                              id, airline, pass->getID(), pass->getBoardingPass().gate);
+                airport->checkinLineCV[execLine]->Signal(airport->checkinLineLock[airline]);
+            }
+            else
+            {
+                printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n",
+                         id, airline, pass->getID(), pass->getBoardingPass().gate);
+                airport->checkinLineCV[id]->Signal(airport->checkinLineLock[airline]);
+            }
             airport->airlineLock[airline]->Release();
             // Process luggage and add it to conveyor.
             airport->conveyorLock->Acquire();
             while (! pass->getLuggage()->IsEmpty())
             {
                 Luggage* bag = (Luggage*)pass->getLuggage()->Remove();
-                bag->airlineCode = passAirline;
+                bag->airlineCode = airline;
                 airport->conveyor->Append(bag);
                 luggage++;
                 weight += bag->weight;

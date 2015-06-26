@@ -20,12 +20,12 @@ main()
         Hi
         Hi 1
         Hi 1 2
-        Hi 100 101 102
-        Hi 1 234 567 890
+        Hi 10 11 12
+        Hi 23 45 67 89
     */
     Printf("Hi\n", 3, 0, 0);
-    Printf("Hi %d\n", 6, 1, 1001);
-    Printf("Hi %d %d\n", 9, 2, 1002);
-    Printf("Hi %d %d %d\n", 12, 3, 100101102);
-    Printf("Hi %d %d %d %d\n", 15, 4, 1234567890);
+    Printf("Hi %d\n", 6, 1, 101);
+    Printf("Hi %d %d\n", 9, 2, 102);
+    Printf("Hi %d %d %d\n", 12, 3, 101112);
+    Printf("Hi %d %d %d %d\n", 15, 4, 123456789);
 }

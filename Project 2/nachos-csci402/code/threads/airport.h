@@ -112,7 +112,7 @@ public:
 									//  Luggage). Index corresponds
 									//  to airline ID.
 
-									// Screening and security variables
+	// Screening and security variables
 
 	List* securityInspectorList;            //Contain security inspector class
 	List* screenOfficerList;             //contain screen officer class

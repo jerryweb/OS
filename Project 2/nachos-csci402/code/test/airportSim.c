@@ -1,6 +1,6 @@
 /* Airport simulation.
  *  3 cash-starved airlines
- *  20 clueless passengers: 3 bags each, all bags weigh 30 lbs
+ *  21 clueless passengers: 3 bags each, all bags weigh 30 lbs
  *  5 hardworking liaisons
  *  3 lazy check-in staff per airline
  *  6 super lazy cargo handlers
@@ -13,19 +13,26 @@
 
 #define NULL (void*)0
 
-/*passenger variables*/
-
-/*liaison variables*/
-
-int i, j, k;
+/* General variables */
 int numAirlines;
+Airline* airlines[3];
+int airlineLock[3];
+Luggage* conveyor[63];
+int conveyorLock;
+int conveyorSize;
+Luggage* aircraft[3][21];
+Passenger* boardingQueue[3][21];
+int boardingCV[3];
+int boardingLock[3];
+/* Passenger variables */
 int passengerCount;
 int passengerArrayLock;
-Passenger* passengerArray[20];
+Passenger* passengerArray[21];
+/* Liaison variables */
 int liaisonCount;
 int liaisonArrayLock;
 Liaison* liaisonArray[5];
-Passenger* liaisonLine[5][20];
+Passenger* liaisonLine[5][21];
 int liaisonManagerLock;
 int liaisonManagerCV;
 int liaisonLineLock;
@@ -34,16 +41,133 @@ int liaisonLock[5];
 int liaisonCV[5];
 LiaisonState liaisonState[5];
 bool requestingLiaisonData[5];
+/* Check-in variables */
+int checkinCount;
+int checkinArrayLock;
+Checkin* checkinArray[12];
+Passenger* checkinLine[12][21];
+int checkinLineLock[3];
+int checkinLineCV[12];
+int checkinCV[12];
+int checkinLock[12];
+int checkinBreakCV[12];
+int checkinManagerLock;
+int checkinManagerCV[12];
+CheckinState checkinState[12];
+bool finalCheckin[12];
+bool requestingCheckinData[12];
+/* Cargo variables */
+int cargoCount;
+int cargoArrayLock;
+Cargo* cargoArray[6];
+int cargoCV;
+int cargoDataCV[6];
+int cargoDataLock[6];
+int cargoManagerCV[6];
+int cargoLock[6];
+CargoState cargoState[6];
 
-void createGlobalVariables(){
-	int id;
-	typedef struct Passenger* Passenger;
-	int* passengersPerAirline[20];
-	/*struct Luggage* passengerLuggage[20][3];*/
+/* Screener variables */
+/* Security variables */
+/* Manager variables */
+
+void Init()
+{
+    int i, j;
+    /* General variables */
+    numAirlines = 3;
+    conveyorLock = CreateLock("ConveyorLock", 12);
+    conveyorSize = 0;
+    for (i = 0; i < 3; i++)
+    {
+        Airline al;
+        al.id = i;
+        al.seatsAssigned = 0;
+        al.ticketsIssued = 7;
+        al.totalBagCount = al.ticketsIssued * 3;
+        al.totalBagWeight = al.totalBagCount * 30;
+        airlines[i] = &al;
+        airlineLock[i] = CreateLock("AirlineLock", 11);
+        boardingCV[i] = CreateCondition("BoardingCV", 10);
+        boardingLock[i] = CreateLock("BoardingLock", 12);
+        for (j = 0; j < 21; j++)
+        {
+            boardingQueue[i][j] = NULL;
+            conveyor[(i+1)*(j+1)-1] = NULL;
+            aircraft[i][j] = NULL;
+        }
+    }
+    /* Passenger variables */
+    passengerCount = 0;
+    passengerArrayLock = CreateLock("PassengerArrayLock", 18);
+    for (i = 0; i < 21; i++)
+    {
+        passengerArray[i] = NULL;
+    }
+    /* Liaison variables */
+    liaisonCount = 0;
+    liaisonArrayLock = CreateLock("LiaisonArrayLock", 16);
+    liaisonManagerLock = CreateLock("LiaisonManagerLock", 18);
+    liaisonManagerCV = CreateCondition("LiaisonManagerCV", 16);
+    liaisonLineLock = CreateLock("LiaisonLineLock", 15);
+    for (i = 0; i < 5; i++)
+    {
+        liaisonArray[i] = NULL;
+        liaisonLineCV[i] = CreateCondition("LiaisonLineCV", 13);
+        liaisonLock[i] = CreateLock("LiaisonLock", 11);
+        liaisonCV[i] = CreateCondition("LiaisonCV", 9);
+        liaisonState[i] = L_BUSY;
+        requestingLiaisonData[i] = false;
+        for (j = 0; j < 21; j++)
+        {
+            liaisonLine[i][j] = NULL;
+        }
+    }
+    /* Check-in variables */
+    checkinCount = 0;
+    checkinArrayLock = CreateLock("CheckinArrayLock", 16);
+    checkinManagerLock = CreateLock("CheckinManagerLock", 18);
+    for (i = 0; i < 12; i++)
+    {
+        if (i%4 == 0) /* 0, 4, 8 */
+        {
+            checkinLineLock[i/4] = CreateLock("CheckinLineLock", 15);
+            checkinState[i] = CI_NONE;
+        }
+        else checkinState[i] = CI_BUSY;
+        checkinArray[i] = NULL;
+        checkinLineCV[i] = CreateCondition("CheckinLineCV", 13);
+        checkinCV[i] = CreateCondition("CheckinCV", 9);
+        checkinLock[i] = CreateLock("CheckinLock", 11);
+        checkinBreakCV[i] = CreateCondition("CheckinBreakCV", 14);
+        checkinManagerCV[i] = CreateCondition("CheckinManagerCV", 16);
+        finalCheckin[i] = false;
+        requestingCheckinData[i] = false;;
+        for (j = 0; j < 21; j++)
+        {
+            checkinLine[i][j] = NULL;
+        }
+    }
+    /* Cargo variables */
+    cargoCount = 0;
+    cargoArrayLock = CreateLock("CargoArrayLock", 14);
+    cargoCV = CreateCondition("CargoCV", 7);
+    for (i = 0; i < 6; i++)
+    {
+        cargoArray[i] = NULL;
+        cargoDataCV[i] = CreateCondition("CargoDataCV", 11);
+        cargoDataLock[i] = CreateLock("CargoDataLock", 13);
+        cargoManagerCV[i] = CreateCondition("CargoManagerCV", 14);
+        cargoLock[i] = CreateLock("CargoLock", 9);
+        cargoState[i] = C_BUSY;
+    }
+    /* Screener variables */
+    /* Security variables */
+    /* Manager variables */
 }
 
-
 void Passenger0(){
+    int i;
 	Passenger p;
 	p.id = 0;
 	p.ticket->airline = 0;
@@ -63,9 +187,10 @@ void Passenger0(){
 	Exit(0);
 }
 
-
 int findShortestLine(bool CISline){
-	for(j = 0; j < 20; j++){
+    /*
+    int i, j;
+	for(j = 0; j < 21; j++){
 		if(liaisonLine[i][j] == NULL)
 			break;
 		else
@@ -77,7 +202,7 @@ int findShortestLine(bool CISline){
 	if(!CISline){
 		for (i = 0; i < 5; i++) {
 
-			for(j = 0; j < 20; j++){
+			for(j = 0; j < 21; j++){
 				if(liaisonLine[i][j] == NULL)
 					break;
 				else
@@ -90,6 +215,7 @@ int findShortestLine(bool CISline){
 		}
 		return location;
 	}
+    */
 }
 
 void RunPassenger(){
@@ -98,6 +224,9 @@ void RunPassenger(){
 
 void RunLiaison()
 {
+    int i;
+    Passenger* p;
+    
     Liaison l;
     Acquire(liaisonArrayLock);
     l.id = liaisonCount;
@@ -105,15 +234,14 @@ void RunLiaison()
     for (i = 0; i < 3; i++)
     {
         l.passengers[i] = 0;
-        l.luggageCount[i] = 0;
-        l.luggageWeight[i] = 0;
+        l.luggage[i] = 0;
+        l.weight[i] = 0;
     }
     liaisonArray[l.id] = &l;
     Release(liaisonArrayLock);
     
     while(true)
     {
-        Passenger* p;
         Acquire(liaisonLineLock);
         p = liaisonLine[l.id][0];
         if (p != NULL)
@@ -122,7 +250,7 @@ void RunLiaison()
             liaisonState[l.id] = L_BUSY;
             p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
-                    l.id*1000*1000 + p->id*1000 + p->airline);
+                    l.id*100*100 + p->id*100 + p->airline);
         }
         else
         {
@@ -135,9 +263,11 @@ void RunLiaison()
             Wait(liaisonCV[l.id], liaisonLock[l.id]);
             Acquire(liaisonLock[l.id]);
             l.passengers[p->airline]++;
-            /* assumes 3 bags weighing 30 lbs each */
-            l.luggageCount[p->airline] += 3;
-            l.luggageWeight[p->airline] += 3*30;
+            for (i = 0; i < 3; i++)
+            {
+                l.luggage[p->airline]++;
+                l.weight[p->airline] += p->bags[i]->weight;
+            }
             Release(liaisonLock[l.id]);
         }
         else
@@ -157,38 +287,146 @@ void RunLiaison()
     Exit(0);
 }
 
+void RunCheckin()
+{
+    int i, j;
+    int execLine;
+    Passenger* p;
+    BoardingPass bp;
+    bool exec;
+    bool talked = false;
+    
+    Checkin ci;
+    Acquire(checkinArrayLock);
+    while (checkinCount%4 == 0) /* 0, 4, 8 */
+    {
+        checkinCount++;
+    }
+    ci.id = checkinCount;
+    ci.airline = ci.id/4;
+    checkinCount++;
+    ci.passengers = 0;
+    ci.luggage = 0;
+    ci.weight = 0;
+    checkinArray[ci.id] = &ci;
+    Release(checkinArrayLock);
+    
+    execLine = ci.airline * 4;
+    
+    while (true)
+    {
+        Acquire(checkinLineLock[ci.airline]);
+        if (checkinState[ci.id] != CI_CLOSED)
+        {
+            if (checkinLine[execLine][0] != NULL)
+            {
+                p = checkinLine[execLine][0];
+                /* TODO: shift everyone else down one */
+                Printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + 99 /* checkinLine[ci.id]->Size() */);
+            }
+            else if (checkinLine[ci.id][0] != NULL)
+            {
+                p = checkinLine[ci.id][0];
+                /* TODO: shift everyone else down one */
+                Printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + 99 /* checkinLine[execLine]->Size() */);
+            }
+            else
+            {
+                Acquire(checkinLock[ci.id]);
+                checkinState[ci.id] = CI_BREAK;
+                Release(checkinLineLock[ci.airline]);
+                Wait(checkinBreakCV[ci.id], checkinLock[ci.id]);
+                checkinState[ci.id] = CI_BUSY;
+                Acquire(checkinLineLock[ci.airline]);
+            }
+        }
+        Acquire(checkinLock[ci.id]);
+        Release(checkinLineLock[ci.airline]);
+        if (p != NULL)
+        {
+            Acquire(airlineLock[ci.airline]);
+            exec = p->ticket->executive;
+            ci.passengers++;
+            bp.seatNum = airlines[ci.airline]->seatsAssigned;
+            airlines[ci.airline]->seatsAssigned++;
+            bp.gate = ci.airline;
+            p->boardingPass = &bp;
+            
+            if (exec)
+            {
+                Printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n", 97, 4, ci.id*100*100*100 + ci.airline*100*100 + p->id*100 + p->boardingPass->gate);
+                Signal(checkinLineCV[execLine], checkinLineLock[ci.airline]);
+            }
+            else
+            {
+                Printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n", 95, 4, ci.id*100*100*100 + ci.airline*100*100 + p->id*100 + p->boardingPass->gate);
+                Signal(checkinLineCV[ci.id], checkinLineLock[ci.airline]);
+            }
+            Release(airlineLock[ci.airline]);
+            
+            Acquire(conveyorLock);
+            for (i = 0; i < 3; i++)
+            {
+                Luggage* bag = p->bags[i];
+                p->bags[i] = NULL;
+                bag->airlineCode = ci.airline;
+                conveyor[conveyorSize] = bag;
+                ci.luggage++;
+                ci.weight += bag->weight;
+            }
+            Printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system\n", 76, 2, ci.id*100 + ci.airline);
+            p = NULL;
+            Release(conveyorLock);
+        }
+        
+        if (requestingCheckinData[ci.id])
+        {
+            Acquire(checkinManagerLock);
+            Acquire(checkinLock[ci.id]);
+            Signal(checkinManagerCV[ci.id], checkinManagerLock);
+            Release(checkinManagerLock);
+            Wait(checkinCV[ci.id], checkinLock[ci.id]);
+            requestingCheckinData[ci.id] = false;
+        }
+        
+        Acquire(airlineLock[ci.airline]);
+        if (airlines[ci.id]->seatsAssigned >= airlines[ci.id]->ticketsIssued)
+        {
+            Acquire(checkinLock[ci.id]);
+            checkinState[ci.id] = CI_CLOSED;
+            Release(airlineLock[ci.airline]);
+            if (finalCheckin[ci.id]) Exit(0);
+            else Wait(checkinBreakCV[ci.id], checkinLock[ci.id]);
+            Printf("Airline check-in staff %d is closing the counter\n", 49, 1, ci.id);
+            Acquire(airlineLock[ci.airline]);
+            finalCheckin[ci.id] = true;
+        }
+        Release(airlineLock[ci.airline]);
+    }
+}
+
+void RunCargo()
+{
+    
+}
 
 int main()
 {
-    numAirlines = 3;
-    passengerCount = 0;
-    passengerArrayLock = CreateLock("PassengerArrayLock", 18);
-    for (i = 0; i < 20; i++)
-    {
-        passengerArray[i] = NULL;
-    }
-    liaisonCount = 0;
-    liaisonArrayLock = CreateLock("LiaisonArrayLock", 16);
-    liaisonManagerLock = CreateLock("LiaisonManagerLock", 18);
-    liaisonManagerCV = CreateCondition("LiaisonManagerCV", 16);
-    liaisonLineLock = CreateLock("LiaisonLineLock", 15);
-    for (i = 0; i < 5; i++)
-    {
-        liaisonArray[i] = NULL;
-        liaisonLineCV[i] = CreateCondition("LiaisonLineCV", 13);
-        liaisonLock[i] = CreateLock("LiaisonLock", 11);
-        liaisonCV[i] = CreateCondition("LiaisonCV", 9);
-        liaisonState[i] = L_BUSY;
-        requestingLiaisonData[i] = false;
-        for (j = 0; j < 20; j++)
-        {
-            liaisonLine[i][j] = NULL;
-        }
-    }
+    int i;
+    
+    Init();
 
     Fork(Passenger0, "Passenger 0", 11);
     for (i = 0; i < 5; i++)
     {
         Fork(RunLiaison, "Liaison", 7);
+    }
+    for (i = 0; i < 9; i++)
+    {
+        Fork(RunCheckin, "CheckIn", 7);
+    }
+    for (i = 0; i < 6; i++)
+    {
+        Fork(RunCargo, "Cargo", 5);
     }
 }

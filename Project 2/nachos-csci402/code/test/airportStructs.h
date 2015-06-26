@@ -2,10 +2,19 @@
 
 typedef enum  {false, true} bool;
 typedef enum  {L_FREE, L_BUSY, L_NONE} LiaisonState;
-typedef enum  {CI_FREE, CI_BUSY, CI_BREAK, CI_CLOSED} CheckinState;
+typedef enum  {CI_NONE, CI_FREE, CI_BUSY, CI_BREAK, CI_CLOSED} CheckinState;
 typedef enum  {C_BUSY, C_BREAK} CargoState;
 typedef enum  {SO_BUSY, SO_FREE} ScreenState;
 typedef enum  {SC_BUSY, SC_FREE} SecurityState;
+
+typedef struct
+{
+    int id;
+    int seatsAssigned;
+    int ticketsIssued;
+    int totalBagCount;
+    int totalBagWeight;
+} Airline;
 
 typedef struct           
 {
@@ -35,12 +44,26 @@ typedef struct {
 	bool CISline;	/*if true, passenger will find shortest checkin staff line*/
 	Ticket* ticket;
 	Luggage* bags[3];
-	BoardingPass boardingPass;
+	BoardingPass* boardingPass;
 } Passenger;
 
 typedef struct {
 	int id;
 	int passengers[3];
-    int luggageCount[3];
-    int luggageWeight[3];
+    int luggage[3];
+    int weight[3];
 } Liaison;
+
+typedef struct {
+	int id;
+    int airline;
+	int passengers;
+    int luggage;
+    int weight;
+} Checkin;
+
+typedef struct {
+	int id;
+    int luggage[3];
+    int weight[3];
+} Cargo;
