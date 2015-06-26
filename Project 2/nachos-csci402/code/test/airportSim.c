@@ -15,15 +15,16 @@
 /*passenger variables*/
 
 /*liaison variables*/
-int i, j;
+
+int i, j, k;
 int numAirlines;
 int passengerCount;
 int passengerArrayLock;
-struct Passenger* passengerArray[20];
+Passenger* passengerArray[20];
 int liaisonCount;
 int liaisonArrayLock;
-struct Liaison* liaisonArray[5];
-struct Passenger* liaisonLine[5][20];
+Liaison* liaisonArray[5];
+Passenger* liaisonLine[5][20];
 int liaisonManagerLock;
 int liaisonManagerCV;
 int liaisonLineLock;
@@ -61,6 +62,7 @@ void Passenger0(){
 	Exit(0);
 }
 
+
 int findShortestLine(bool CISline){
 	for(j = 0; j < 20; j++){
 		if(liaisonLine[i][j] == NULL)
@@ -95,28 +97,31 @@ void RunPassenger(){
 
 void RunLiaison()
 {
-    struct Liaison l;
+    Liaison l;
     Acquire(liaisonArrayLock);
     l.id = liaisonCount;
     liaisonCount++;
-    l.passengers = {0};
-    l.luggageCount = {0};
-    l.luggageWeight = {0};
+    for (i = 0; i < 3; i++)
+    {
+        l.passengers[i] = 0;
+        l.luggageCount[i] = 0;
+        l.luggageWeight[i] = 0;
+    }
     liaisonArray[l.id] = &l;
     Release(liaisonArrayLock);
     
-    Passenger* p = NULL;
     while(true)
     {
+        Passenger* p;
         Acquire(liaisonLineLock);
         p = liaisonLine[l.id][0];
         if (p != NULL)
         {
             /* TODO: shift everyone else down one */
             liaisonState[l.id] = L_BUSY;
-            p.airline = p.ticket.airline;
+            p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
-                    l.id*1000*1000 + p.id*1000 + p.airline);
+                    l.id*1000*1000 + p->id*1000 + p->airline);
         }
         else
         {
@@ -128,10 +133,10 @@ void RunLiaison()
         {
             Wait(liaisonCV[l.id], liaisonLock[l.id]);
             Acquire(liaisonLock[l.id]);
-            l.passengers[p.airline]++;
+            l.passengers[p->airline]++;
             /* assumes 3 bags weighing 30 lbs each */
-            l.luggageCount[p.airline] += 3;
-            l.luggageWeight[p.airline] += 3*30;
+            l.luggageCount[p->airline] += 3;
+            l.luggageWeight[p->airline] += 3*30;
             Release(liaisonLock[l.id]);
         }
         else
@@ -142,12 +147,13 @@ void RunLiaison()
         {
             Acquire(liaisonManagerLock);
             Acquire(liaisonLock[l.id]);
-            Signal(liaisonmanagerCV, liaisonManagerLock);
+            Signal(liaisonManagerCV, liaisonManagerLock);
             Release(liaisonManagerLock);
             Wait(liaisonCV[l.id], liaisonLock[l.id]);
-            requestingLiaisonDaga[l.id] = false;
+            requestingLiaisonData[l.id] = false;
         }
     }
+    Exit(0);
 }
 
 
@@ -156,27 +162,28 @@ int main()
     numAirlines = 3;
     passengerCount = 0;
     passengerArrayLock = CreateLock("PassengerArrayLock", 18);
-    passengerArray = {NULL};
-    /*passenger variables*/
-    createGlobalVariables();
-
-
-    /*liaison variables*/
+    for (i = 0; i < 20; i++)
+    {
+        passengerArray[i] = NULL;
+    }
     liaisonCount = 0;
     liaisonArrayLock = CreateLock("LiaisonArrayLock", 16);
-    liaisonArray = {NULL};
-    liaisonQueues = {NULL};
     liaisonManagerLock = CreateLock("LiaisonManagerLock", 18);
     liaisonManagerCV = CreateCondition("LiaisonManagerCV", 16);
     liaisonLineLock = CreateLock("LiaisonLineLock", 15);
     for (i = 0; i < 5; i++)
     {
-        liaisonLineCV = CreateCondition("LiaisonLineCV", 13);
-        liaisonLock = CreateLock("LiaisonLock", 11);
-        liaisonCV = CreateCondition("LiaisonCV", 9);
+        liaisonArray[i] = NULL;
+        liaisonLineCV[i] = CreateCondition("LiaisonLineCV", 13);
+        liaisonLock[i] = CreateLock("LiaisonLock", 11);
+        liaisonCV[i] = CreateCondition("LiaisonCV", 9);
+        liaisonState[i] = L_BUSY;
+        requestingLiaisonData[i] = false;
+        for (j = 0; j < 20; j++)
+        {
+            liaisonLine[i][j] = NULL;
+        }
     }
-    liaisonState = {L_BUSY};
-    requestingLiaisonData = {false};
 
     Fork(Passenger0, "Passenger 0", 11);
 }
