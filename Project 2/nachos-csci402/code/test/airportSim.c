@@ -280,9 +280,12 @@ void PassengerFindShortestLiaisonLine(){
 
 	Acquire(liaisonLock[p.myLine]);
 	/*Give liaison information*/
+	
 	Signal(liaisonCV[p.myLine], liaisonLock[p.myLine]);
 	/*wait for liaison confirmation*/
+	Printf("FU\n",3,0,0);
 	Wait(liaisonCV[p.myLine], liaisonLock[p.myLine]);
+	Printf("FU\n",3,0,0);
 
 	Printf("Passenger %d of Airline %d is directed to the airline counter.\n",
 		63, 2, p.id*100 + p.airline);
@@ -333,7 +336,6 @@ void RunLiaison()
     while(true)
     {
         Acquire(liaisonLineLock);
-        Printf("Gaf\n", 4, 0,0);
         p = liaisonLine[l.id][0];
         if (p != NULL)
         {
@@ -343,7 +345,6 @@ void RunLiaison()
             {
                 liaisonLine[l.id][i-1] = liaisonLine[l.id][i];
             }
-            Printf("Gaf\n", 4, 0,0);
             liaisonState[l.id] = L_BUSY;
             p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
@@ -366,6 +367,7 @@ void RunLiaison()
                 l.luggage[p->airline]++;
                 l.weight[p->airline] += p->bags[i]->weight;
             }
+            Signal(liaisonCV[l.id], liaisonLock[l.id]);
             Release(liaisonLock[l.id]);
         }
         else
