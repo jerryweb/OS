@@ -137,7 +137,7 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     NoffHeader noffH;
     unsigned int i, size;
-    int maxNumThreads = 30;
+    int maxNumThreads = 128;
     id = processTable->Put(this);           //adds a process to the process table
 
     //Keep track of all of the threads that belong to the process
