@@ -1,32 +1,29 @@
 /*This is the struct for all of the public airport data*/
 
-typedef enum  {true, false} bool;
+typedef enum  {false, true} bool;
 typedef enum  {L_FREE, L_BUSY, L_NONE} LiaisonState;
-typedef enum  {CI_FREE, CI_BUSY, CI_BREAK, CI_CLOSED, CI_NONE}CheckinState;
-typedef enum  {C_BUSY, C_BREAK, C_NONE}CargoState;
-typedef enum  {BOARDING, BOARDED}AirlineState;
-typedef enum  {SO_BUSY, SO_FREE}ScreenState;
-typedef enum  {SC_BUSY, SC_FREE}SecurityState;
-
-struct Airport;
+typedef enum  {CI_FREE, CI_BUSY, CI_BREAK, CI_CLOSED} CheckinState;
+typedef enum  {C_BUSY, C_BREAK} CargoState;
+typedef enum  {SO_BUSY, SO_FREE} ScreenState;
+typedef enum  {SC_BUSY, SC_FREE} SecurityState;
 
 typedef struct           
 {
 	int airlineCode;     
 	int weight;          
-}Luggage;
+} Luggage;
 
 typedef struct             
 {
 	int airline;         
 	bool executive;                          
-}Ticket;
+} Ticket;
 
 typedef struct       
 {
 	int gate;            
 	int seatNum;         
-}BoardingPass;
+} BoardingPass;
 
 typedef struct {
 	int id;
@@ -37,20 +34,11 @@ typedef struct {
 	BoardingPass boardingPass;
 }Passenger;
 
+
 typedef struct {
 	int id;
-	/*struct Airport airport;*/
-	int* passengers[3];
-	int* luggageCount[3];
-	int* totalLuggageWeight[3];
-	LiaisonState state;
-}Liaison;
-
-/*This is the struct that holds all of the public data for the airport
-typedef struct 
-{
-	int numAirlines; 
-	Passenger* passengerArray[20];
-	Liaison* liaisonArray[7];
-	
-}Airport;*/
+	Airport airport;
+	int passengers[3];
+    int luggageCount[3];
+    int luggageWeight[3];
+} Liaison;
