@@ -246,7 +246,7 @@ void PassengerFindShortestLiaisonLine(){
 	Passenger p;
 	Acquire(passengerArrayLock);
 	p.id = passengerCount;
-	p.ticket->airline = 0;
+	p.ticket->airline = passengerCount % 3;
 	p.ticket->executive = false;
 	p.myLine = 0;
 	p.CISline = false;
@@ -333,7 +333,6 @@ void RunLiaison()
     while(true)
     {
         Acquire(liaisonLineLock);
-        Printf("Gaf\n", 4, 0,0);
         p = liaisonLine[l.id][0];
         if (p != NULL)
         {
@@ -343,7 +342,7 @@ void RunLiaison()
             {
                 liaisonLine[l.id][i-1] = liaisonLine[l.id][i];
             }
-            Printf("Gaf\n", 4, 0,0);
+            liaisonLine[l.id][20] = NULL;
             liaisonState[l.id] = L_BUSY;
             p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
@@ -425,6 +424,7 @@ void RunCheckin()
                     checkinLine[execLine][i-1] = liaisonLine[execLine][i];
                     if (checkinLine[execLine][i] != NULL) len++;
                 }
+                checkinLine[execLine][20] = NULL;
                 Printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + len);
             }
             else if (checkinLine[ci.id][0] != NULL)
@@ -435,6 +435,7 @@ void RunCheckin()
                     checkinLine[ci.id][i-1] = liaisonLine[ci.id][i];
                     if (checkinLine[ci.id][i] != NULL) len++;
                 }
+                checkinLine[ci.id][20] = NULL;
                 Printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + len);
             }
             else

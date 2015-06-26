@@ -29,7 +29,7 @@ II. Assumptions:
     Syscalls are always called with the correct type (e.g. no trying to input a char* for a syscall which takes in an int); this should mostly be taken care of by the compiler, but spurious typecasting may or may not be weeded out by error cases depending on the value.
 
 III. Design:
-    
+    FUUUUUUUUUUUU
 
 IV. Implementation:
 	+ Files Modified
@@ -68,6 +68,7 @@ IV. Implementation:
             condTest.c
             condTestHelper.c
             execTest.c
+            exitTest.c
             forkTest.c
             lockTest.c
             lockTestHelper.c
@@ -104,8 +105,12 @@ V. Testing:  (For each test case, you must show)
         nachos -x ../test/condTest -d z
         run without "-rs" to ensure proper sequence of events
         "-d z" is necessary to see print statements
+        
+        nachos -x ../test/airportTest
 
     + Test Output
+        I just dumped the full output out of laziness. The final test output may differ, depending on whether we decide to keep or take out (or even add) print statements in the final version.
+    
         forkTest:
         
             Fork syscall.
@@ -225,13 +230,255 @@ V. Testing:  (For each test case, you must show)
 
         lockTest:
         
-            
+            Printf syscall.
+
+            TESTING LOCK ID FAILURE CONDITIONS
+
+            CreateLock syscall.
+            Thread main: Bad pointer 0 passed to CreateLock, ID -1
+            Acquire syscall.
+            Thread main: Trying to acquire invalid KernelLock, ID -1
+            Release syscall.
+            Thread main: Trying to release invalid KernelLock, ID -1
+            DestroyLock syscall.
+            Thread main: Trying to destroy invalid KernelLock, ID -1
+            Acquire syscall.
+            Thread main: Trying to acquire invalid KernelLock, ID 1
+            Release syscall.
+            Thread main: Trying to release invalid KernelLock, ID 1
+            DestroyLock syscall.
+            Thread main: Trying to destroy invalid KernelLock, ID 1
+            CreateLock syscall.
+            Thread main: Successfully created Lock, ID 0
+            Acquire syscall.
+            Thread main: Acquiring Lock, ID 0
+            Thread main: Acquired Lock, ID 0
+            Release syscall.
+            Thread main: Releasing Lock, ID 0
+            DestroyLock syscall.
+            Thread main: Requesting to destroy Lock, ID 0
+            Thread main: Destroying Lock, ID 0
+            Acquire syscall.
+            Thread main: Trying to acquire invalid KernelLock, ID 0
+            Release syscall.
+            Thread main: Trying to release invalid KernelLock, ID 0
+            DestroyLock syscall.
+            Thread main: Trying to destroy invalid KernelLock, ID 0
+            Printf syscall.
+
+            TESTING LOCKS ON MULTIPLE THREADS
+
+            CreateLock syscall.
+            Thread main: Successfully created Lock, ID 1
+            Fork syscall.
+            Thread main: Forking thread thread1
+            Thread thread1 belongs to process 0
+            thread table size 2
+            Yield syscall.
+            Thread main: Yielding current thread.
+            Thread thread1: Entering kernel function
+            stack pointer for thread thread1: 2304
+            Thread thread1: Running
+            Acquire syscall.
+            Thread thread1: Acquiring Lock, ID 1
+            Thread thread1: Acquired Lock, ID 1
+            Yield syscall.
+            Thread thread1: Yielding current thread.
+            Acquire syscall.
+            Thread main: Acquiring Lock, ID 1
+            Printf syscall.
+            thread1 critical section
+            Release syscall.
+            Thread thread1: Releasing Lock, ID 1
+            DestroyLock syscall.
+            Thread thread1: Requesting to destroy Lock, ID 1
+            Exit syscall.
+            Thread thread1: Finishing
+            Thread main: Acquired Lock, ID 1
+            Printf syscall.
+            main critical section
+            Release syscall.
+            Thread main: Releasing Lock, ID 1
+            DestroyLock syscall.
+            Thread main: Destroying Lock, ID 1
+            Printf syscall.
+
+            TESTING LOCKS ON MULTIPLE PROCESSES
+
+            CreateLock syscall.
+            Thread main: Successfully created Lock, ID 2
+            Exec syscall.
+            thread count for process 1: 1
+            Yield syscall.
+            Thread main: Yielding current thread.
+            Acquire syscall.
+            Thread Kernel thread: Trying to acquire other process's Lock, ID 2
+            Release syscall.
+            Thread Kernel thread: Trying to release other process's Lock, ID 2
+            DestroyLock syscall.
+            Thread Kernel thread: Trying to destroy other process's Lock, ID 2
+            Exit syscall.
+            clearing page 0 for process 1
+            clearing page 1 for process 1
+            clearing page 2 for process 1
+            clearing page 3 for process 1
+            clearing page 4 for process 1
+            clearing page 5 for process 1
+            clearing page 6 for process 1
+            clearing page 7 for process 1
+            clearing page 8 for process 1
+            clearing page 9 for process 1
+            clearing page 10 for process 1
+            clearing page 11 for process 1
+            calling current thread finish for thread Kernel thread
+            Exit syscall.
+            DestroyLock called by exit
+            Thread main: Requesting to destroy Lock, ID 2
+            Thread main: Destroying Lock, ID 2
+            Thread main: Finishing last process, ending Nachos
         
         condTest:
-        
-            
-        
+            Printf syscall.
 
+            TESTING CONDITION ID FAILURE CONDITIONS
+
+            CreateCondition syscall.
+            Thread main: Bad pointer 0 passed to CreateCondition, ID -1
+            CreateCondition syscall.
+            Thread main: Successfully created Condition, ID 0
+            Wait syscall.
+            Thread main: Trying to wait on invalid KernelCondition, ID -1
+            Signal syscall.
+            Thread main: Trying to signal invalid KernelCondition, ID -1
+            Broadcast syscall.
+            Thread main: Trying to broadcast on invalid KernelCondition, ID -1
+            DestroyCondition syscall.
+            Thread main: Trying to destroy invalid KernelCondition, ID -1
+            Wait syscall.
+            Thread main: Trying to wait on invalid KernelCondition, ID 1
+            Signal syscall.
+            Thread main: Trying to signal invalid KernelCondition, ID 1
+            Broadcast syscall.
+            Thread main: Trying to broadcast on invalid KernelCondition, ID 1
+            DestroyCondition syscall.
+            Thread main: Trying to destroy invalid KernelCondition, ID 1
+            Wait syscall.
+            Thread main: Trying to wait using invalid KernelLock, ID -1
+            Signal syscall.
+            Thread main: Trying to signal using invalid KernelLock, ID -1
+            Broadcast syscall.
+            Thread main: Trying to broadcast using invalid KernelLock, ID -1
+            Printf syscall.
+
+            TESTING CONDITIONS ON MULTIPLE THREADS
+
+            Fork syscall.
+            Thread main: Forking thread thread1
+            Thread thread1 belongs to process 0
+            thread table size 2
+            Acquire syscall.
+            Thread main: Acquiring Lock, ID 0
+            Thread main: Acquired Lock, ID 0
+            Wait syscall.
+            Thread main: Waiting on Condition, ID 0
+            Thread thread1: Entering kernel function
+            stack pointer for thread thread1: 2688
+            Thread thread1: Running
+            Wait syscall.
+            Thread thread1: Waiting on Condition, ID 0
+            Condition::Wait (thread1): parameter conditionLock (thread1) is not the same as the waitLock (thread1)
+            Thread thread1: Waited on Condition, ID 0
+            Signal syscall.
+            Thread thread1: Signalling Condition, ID 0
+            Condition::Wait (thread1): parameter conditionLock (thread1) is not the same as the waitLock (thread1)
+            Broadcast syscall.
+            Thread thread1: Broadcasting on Condition, ID 0
+            Condition::Broadcast (thread1): parameter conditionLock (thread1) is not the same as the waitLock (thread1)
+            Acquire syscall.
+            Thread thread1: Acquiring Lock, ID 0
+            Thread thread1: Acquired Lock, ID 0
+            DestroyCondition syscall.
+            Thread thread1: Requesting to destroy Condition, ID 0
+            Signal syscall.
+            Thread thread1: Signalling Condition, ID 0
+            Wait syscall.
+            Thread thread1: Waiting on Condition, ID 0
+            Thread main: Waited on Condition, ID 0
+            Fork syscall.
+            Thread main: Forking thread thread2
+            Thread thread2 belongs to process 0
+            thread table size 3
+            Acquire syscall.
+            Thread main: Acquiring Lock, ID 0
+            Thread main: Acquired Lock, ID 0
+            Wait syscall.
+            Thread main: Waiting on Condition, ID 0
+            Thread thread2: Entering kernel function
+            stack pointer for thread thread2: 3712
+            Thread thread2: Running
+            DestroyCondition syscall.
+            Broadcast syscall.
+            Thread thread2: Broadcasting on Condition, ID 0
+            Exit syscall.
+            Thread thread2: Finishing
+            Thread thread1: Waited on Condition, ID 0
+            Exit syscall.
+            Thread thread1: Finishing
+            Thread main: Waited on Condition, ID 0
+            DestroyCondition syscall.
+            Thread main: Destroying Condition, ID 0
+            Wait syscall.
+            Thread main: Trying to wait on invalid KernelCondition, ID 0
+            Signal syscall.
+            Thread main: Trying to signal invalid KernelCondition, ID 0
+            Broadcast syscall.
+            Thread main: Trying to broadcast on invalid KernelCondition, ID 0
+            DestroyCondition syscall.
+            Thread main: Trying to destroy invalid KernelCondition, ID 0
+            Printf syscall.
+
+            TESTING CONDITION ON MULTIPLE PROCESSES
+
+            CreateCondition syscall.
+            Thread main: Successfully created Condition, ID 1
+            Exec syscall.
+            thread count for process 1: 1
+            Yield syscall.
+            Thread main: Yielding current thread.
+            Wait syscall.
+            Thread Kernel thread: Trying to wait on other process's Condition, ID 1
+            Signal syscall.
+            Thread Kernel thread: Trying to signal other process's Condition, ID 1
+            Broadcast syscall.
+            Thread Kernel thread: Trying to broadcast on other process's Condition, ID 1
+            DestroyCondition syscall.
+            Thread Kernel thread: Trying to destroy other process's Condition, ID 1
+            Exit syscall.
+            clearing page 0 for process 1
+            clearing page 1 for process 1
+            clearing page 2 for process 1
+            clearing page 3 for process 1
+            clearing page 4 for process 1
+            clearing page 5 for process 1
+            clearing page 6 for process 1
+            clearing page 7 for process 1
+            clearing page 8 for process 1
+            clearing page 9 for process 1
+            clearing page 10 for process 1
+            clearing page 11 for process 1
+            calling current thread finish for thread Kernel thread
+            Exit syscall.
+            DestroyLock called by exit
+            Thread main: Requesting to destroy Lock, ID 0
+            Thread main: Destroying Lock, ID 0
+            DestroyLock called by exit
+            Thread main: Requesting to destroy Lock, ID 1
+            Thread main: Destroying Lock, ID 1
+            Thread main: Finishing last process, ending Nachos
+
+        airportTest:
+            Two sets of standard airport outputs (see output guidelines from first project).
+            
 VI. Discussion:
 	+ Experiment expectation.  (What you hope will happen.)
         forkTest:
@@ -241,15 +488,22 @@ VI. Discussion:
         exitTest:
             Forks a simple print thread, then execs a process (running testfiles). The main thread exits first (>1 process left, >1 thread left), then the forked thread (>1 process left, 1 thread left), then the other process's main thread (1 process left, 1 thread left). 
         lockTest:
-            
+            Part 1: Tests the ID failure conditions. Creates a lock with invalid name, which returns -1 for index. Then, tries to use invalid ids -1 and 1 for the calls, which won't work. Then, creates a good lock and tests all calls. Once the lock is deleted, tries to do calls on the again, which fails.
+            Part 2: Tests the lock over two threads. Creates a lock, then forks a thread. That thread will acquire, then yield; the main thread will acquire (but not be able to), then the other thread will release, call destroy (which won't do anything but print), and exit. The main thread then releases and destroys.
+            Part 3: Tests the lock over two processes. Creates a lock, then execs a process which tries to do syscalls on the first process's lock (which won't work), then exits. The main thread exits, which calls destroy on the lock automatically.
         condTest:
-            
+            Part 1: Tests the ID failure conditions. Creates a condition with invalid name, which returns -1 for index. Then, tries to use invalid ids -1 and 1 for the calls, which won't work. Then, creates a good condition and tests all calls with a bad lock, which will work but print an error from the Condition class.
+            Part 2: Tests the condition over two threads, using the condition from the previous part. Forks a new thread, then waits on the condition. The new thread tries to call destroy, which doesn't do anything, then signals the condition, waking the main thread up, then waits on the condition. Then, the main thread forks another thread and waits; the second new thread tries to call destroy, which doesn't do anything, then broadcasts, waking both of the other threads up. Both new threads then exit, and the main thread destroys the condition, then tries to do all calls on it again, which fails.
+            Part 3: Tests the condition over two processes. Creates a condition, then execs a process which tries to do syscalls on the first process's condition (which won't work), then exits. The main thread exits, which calls destroy on the condition automatically.
+        airportTest:
+            Execs two airportSim processes, which run a cut-down version of the airport from project 1 with fixed numbers: 3 airlines, 21 passengers (7 per airline), 3 bags per passenger, each 30 lbs, 5 liaisons, 3 check-ins per airline (for a total of 9), 6 cargo handlers, 3 screening officers and security inspectors, and 1 manager.
 
     + Experiment result.  (What actually happens.)
         All individual tests work as expected.
+        airportTest...i dunno
 
 	+ Explanation
-        
+        We're awesome! Maybe? No? Aw.
 
 VIII. Miscellaneous:
     Security unfinished

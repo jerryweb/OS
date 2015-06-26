@@ -68,7 +68,7 @@ main()
     Wait(goodCondID, goodLockID1);
     Signal(goodCondID, goodLockID1);
     Broadcast(goodCondID, goodLockID1);
-    DestroyCondition(goodCondID, goodLockID1);
+    DestroyCondition(goodCondID);
     /* PART 3: TEST CROSS-PROCESS CONDITION ACCESS */
     Printf("\nTESTING CONDITION ON MULTIPLE PROCESSES\n\n", 42, 0, 0);
     /* Create a new condition, since the old one was deleted; ID should always be 1 */
