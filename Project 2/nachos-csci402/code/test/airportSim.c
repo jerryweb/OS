@@ -69,7 +69,6 @@ int cargoManagerCV[6];
 int cargoLock[6];
 CargoState cargoState[6];
 bool requestingCargoData[6];
-
 /* Screener variables */
 /* Security variables */
 /* Manager variables */
