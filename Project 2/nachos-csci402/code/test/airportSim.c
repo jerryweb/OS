@@ -192,6 +192,10 @@ int findShortestLine(bool CISline){
 	Passenger p;
     int i, j, k, elementCount;
     i = 0;
+    p.location = 0;
+    for(i = 0; i < 5;i++)
+    	p.lineLength[i] = 0;
+
 	for(j = 0; j < 21; j++){
 		if(liaisonLine[0][j] == NULL)
 			break;
@@ -201,7 +205,7 @@ int findShortestLine(bool CISline){
 	}
 
 	p.minValue = p.lineLength[0];
-	Printf("lineLength: %d\n", 15, 1, p.lineLength[0]);
+	/*Printf("lineLength: %d\n", 15, 1, p.lineLength[0]);
 	Printf("min value: %d\n", 14, 1, p.minValue);
 	/*finds the shortest liaison line*/
 	if(!CISline){
@@ -219,10 +223,10 @@ int findShortestLine(bool CISline){
 				p.location = i;
 			}
 
-			Printf("lineLength: %d\n", 15, 1, p.lineLength[i]);
+	/*		Printf("lineLength: %d\n", 15, 1, p.lineLength[i]);
 			Printf("min value: %d\n", 14, 1, p.minValue);
 			Printf("i: %d\n", 6, 1, i);
-			Printf("Location: %d\n", 13,1, p.location);
+			Printf("Location: %d\n", 13,1, p.location);*/
 		}
 		Printf("Liaison %d has the shortest line with a length of %d\n",
 		 53, 2, p.location*100 + p.minValue);
@@ -301,16 +305,10 @@ void PassengerFindShortestLiaisonLine(){
 	 55, 3, p.id*100*100 + p.myLine*100 + elementCount);
 
 	
-	Printf("elementCount: %d\n", 17, 1, elementCount);
+	/*Printf("elementCount: %d\n", 17, 1, elementCount);*/
 	liaisonLine[p.myLine][elementCount] = &p;
 
-	while(true){
-		if(liaisonLine[p.myLine][elementCount] == NULL)
-			break;
-		else
-			elementCount++;
-	}
-	Printf("elementCount: %d\n", 17, 1, elementCount);
+
 	if(liaisonState[p.myLine] == L_BUSY){
 		/*Wait for an available liaison*/
 
@@ -366,7 +364,8 @@ void PassengerFindShortestCISLine(Passenger p){
 
 void RunLiaison()
 {
-    int i;
+    int i,elementCount;
+
     Passenger* p;
     
     Liaison l;
@@ -385,17 +384,35 @@ void RunLiaison()
     while(true)
     {
         Acquire(liaisonLineLock);
+        Printf("hey\n",4,0,0);
+		elementCount = 0;
+	    while(true){
+			if(liaisonLine[l.id][elementCount] == NULL)
+				break;
+			else
+				elementCount++;
+		}
+
+		Printf("elementCount: %d\n", 17, 1, elementCount);
         p = liaisonLine[l.id][0];
         if (p != NULL)
         {
-
-            Signal(liaisonLineCV[l.id], liaisonLineLock);
             for (i = 1; i < 21; i++)
             {
-            	
                 liaisonLine[l.id][i-1] = liaisonLine[l.id][i];
             }
+            		elementCount = 0;
+	    while(true){
+			if(liaisonLine[l.id][elementCount] == NULL)
+				break;
+			else
+				elementCount++;
+		}
+
+		Printf("elementCount: %d\n", 17, 1, elementCount);
+            Signal(liaisonLineCV[l.id], liaisonLineLock);
             liaisonLine[l.id][20] = NULL;
+
             liaisonState[l.id] = L_BUSY;
             p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
@@ -635,7 +652,7 @@ int main()
     int i;
     
     Init();
-    for (i = 0; i < 2; i++)
+    for (i = 0; i < 10; i++)
     {
     	Fork(PassengerFindShortestLiaisonLine, "Passenger", 9);
 	}	
