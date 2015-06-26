@@ -10,12 +10,12 @@
 
 
 void ThreadAfunc(){
-	Printf("Fort Test Fucntion for thread A\n", 32, 0,0);
+	Printf("Fork Test Fucntion for thread A\n", 32, 0,0);
 	Exit(0);
 }
 
 void ThreadBfunc(){
-	Printf("Fort Test Fucntion for thread B\n", 32, 0,0);
+	Printf("Fork Test Fucntion for thread B\n", 32, 0,0);
 	Exit(0);
 }
 

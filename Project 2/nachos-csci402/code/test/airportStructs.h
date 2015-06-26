@@ -29,8 +29,11 @@ typedef struct {
 	int id;
 	int airline;
 	Ticket ticket;
+	Luggage* bags[3];
+	/*struct Airport airport;*/
 	BoardingPass boardingPass;
-} Passenger;
+}Passenger;
+
 
 typedef struct {
 	int id;
