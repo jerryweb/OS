@@ -14,6 +14,7 @@
 #define NULL (void*)0
 
 /* General variables */
+ Passenger *Passengers[21];
 int numAirlines;
 Airline* airlines[3];
 int airlineLock[3];
@@ -103,7 +104,18 @@ void Init()
     /* Passenger variables */
     passengerCount = 0;
     passengerArrayLock = CreateLock("PassengerArrayLock", 18);
-    for (i = 0; i < 21; i++)
+    Passenger p0;
+	Passenger p1;
+	Passenger p2;
+	Passenger p3;
+	Passenger p4;
+	passengerArray[0] = &p0;
+	passengerArray[1] = &p1;
+	passengerArray[2] = &p2;
+	passengerArray[3] = &p3;
+	passengerArray[4] = &p4;
+
+    for (i = 5; i < 21; i++)
     {
         passengerArray[i] = NULL;
     }
@@ -271,14 +283,19 @@ int findShortestLine(bool CISline){
 void PassengerFindShortestLiaisonLine(){
     int i, elementCount;
 	Passenger p;
+	Passenger p2;
+
 	Acquire(passengerArrayLock);
 	p.id = passengerCount;
-	p.ticket->airline = passengerCount % 3;
-	p.ticket->executive = false;
-	p.myLine = 0;
-	p.CISline = false;
+	passengerArray[passengerCount]->id = passengerCount;
+	passengerArray[passengerCount]->ticket->airline = passengerCount % 3;
+	passengerArray[passengerCount]->ticket->executive = false;
+	passengerArray[passengerCount]->myLine = 0;
+	passengerArray[passengerCount]->CISline = false;
 	passengerCount++;
+	
 
+    Printf("Passenger %d\n", 13, 1, &p);
 	for(i = 0; i < 3; i++){
 		p.bags[i]->airlineCode = 0;
 		p.bags[i]->weight = 30 + i;
@@ -294,19 +311,23 @@ void PassengerFindShortestLiaisonLine(){
 	p.myLine = findShortestLine(false);
 	elementCount = 0;
 
-	while(true){
-		if(liaisonLine[p.myLine][elementCount] == NULL)
-			break;
+	for (i = 0; i < 21; i++){
+		if(liaisonLine[p.myLine][i] != NULL)
+			elementCount++;	
 		else
-			elementCount++;
+			break;		
 	}
-
+		for(i = 0; i <21; i++){
+      		Printf("Passenger %d for position %d\n", 29, 2, liaisonLine[p.myLine][i]->id*100 + i);
+      	}
 	Printf("Passenger %d chose liaison %d with a line length of %d\n",
 	 55, 3, p.id*100*100 + p.myLine*100 + elementCount);
 
-	
 	/*Printf("elementCount: %d\n", 17, 1, elementCount);*/
-	liaisonLine[p.myLine][elementCount] = &p;
+	liaisonLine[p.myLine][elementCount] = passengerArray[p.id];
+	liaisonLine[p.myLine][elementCount + 1] = &p2;
+
+
 
 
 	if(liaisonState[p.myLine] == L_BUSY){
@@ -349,11 +370,9 @@ void PassengerFindShortestCISLine(Passenger p){
 		Printf("Passenger %d of Airline %d is waiting in the executive line\n", 60, 2, p.id*100 + p.airline);
 	
 	elementCount = 0;
-	while(true){
-		if(checkinLine[p.myLine][elementCount] == NULL)
-			break;
-		else
-			elementCount++;
+	for (j = 1; j < 21; j++){
+		if(checkinLine[p.myLine][elementCount] != NULL)
+			elementCount++;			
 	}
 	Printf("elementCount: %d\n", 17, 1, elementCount);	
 	checkinLine[p.myLine][elementCount] = &p;
@@ -384,32 +403,27 @@ void RunLiaison()
     while(true)
     {
         Acquire(liaisonLineLock);
-        Printf("hey\n",4,0,0);
-		elementCount = 0;
-	    while(true){
-			if(liaisonLine[l.id][elementCount] == NULL)
-				break;
-			else
-				elementCount++;
-		}
-
-		Printf("elementCount: %d\n", 17, 1, elementCount);
+        
         p = liaisonLine[l.id][0];
+/*      	for(i = 0; i <21; i++){
+      		Printf("Passenger %d\n", 13, 1, liaisonLine[1][i]->id);
+      	}
+*/
         if (p != NULL)
         {
             for (i = 1; i < 21; i++)
             {
                 liaisonLine[l.id][i-1] = liaisonLine[l.id][i];
             }
-            		elementCount = 0;
-	    while(true){
-			if(liaisonLine[l.id][elementCount] == NULL)
-				break;
-			else
-				elementCount++;
-		}
+            elementCount = 0;
+		    for (i = 1; i < 21; i++){
+				if(liaisonLine[l.id][elementCount] != NULL){
+					elementCount++;				
+				}
+			}
 
-		Printf("elementCount: %d\n", 17, 1, elementCount);
+			Printf("elementCount: %d\n", 17, 1, elementCount);
+
             Signal(liaisonLineCV[l.id], liaisonLineLock);
             liaisonLine[l.id][20] = NULL;
 
@@ -652,7 +666,7 @@ int main()
     int i;
     
     Init();
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 2; i++)
     {
     	Fork(PassengerFindShortestLiaisonLine, "Passenger", 9);
 	}	
