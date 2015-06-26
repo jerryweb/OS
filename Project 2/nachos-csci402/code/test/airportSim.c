@@ -12,36 +12,10 @@
 #include "airportStructs.h"
 #define NULL (void*)0
 
-int i;
-int numAirlines; 
+/*passenger variables*/
+
 /*liaison variables*/
-
-void createGlobalVariables(){
-	int id;
-	typedef struct Passenger* Passenger;
-	int* passengersPerAirline[20];
-	/*struct Luggage* passengerLuggage[20][3];*/
-}
-
-void Passenger0(){
-	passengerArray[0]->id = 0;
-	passengerArray[0]->ticket->airline = 0;
-	passengerArray[0]->ticket->executive = false;
-
-	for(i = 0; i < 3; i++){
-		passengerArray[0]->bags[i]->airlineCode = 0;
-		passengerArray[0]->bags[i]->weight = 30 + i;
-	}
-
-	passengerArray[0]->boardingPass->gate = NULL;
-	passengerArray[0]->boardingPass->seatNum = NULL;
-
-	Printf("Forking passenger\n", 18, 0,0);
-	Exit(0);
-}
-
-
-int i;
+int i, j;
 int numAirlines;
 int passengerCount;
 int passengerArrayLock;
@@ -58,6 +32,66 @@ int liaisonLock[5];
 int liaisonCV[5];
 LiaisonState liaisonState[5];
 bool requestingLiaisonData[5];
+
+void createGlobalVariables(){
+	int id;
+	typedef struct Passenger* Passenger;
+	int* passengersPerAirline[20];
+	/*struct Luggage* passengerLuggage[20][3];*/
+}
+
+
+void Passenger0(){
+	Passenger p;
+	p.id = 0;
+	p.ticket->airline = 0;
+	p.ticket->executive = false;
+	p.myLine = 0;
+	p.CISline = false;
+
+	for(i = 0; i < 3; i++){
+		p.bags[i]->airlineCode = 0;
+		p.bags[i]->weight = 30 + i;
+	}
+
+	/*p.boardingPass.gate = NULL;
+	p.boardingPass.seatNum = NULL;*/
+
+	Printf("Forking passenger\n", 18, 0,0);
+	Exit(0);
+}
+
+int findShortestLine(bool CISline){
+	for(j = 0; j < 20; j++){
+		if(liaisonLine[i][j] == NULL)
+			break;
+		else
+			lineLength[i]++;
+	}
+
+	minValue = lineLength[i];
+
+	if(!CISline){
+		for (i = 0; i < 5; i++) {
+
+			for(j = 0; j < 20; j++){
+				if(liaisonLine[i][j] == NULL)
+					break;
+				else
+					lineLength[i]++;
+			}
+			if(lineLength[i] < minValue){
+				minValue = lineLength[i];
+				location = i;
+			}
+		}
+		return location;
+	}
+}
+
+void RunPassenger(){
+
+}
 
 void RunLiaison()
 {

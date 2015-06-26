@@ -27,7 +27,12 @@ typedef struct
 
 typedef struct {
 	int id;
+	int* lineLength; 		/*used to help calculate shortest line*/
 	int airline;
+	int location;	/*used to return the shortest line location*/
+	int minValue;
+	int myLine;		/*the current line the passenger is in*/
+	bool CISline;	/*if true, passenger will find shortest checkin staff line*/
 	Ticket* ticket;
 	Luggage* bags[3];
 	BoardingPass boardingPass;

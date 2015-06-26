@@ -12,7 +12,6 @@ Passenger::Passenger(int ID, int airlineCode, Ticket T, List* bags, Airport* A) 
 	airport = A;
 	ticket = T;
 	luggageList = bags;
-	airport = A;
 	securityPass = true;
 	isBoarding = false;
 	queueIndex = 0;
