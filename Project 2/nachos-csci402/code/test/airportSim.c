@@ -279,8 +279,6 @@ void PassengerFindShortestLiaisonLine(){
 		Release(liaisonLineLock);
 
 	Acquire(liaisonLock[p.myLine]);
-	Printf("Passenger %d is giving liaison %d the ticket\n",
-	 44, 2, p.id*100 + p.myLine);
 	/*Give liaison information*/
 	Signal(liaisonCV[p.myLine], liaisonLock[p.myLine]);
 	/*wait for liaison confirmation*/
