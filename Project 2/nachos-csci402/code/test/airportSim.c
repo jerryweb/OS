@@ -10,6 +10,7 @@
 
 #include "syscall.h"
 #include "airportStructs.h"
+
 #define NULL (void*)0
 
 /*passenger variables*/
@@ -186,4 +187,8 @@ int main()
     }
 
     Fork(Passenger0, "Passenger 0", 11);
+    for (i = 0; i < 5; i++)
+    {
+        Fork(RunLiaison, "Liaison", 7);
+    }
 }
