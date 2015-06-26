@@ -14,7 +14,7 @@
 #define LIST_H
 
 #include "copyright.h"
-#include "utility.h"
+#include "../threads/utility.h"
 
 // The following class defines a "list element" -- which is
 // used to keep track of one item on a list.  It is equivalent to a
@@ -54,10 +54,10 @@ class List {
     bool IsEmpty();		// is the list empty? 
     
     int Size(); // get the size of the list
-    void* First();  //return the ptr of the first element in the list
-    void* GetElement(int index);  //return the ptr of the element at the given index in the list, or NULL if it's out of range
+    void* First();  /*return the ptr of the first element in the list*/
+    void* GetElement(int index);  /*return the ptr of the element at the given index in the list, or NULL if it's out of range
 
-    // Routines to put/get items on/off list in order (sorted by key)
+    // Routines to put/get items on/off list in order (sorted by key)*/
     void SortedInsert(void *item, int64_t sortKey);	// Put item into list
     void *SortedRemove(int64_t *keyPtr); 	  	// Remove first item from list
 

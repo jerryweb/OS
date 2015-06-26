@@ -20,7 +20,7 @@ void ThreadBfunc(){
 }
 
 int main(){
-	
+
     Fork(ThreadAfunc, "Thread A", 8);
     Fork(ThreadBfunc, "Thread B", 8);
 

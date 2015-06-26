@@ -1,13 +1,13 @@
 /*Exit Test
 	This test takes in a test file, and essentially creates a new process.
 	It cerates a new thread and forks it before the creation of a new process.
-	
+
 */
 
 #include "syscall.h"
 
 void Threadfunc(){
-	Printf("Fort Test Fucntion for thread\n", 32, 0,0);
+	Printf("Fort Test Fucntion for thread A\n", 32, 0,0);
 	Exit(0);
 }
 

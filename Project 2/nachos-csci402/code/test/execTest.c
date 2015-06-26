@@ -8,24 +8,15 @@
 
 #include "syscall.h"
 
-void testFuction(){
-	Printf("Fort Test Fucntion\n", 19, 0,0);
-	Exit(0);
-}
-
 int main(){
-	int processLocation = 0;
-
 	/*Tests the creation of the new process and main thread*/
-	processLocation = Exec("../test/testfiles", 17);
+	int processLocation = Exec("../test/testfiles", 17);
 
 	if(processLocation != -1)
 		Printf("New process location: %d\n", 26, 1, processLocation);
 
 	/*Tests input with a nonexistant file */
 	processLocation = Exec("../test/FooBar", 14);
-
-	/*Fork(testFuction, "thread", 7);
 	/*Tests input with a nonexistant file with the incorrect number of
 	characters in the file name.
 	processLocation = Exec("../test/Fooar", 14);*/

@@ -59,10 +59,11 @@ int Table::Put(void *f) {
     lock->Acquire();
     i = map.Find();
     lock->Release();
-    if ( i != -1)
-	table[i] = f;
-    count++;
-    maxCount++;
+    if ( i != -1){
+    	table[i] = f;
+        count++;
+        maxCount++;
+    }
     return i;
 }
 

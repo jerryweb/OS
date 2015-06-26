@@ -32,7 +32,7 @@ INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
 
-all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest
+all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest airportSim
 	
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -111,7 +111,13 @@ exitTest: exitTest.o start.o
 	$(LD) $(LDFLAGS) start.o exitTest.o -o exitTest.coff
 	../bin/coff2noff exitTest.coff exitTest
 
+airportSim.o: airportSim.c
+	$(CC) $(CFLAGS) -c airportSim.c
+airportSim: airportSim.o start.o
+	$(LD) $(LDFLAGS) start.o airportSim.o -o airportSim.coff
+	../bin/coff2noff airportSim.coff airportSim
+
 clean:
 	rm -f *.o *.coff
-	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest
+	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest airportSim
 	rm *~
