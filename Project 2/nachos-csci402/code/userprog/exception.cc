@@ -839,7 +839,7 @@ void DestroyCondition_Syscall(int id)
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
 // Output the string in the user buffer pointed to by vaddr, with length len,
-//  using printf(). Can take 0-4 parameters, separated by a factor of 1000
+//  using printf(). Can take 0-4 parameters, separated by a factor of 100
 //  in params.
 {
     if (numParams < 0 || numParams > 4)
@@ -870,8 +870,8 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     
     for (int i = 0; i < numParams; i++)
     {
-        parameters[i] = parameter % 1000;
-        parameter = parameter / 1000;
+        parameters[i] = parameter % 100;
+        parameter = parameter / 100;
     }
     switch (numParams)
     {

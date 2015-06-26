@@ -180,7 +180,7 @@ void DestroyLock(int id);
 void DestroyCondition(int id);
 
 /* Outputs the given string to console using printf(). 
- * Separate parameters by 100 (e.g. you want to print 2 and 4, params = 4002).
+ * Separate parameters by 10 (e.g. you want to print 2 and 4, params = 204).
  * Can handle up to 4 integers.
  */
 void Printf(char* string, int len, int numParams, int params);
