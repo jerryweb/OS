@@ -8,12 +8,7 @@ typedef enum  {BOARDING, BOARDED}AirlineState;
 typedef enum  {SO_BUSY, SO_FREE}ScreenState;
 typedef enum  {SC_BUSY, SC_FREE}SecurityState;
 
-/*This is the struct that holds all of the public data for the airport*/
-typedef struct 
-{
-	int numAirlines; 
-	struct Passenger* passengerArray[20];
-}Airport;
+struct Airport;
 
 typedef struct           
 {
@@ -37,6 +32,25 @@ typedef struct {
 	int id;
 	int airline;
 	Ticket ticket;
-	Airport airport;
+	Luggage* bags[3];
+	/*struct Airport airport;*/
 	BoardingPass boardingPass;
 }Passenger;
+
+typedef struct {
+	int id;
+	/*struct Airport airport;*/
+	int* passengers[3];
+	int* luggageCount[3];
+	int* totalLuggageWeight[3];
+	LiaisonState state;
+}Liaison;
+
+/*This is the struct that holds all of the public data for the airport
+typedef struct 
+{
+	int numAirlines; 
+	Passenger* passengerArray[20];
+	Liaison* liaisonArray[7];
+	
+}Airport;*/
