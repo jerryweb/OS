@@ -33,17 +33,17 @@ bool requestingLiaisonData[5];
 void Passenger0()
 {
 	/*
-    Passenger->id = 0;
-	airline = 0;
-	Passenger->Ticket.airline =0;
+	passengerArray[0]->id = 0;
+	passengerArray[0]->ticket->airline = 0;
+	passengerArray[0]->ticket->executive = false;
 
-
-	for(i = 0; i <3; i++){
-		Luggage* bag_1;
-		bag_1.airlineCode = 0;
-		bag_1.weight = 30;
-		Passenger->bags[i] =  bag_1;
+	for(i = 0; i < 3; i++){
+		passengerArray[0]->bags[i]->airlineCode = 0;
+		passengerArray[0]->bags[i]->weight = 30 + i;
 	}
+
+	passengerArray[0]->boardingPass->gate = NULL;
+	passengerArray[0]->boardingPass->seatNum = NULL;
 
 	Printf("Forking passenger\n", 18, 0,0);
 	Exit(0);
@@ -74,7 +74,7 @@ void RunLiaison()
         {
             /* TODO: shift everyone else down one */
             liaisonState[l.id] = L_BUSY;
-            p->airline = p->ticket.airline;
+            p->airline = p->ticket->airline;
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
                     l.id*1000*1000 + p->id*1000 + p->airline);
         }
