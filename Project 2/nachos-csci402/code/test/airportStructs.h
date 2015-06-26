@@ -22,17 +22,16 @@ typedef struct
 typedef struct       
 {
 	int gate;            
-	int seatNum;         
+	int seatNum;
 } BoardingPass;
 
 typedef struct {
 	int id;
 	int airline;
 	Ticket ticket;
-	Luggage* bags[3];
+	Luggage bags[3];
 	BoardingPass boardingPass;
 } Passenger;
-
 
 typedef struct {
 	int id;
