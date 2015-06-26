@@ -28,16 +28,15 @@ typedef struct
 typedef struct {
 	int id;
 	int airline;
-	Ticket ticket;
+	Ticket* ticket;
 	Luggage* bags[3];
 	/*struct Airport airport;*/
-	BoardingPass boardingPass;
+	BoardingPass* boardingPass;
 }Passenger;
 
 
 typedef struct {
 	int id;
-	Airport airport;
 	int passengers[3];
     int luggageCount[3];
     int luggageWeight[3];

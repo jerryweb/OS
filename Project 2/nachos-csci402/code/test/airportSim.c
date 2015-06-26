@@ -2,37 +2,12 @@
 #include "airportStructs.h"
 #define NULL (void*)0
 
-void createGlobalVariables(){
-	int i;
-	int id;
-	int numAirlines;
-	struct Passenger* Passenger;
-	int* passengersPerAirline[20];  
-	Liaison* liaisonArray[5];
-}
-
-void Passenger0(){
-	Passenger->id = 0;
-	/*airline = 0;*/
-	Passenger->Ticket.airline =0;
-
-
-	for(i = 0; i <3; i++){
-		Luggage* bag_1;
-		bag_1.airlineCode = 0;
-		bag_1.weight = 30;
-		Passenger->bags[i] =  bag_1;
-	}
-
-	Printf("Forking passenger\n", 18, 0,0);
-	Exit(0);
-}
-
 int i;
 int numAirlines; 
-struct Passenger* passengerArray[20];
-struct Liaison* liaisonArray[5];
-struct Passenger* liaisonQueues[5][20];
+/*liaison variables*/
+typedef struct Passenger* passengerArray[20];
+typedef struct Liaison* liaisonArray[5];
+typedef struct Passenger* liaisonQueues[5][20];
 int liaisonManagerLock;
 int liaisonManagerCV;
 int liaisonLineLock;
@@ -40,6 +15,32 @@ int liaisonLineCV[5];
 int liaisonLock[5];
 int liaisonCV[5];
 LiaisonState liaisonState[5];
+
+void createGlobalVariables(){
+	int id;
+	typedef struct Passenger* Passenger;
+	int* passengersPerAirline[20];
+	/*struct Luggage* passengerLuggage[20][3];*/
+}
+
+void Passenger0(){
+	passengerArray[0]->id = 0;
+	passengerArray[0]->ticket->airline = 0;
+	passengerArray[0]->ticket->executive = false;
+
+	for(i = 0; i < 3; i++){
+		passengerArray[0]->bags[i]->airlineCode = 0;
+		passengerArray[0]->bags[i]->weight = 30 + i;
+	}
+
+	passengerArray[0]->boardingPass->gate = NULL;
+	passengerArray[0]->boardingPass->seatNum = NULL;
+
+	Printf("Forking passenger\n", 18, 0,0);
+	Exit(0);
+}
+
+
 
 void RunLiaison()
 {
@@ -68,6 +69,11 @@ int main()
 {
     numAirlines = 3;
     passengerArray = {NULL};
+    /*passenger variables*/
+    createGlobalVariables();
+
+
+    /*liaison variables*/
     liaisonArray = {NULL};
     liaisonQueues = {NULL};
     liaisonManagerLock = CreateLock("LiaisonManagerLock", 18);
@@ -81,7 +87,6 @@ int main()
     }
     liaisonState = {L_BUSY};
 
-    createGlobalVariables();
 
 	Fork(Passenger0, "Passenger 0", 11);
 }
