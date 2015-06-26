@@ -72,13 +72,13 @@ void CheckIn::StartCheckInStaff()
             if (exec)
             {
                 printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n",
-                              id, airline, pass->getID(), pass->getBoardingPass().gate);
+                              id, airline, pass->getID(), pass->GetBoardingPass().gate);
                 airport->checkinLineCV[execLine]->Signal(airport->checkinLineLock[airline]);
             }
             else
             {
                 printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n",
-                         id, airline, pass->getID(), pass->getBoardingPass().gate);
+                         id, airline, pass->getID(), pass->GetBoardingPass().gate);
                 airport->checkinLineCV[id]->Signal(airport->checkinLineLock[airline]);
             }
             airport->airlineLock[airline]->Release();
