@@ -39,6 +39,7 @@
 #define SC_CreateCondition   18
 #define SC_DestroyCondition  19
 #define SC_Printf            20
+#define SC_GetID             21
 
 #define MAXFILENAME 256
 
@@ -184,6 +185,10 @@ void DestroyCondition(int id);
  * Can handle up to 4 integers.
  */
 void Printf(char* string, int len, int numParams, int params);
+
+/* Returns the ID of the current thread.
+ */
+int GetID();
 
 #endif /* IN_ASM */
 

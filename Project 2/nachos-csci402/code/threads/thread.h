@@ -105,6 +105,8 @@ class Thread {
     
     int getThreadTableLocation() { return threadTableLocation; }
     void setThreadTableLocation(int loc) { threadTableLocation = loc; }
+    int getThreadID() { return threadID; }
+    void setThreadID(int id) { threadID = id; }
     
   private:
     // some of the private data for this class is listed above
@@ -120,6 +122,7 @@ class Thread {
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()
+    int threadID;
 
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
