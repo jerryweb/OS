@@ -913,9 +913,13 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     }
 }
 
-int GetID()
+int GetID_Syscall()
 {
-    return currentThread->getID();
+    return currentThread->getThreadID();
+}
+
+void SetID_Syscall(int id){
+    currentThread->setThreadID(id);
 }
 
 void ExceptionHandler(ExceptionType which) {
@@ -1028,6 +1032,10 @@ void ExceptionHandler(ExceptionType which) {
             DEBUG('a', "GetID syscall.\n");
             rv = GetID_Syscall();
             break;
+        case SC_SetID:
+            DEBUG('a', "SetID syscall.\n");
+            SetID_Syscall(machine->ReadRegister(4));
+            break;        
 	}
 
 	// Put in the return value and increment the PC

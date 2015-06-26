@@ -210,6 +210,22 @@ Printf:
 	j	$31
 	.end Printf
 
+	.globl GetID
+	.ent GetID
+GetID:
+	addiu $2,$0,SC_GetID
+	syscall
+	j	$31
+	.end GetID
+
+	.globl SetID
+	.ent SetID
+SetID:
+	addiu $2,$0,SC_SetID
+	syscall
+	j	$31
+	.end SetID	
+
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

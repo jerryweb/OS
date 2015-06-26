@@ -40,7 +40,7 @@
 #define SC_DestroyCondition  19
 #define SC_Printf            20
 #define SC_GetID             21
-
+#define	SC_SetID			 22
 #define MAXFILENAME 256
 
 #ifndef IN_ASM
@@ -189,6 +189,10 @@ void Printf(char* string, int len, int numParams, int params);
 /* Returns the ID of the current thread.
  */
 int GetID();
+
+/*Sets the ID of the current thread.
+ */
+void SetID(int id);
 
 #endif /* IN_ASM */
 
