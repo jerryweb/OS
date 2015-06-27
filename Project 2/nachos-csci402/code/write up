@@ -310,7 +310,7 @@ IV. Implementation:
             SpaceId Exec(char *name, int len);
             void Fork(void (*func)(), char* name, int len);
 
-V. Testing:  (For each test case, you must show)
+V. Testing:
 	+ How to test
         nachos -x ../test/forkTest -d z
         nachos -x ../test/execTest -d z
@@ -714,10 +714,10 @@ VI. Discussion:
 
     + Experiment result.  (What actually happens.)
         All individual tests work as expected.
-        airportTest...i dunno
+        airportTest...does not.
 
 	+ Explanation
-        We're awesome! Maybe? No? Aw.
+        
 
 VIII. Miscellaneous:
     Security unfinished
