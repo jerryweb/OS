@@ -794,11 +794,13 @@ void DestroyLock_Syscall(int id)
     if (kLock == NULL || kLock->owner == NULL)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to destroy invalid KernelLock, ID %d\n", currentThread->getName(), id);
+        lockTable->lockRelease();
         return;
     }
     if (currentThread->space != kLock->owner)
     {   // Check if current process has access to lock.
         DEBUG('z', "Thread %s: Trying to destroy other process's Lock, ID %d\n", currentThread->getName(), id);
+        lockTable->lockRelease();
         return;
     }
     
@@ -815,7 +817,8 @@ void DestroyLock_Syscall(int id)
         kLock->lock = NULL;
         kLock->owner = NULL;
     }
-    else lockTable->lockRelease();
+    
+    lockTable->lockRelease();
 }
 void DestroyCondition_Syscall(int id)
 // Destroys the kernel condition with the given ID. If there are threads
@@ -830,11 +833,13 @@ void DestroyCondition_Syscall(int id)
     if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to destroy invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+        CVTable->lockRelease();
         return;
     }
     if (currentThread->space != kCond->owner)
     {   // Check if current process has access to condition.
         DEBUG('z', "Thread %s: Trying to destroy other process's Condition, ID %d\n", currentThread->getName(), id);
+        CVTable->lockRelease();
         return;
     }
     
@@ -851,7 +856,8 @@ void DestroyCondition_Syscall(int id)
         kCond->condition = NULL;
         kCond->owner = NULL;
     }
-    else CVTable->lockRelease();
+    
+    CVTable->lockRelease();
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)

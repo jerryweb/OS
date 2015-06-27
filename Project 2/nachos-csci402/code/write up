@@ -29,42 +29,115 @@ II. Assumptions:
     Syscalls are always called with the correct type (e.g. no trying to input a char* for a syscall which takes in an int); this should mostly be taken care of by the compiler, but spurious typecasting may or may not be weeded out by error cases depending on the value.
 
 III. Design:
-    FUUUUUUUUUUUU
+        Fork:
+            
+        Exec:
+            
+        Exit:
+            
+        Yield:
+            Yield the current thread.
+        CreateLock:
+            Acquire the lock table's lock.
+            Read the name in; return -1 if invalid.
+            Create a new KernelLock, with the current process as its owner.
+            Put the new KernelLock in the lock table (releasing the lock table's lock in the process), and return its id.
+        Acquire:
+            Acquire the lock table's lock.
+            Get the KernelLock from the lock table with the given ID.
+            If the KernelLock is null or doesn't have an owner, release the lock table's lock and return.
+            If the KernelLock does not belong to the current process, release the lock table's lock and return.
+            If the KernelLock's lock is null, release the lock table's lock and return (should never happen).
+            Release the lock table's lock.
+            Acquire the KernelLock's lock.
+        Release:
+            Acquire the lock table's lock.
+            Get the KernelLock from the lock table with the given ID.
+            If the KernelLock is null or doesn't have an owner, release the lock table's lock and return.
+            If the KernelLock does not belong to the current process, release the lock table's lock and return.
+            If the KernelLock's lock is null, release the lock table's lock and return (should never happen).
+            Release the KernelLock's lock.
+            Release the lock table's lock.
+        DestroyLock:
+            Acquire the lock table's lock.
+            Get the KernelLock from the lock table with the given ID.
+            If the KernelLock is null or doesn't have an owner, release the lock table's lock and return.
+            If the KernelLock does not belong to the current process, release the lock table's lock and return.
+            If the KernelLock's lock is null, release the lock table's lock and return (should never happen).
+            If the KernelLock's delete flag has not been set, set it.
+            If the KernelLock's lock has an empty wait queue, no owner, and the delete flag set, set the KernelLock's lock and owner to null.
+            Release the lock table's lock.
+        CreateCondition:
+            Acquire the condition table's lock.
+            Read the name in; return -1 if invalid.
+            Create a new KernelCondition, with the current process as its owner.
+            Put the new KernelCondition in the condition table (releasing the condition table's lock in the process), and return its id.
+        Wait:
+            Acquire the CV table's lock.
+            Get the KernelCondition from the CV table with the given ID.
+            If the KernelCondition is null or doesn't have an owner, release the lock table's lock and return.
+            Get the KernelCondition's KernelLock from the lock table with the given ID.
+            If the KernelLock is null or doesn't have an owner, release the lock table's lock and return.
+            If the KernelCondition or KernelLock does not belong to the current process, release the lock table's lock and return.
+            If the KernelCondition's condition is null, release the lock table's lock and return (should never happen).
+            Release the CV table's lock.
+            Wait on the KernelCondition's condition.
+        Signal:
+            Acquire the CV table's lock.
+            Get the KernelCondition from the CV table with the given ID.
+            If the KernelCondition is null or doesn't have an owner, release the lock table's lock and return.
+            Get the KernelCondition's KernelLock from the lock table with the given ID.
+            If the KernelLock is null or doesn't have an owner, release the lock table's lock and return.
+            If the KernelCondition or KernelLock does not belong to the current process, release the lock table's lock and return.
+            If the KernelCondition's condition is null, release the lock table's lock and return (should never happen).
+            Signal the KernelCondition's condition.
+            Release the CV table's lock.
+        Broadcast:
+            Acquire the CV table's lock.
+            Get the KernelCondition from the CV table with the given ID.
+            If the KernelCondition is null or doesn't have an owner, release the lock table's lock and return.
+            Get the KernelCondition's KernelLock from the lock table with the given ID.
+            If the KernelLock is null or doesn't have an owner, release the lock table's lock and return.
+            If the KernelCondition or KernelLock does not belong to the current process, release the lock table's lock and return.
+            If the KernelCondition's condition is null, release the lock table's lock and return (should never happen).
+            Broadcast on the KernelCondition's condition.
+            Release the CV table's lock.
+        DestroyCondition:
+            Acquire the CV table's lock.
+            Get the KernelCondition from the CV table with the given ID.
+            If the KernelCondition is null or doesn't have an owner, release the lock table's lock and return.
+            If the KernelCondition does not belong to the current process, release the lock table's lock and return.
+            If the KernelCondition's lock is null, release the lock table's lock and return (should never happen).
+            If the KernelCondition's delete flag has not been set, set it.
+            If the KernelCondition's condition has an empty wait queue and the delete flag set, set the KernelCondition's condition and owner to null.
+            Release the CV table's lock.
+        Printf:
+            Check the number of parameters; if invalid, return.
+            Read the input string in; if invalid, return.
+            Read in the parameters.
+            Find the appropriate print statement and print.
 
 IV. Implementation:
-	+ Files Modified
+	+ Files Modified (from project 1, not from base)
         in code:
             Makefile.common
         in code\test:
             Makefile
             start.s
         in code\threads:
-            airline.h/.cc
-            airport.h/.cc
-            airportobjects.h
-            cargo.h/.cc
-            checkin.h/.cc
-            liaison.h/.cc
-            list.h/.cc
-            lockTest.cc         ???
-            manager.h/.cc
-            passenger.h/.cc
-            screenofficer.h/.cc
-            securityinspector.h/.cc
             synch.h/.cc
             system.h/.cc
-            thread.h/.cc        ???
-            threadtest.cc
+            thread.h/.cc
         in code\userprog:
             addrspace.h/.cc
-            bitmap.h/.cc        ???
             exception.cc
-            progtest.cc         ???
             syscall.h
             table.h
 
 	+ Files added
         in code\test:
+            airportTest.c
+            airportSim.c
             condTest.c
             condTestHelper.c
             execTest.c
