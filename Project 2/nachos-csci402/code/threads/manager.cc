@@ -133,7 +133,8 @@ void Manager::MakeRounds() {
 		for (int a = 0; a < airport->numAirlines; a++) {
 			if (!clearAirline[a]) {
 				airport->airlineLock[a]->Acquire();
-				if (securityInspectorPassengerCount[a]
+				//if (securityInspectorPassengerCount[a]
+				if (airport->boardingQueue[a]->Size()
 						>= airport->airlines[a]->ticketsIssued
 						&& airport->aircraft[a]->Size()
 								>= airport->airlines[a]->totalBagCount) {
@@ -151,6 +152,8 @@ void Manager::MakeRounds() {
 			}
 		}
 		if (clearAirlineCount == airport->numAirlines) {
+
+			airport->allFinished = true;
 
 			PrintCount();
 

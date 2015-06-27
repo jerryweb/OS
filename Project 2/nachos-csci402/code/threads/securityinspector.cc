@@ -112,53 +112,53 @@ Passenger* SecurityInspector::CheckForPassengers() {
 }
 
 /*void SecurityInspector::Inspect() {
-	srand(time(NULL));
+ srand(time(NULL));
 
-	while (true) {
-		Passenger* p = NULL;
+ while (true) {
+ Passenger* p = NULL;
 
-		airport->securityLocks[id]->Acquire();
-		p = CheckForPassengers(); //this function remove and return the first passenger in the line if there's one
-								  //in either security or return queue
-								  //the security check also happens here
+ airport->securityLocks[id]->Acquire();
+ p = CheckForPassengers(); //this function remove and return the first passenger in the line if there's one
+ //in either security or return queue
+ //the security check also happens here
 
-		//if passenger pass security check
-		//include the passengers return from questioning
-		if (p != NULL && (p->GetBoarding())) {
+ //if passenger pass security check
+ //include the passengers return from questioning
+ if (p != NULL && (p->GetBoarding())) {
 
-			//wait for confirmation from passeger
-			//correspond to passenger.cc line 240
-			airport->securityFinishCV[id]->Wait(airport->securityLocks[id]);
-			airport->securityQueuesLock->Acquire();
+ //wait for confirmation from passeger
+ //correspond to passenger.cc line 240
+ airport->securityFinishCV[id]->Wait(airport->securityLocks[id]);
+ airport->securityQueuesLock->Acquire();
 
-			//update clear count here
-			int airlineP = p->GetAirline();
-			(clearCount[airlineP])++;
+ //update clear count here
+ int airlineP = p->GetAirline();
+ (clearCount[airlineP])++;
 
-			//handing over boarding pass here
-			BoardingPass bp = p->GetBoardingPass();
-			boardingPassList->Append(&bp);
+ //handing over boarding pass here
+ BoardingPass bp = p->GetBoardingPass();
+ boardingPassList->Append(&bp);
 
-			airport->securityQueuesLock->Release();
+ airport->securityQueuesLock->Release();
 
-			//if fail the security pass, go to next cycle
-		} else if (p != NULL) {
-			airport->securityLocks[id]->Release();
+ //if fail the security pass, go to next cycle
+ } else if (p != NULL) {
+ airport->securityLocks[id]->Release();
 
-			//if p = NULL, that means both normal and return queues are empty
-			//put myself on break,potential manager code here
-			//passenger.cc code line
-		} else {
-			//printf("((((((((((((((((((9security %d on free wait\n",id);
-			//airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
-			airport->securityQueuesCV[id]->Signal(airport->securityLocks[id]);
-			airport->returnQueuesCV[id]->Signal(airport->securityLocks[id]);
-			airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
-			//airport->securityLocks[id]->Release();
-			//currentThread->Yield();
-		}
-	}
-}*/
+ //if p = NULL, that means both normal and return queues are empty
+ //put myself on break,potential manager code here
+ //passenger.cc code line
+ } else {
+ //printf("((((((((((((((((((9security %d on free wait\n",id);
+ //airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
+ airport->securityQueuesCV[id]->Signal(airport->securityLocks[id]);
+ airport->returnQueuesCV[id]->Signal(airport->securityLocks[id]);
+ airport->securityFreeCV[id]->Wait(airport->securityLocks[id]);
+ //airport->securityLocks[id]->Release();
+ //currentThread->Yield();
+ }
+ }
+ }*/
 
 void SecurityInspector::Inspect() {
 	srand(time(NULL));
@@ -249,6 +249,8 @@ void SecurityInspector::Inspect() {
 			airport->securityCV[id]->Signal(airport->securityLocks[id]);
 			airport->securityCV[id]->Wait(airport->securityLocks[id]);
 
+		} else if (airport->allFinished) {
+			currentThread->Finish();
 		} else {
 			airport->securityState[id] = SC_FREE;
 			airport->securityQueuesLock->Release();

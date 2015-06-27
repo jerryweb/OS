@@ -166,6 +166,7 @@ public:
     Condition** securityManagerCV;
 
 	//  Manager variables
+    bool allFinished;
 
 };
 

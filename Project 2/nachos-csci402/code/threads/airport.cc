@@ -2,7 +2,7 @@
 
 Airport::Airport(){
     int i;
-
+    allFinished = false;
 
 	// General variables
 	numAirlines = 3;

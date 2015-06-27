@@ -49,63 +49,63 @@ Passenger* Liaison::CheckForPassengers() {
 // queue
 //----------------------------------------------------------------------
 /*void Liaison::DirectPassengers() {
-	Passenger* p = NULL;
+ Passenger* p = NULL;
 
-	while (true) {
-		// Check line for passengers.
-		airport->liaisonLock[id]->Acquire();
+ while (true) {
+ // Check line for passengers.
+ airport->liaisonLock[id]->Acquire();
 
-		//   airport->liaisonLineLock->Acquire();
-		p = CheckForPassengers();
+ //   airport->liaisonLineLock->Acquire();
+ p = CheckForPassengers();
 
-		// airport->liaisonLock[id]->Acquire();
-		//  airport->liaisonLineLock->Release();
-		if (p != NULL) {
-			//airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-			//Wait for passenger to give liaison information
-			airport->liaisonLock[id]->Acquire();
+ // airport->liaisonLock[id]->Acquire();
+ //  airport->liaisonLineLock->Release();
+ if (p != NULL) {
+ //airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+ //Wait for passenger to give liaison information
+ airport->liaisonLock[id]->Acquire();
 
-			// This adds the statistics for # of passengers and weight of bags for each
-			// of the airlines
+ // This adds the statistics for # of passengers and weight of bags for each
+ // of the airlines
 
-			passengers[p->getTicket().airline]++;
+ passengers[p->getTicket().airline]++;
 
-			List *bags = p->getLuggage(); //Temp list for iterating through luggage
-			for (int j = bags->Size(); j > 0; j--) { //This calculates the weights of each of the bags
-													 //and puts it into a temp array to be read
-				luggageCount[p->getTicket().airline]++;
-			}
-			airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-			// airport->liaisonLock[id]->Release();
-		}
+ List *bags = p->getLuggage(); //Temp list for iterating through luggage
+ for (int j = bags->Size(); j > 0; j--) { //This calculates the weights of each of the bags
+ //and puts it into a temp array to be read
+ luggageCount[p->getTicket().airline]++;
+ }
+ airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+ // airport->liaisonLock[id]->Release();
+ }
 
-		else {
-			airport->liaisonFreeCV[id]->Wait(airport->liaisonLock[id]);
+ else {
+ airport->liaisonFreeCV[id]->Wait(airport->liaisonLock[id]);
 
-		}
+ }
 
-		//   airport->liaisonLock[id]->Acquire();
+ //   airport->liaisonLock[id]->Acquire();
 
-		if (airport->RequestingLiaisonData[id]) { //prevent race conditions with other liaisons
+ if (airport->RequestingLiaisonData[id]) { //prevent race conditions with other liaisons
 
-			airport->liaisonManagerLock->Acquire();
+ airport->liaisonManagerLock->Acquire();
 
-			//Give manager data
+ //Give manager data
 
-			// airport->liaisonLock[id]->Acquire();
-			airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
-			airport->liaisonManagerLock->Release();
+ // airport->liaisonLock[id]->Acquire();
+ airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
+ airport->liaisonManagerLock->Release();
 
-			// Wait for manager to signal that all the data has been collected
-			airport->RequestingLiaisonData[id] = false;
+ // Wait for manager to signal that all the data has been collected
+ airport->RequestingLiaisonData[id] = false;
 
-			airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
-			// Wait for manager to signal that all the data has been collected
-			// airport->RequestingLiaisonData[id] = false;
-		}
+ airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+ // Wait for manager to signal that all the data has been collected
+ // airport->RequestingLiaisonData[id] = false;
+ }
 
-	}
-}*/
+ }
+ }*/
 
 void Liaison::DirectPassengers() {
 	while (true) {
@@ -135,10 +135,12 @@ void Liaison::DirectPassengers() {
 
 			airport->liaisonCV[id]->Signal(airport->liaisonLock[id]);
 
-			printf("Airport Liaison %d directed passenger %d of airline %d\n", id,
-							p->getID(), p->getTicket().airline);
+			printf("Airport Liaison %d directed passenger %d of airline %d\n",
+					id, p->getID(), p->getTicket().airline);
 
 			airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+		} else if (airport->allFinished) {
+			currentThread->Finish();
 		} else {
 			airport->liaisonState[id] = L_FREE;
 			airport->liaisonLineLock->Release();

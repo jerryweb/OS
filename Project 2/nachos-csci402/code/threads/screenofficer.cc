@@ -72,29 +72,29 @@ Passenger* ScreenOfficer::CheckForPassengers() {
 }
 
 /*void ScreenOfficer::Screen() {
-	Passenger* p = NULL;
-	srand(time(NULL));
+ Passenger* p = NULL;
+ srand(time(NULL));
 
-	while (true) {
-		airport->screenLocks[id]->Acquire();
+ while (true) {
+ airport->screenLocks[id]->Acquire();
 
-		//this function do the checking and return the pointer
-		//points to current passenger if available
-		p = CheckForPassengers();
+ //this function do the checking and return the pointer
+ //points to current passenger if available
+ p = CheckForPassengers();
 
-		if (p != NULL) {
-			//wait for passenger's acknowledgement
-			airport->screenCV[id]->Wait(airport->screenLocks[id]);
-			//after confirmation from passenger procced to next loop
-		}
+ if (p != NULL) {
+ //wait for passenger's acknowledgement
+ airport->screenCV[id]->Wait(airport->screenLocks[id]);
+ //after confirmation from passenger procced to next loop
+ }
 
-		//if p = NULL then wait on free condition
-		else {
-			airport->screenQueuesCV[id]->Signal(airport->screenLocks[id]);
-			airport->screenFreeCV[id]->Wait(airport->screenLocks[id]);
-		}
-	}
-}*/
+ //if p = NULL then wait on free condition
+ else {
+ airport->screenQueuesCV[id]->Signal(airport->screenLocks[id]);
+ airport->screenFreeCV[id]->Wait(airport->screenLocks[id]);
+ }
+ }
+ }*/
 
 void ScreenOfficer::Screen() {
 	srand(time(NULL));
@@ -106,7 +106,7 @@ void ScreenOfficer::Screen() {
 		if (!airport->screenQueues[id]->IsEmpty()) {
 			airport->screenLocks[id]->Acquire();
 			airport->screenState[id] = SO_BUSY;
-			p = (Passenger*)airport->screenQueues[id]->Remove();
+			p = (Passenger*) airport->screenQueues[id]->Remove();
 			airport->screenQueuesCV[id]->Signal(airport->screenQueuesLock);
 			airport->screenQueuesLock->Release();
 
@@ -134,8 +134,8 @@ void ScreenOfficer::Screen() {
 
 			//find the available secuirty inspector for the passenger
 			airport->securityQueuesLock->Acquire();
-			int securityIndex = p->findShortestLine(airport->securityQueues, false,
-					false, true);
+			int securityIndex = p->findShortestLine(airport->securityQueues,
+					false, false, true);
 			//inform passenger the index of next secuirty inspector
 			p->SetQueueIndex(securityIndex);
 			p->SetSecurityPass(luggageTest);
@@ -147,6 +147,8 @@ void ScreenOfficer::Screen() {
 			airport->screenCV[id]->Signal(airport->screenLocks[id]);
 			airport->screenCV[id]->Wait(airport->screenLocks[id]);
 
+		} else if (airport->allFinished) {
+			currentThread->Finish();
 		} else {
 			airport->screenState[id] = SO_FREE;
 			airport->screenQueuesLock->Release();
