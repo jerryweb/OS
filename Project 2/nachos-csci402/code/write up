@@ -162,6 +162,10 @@ III. Design:
             Read the input string in; if invalid, return.
             Read in the parameters.
             Find the appropriate print statement and print.
+        
+        Airport sim:
+            Mostly the same as project 1. Differences include:
+              - 
 
 IV. Implementation:
 
