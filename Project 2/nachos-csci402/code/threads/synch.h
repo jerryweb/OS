@@ -69,7 +69,7 @@ class Lock {
     ~Lock();				// deallocate lock
     char* getName() { return name; }	// debugging assist
     List* getWaitQueue() { return waitQueue; }
-    List* getReadyQueue() { return readyQueue; }
+    Thread* getOwner() { return lockOwner; }
 
     void Acquire(); // these are the only operations on a lock
     void Release(); // they are both *atomic*
@@ -83,7 +83,6 @@ class Lock {
     char* name;				        // for debugging
     Thread* lockOwner;              // the current thread that holds the lock
     List* waitQueue;                // list of threads waiting to wake up (not available to the scheduler)
-    List* readyQueue;               // threads that are ready to be used by the scheduler 
     enum State {FREE, BUSY};        // the two states that the lock can take 
     State lockState;
     

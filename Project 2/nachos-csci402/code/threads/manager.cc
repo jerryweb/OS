@@ -113,22 +113,31 @@ void Manager::MakeRounds() {
 		airport->conveyorLock->Release();
 
 		//These functions gather data from each of the thread classes
-		//LiaisonDataRequest(L);
+		LiaisonDataRequest(L);
 
-		//CargoRequest(CH);
+		CargoRequest(CH);
 
 		CheckinDataRequest(C);
 
 		SecurityDataRequest(SI);
+
+		//for debug
+		int totalCount = 0;
+		for (int i = 0; i < airport->numAirlines; i++) {
+			totalCount += securityInspectorPassengerCount[i];
+		}
+		printf("#####################clear passenger count %d--------\n",
+				totalCount);
 
 		// check for boarding announcement
 		for (int a = 0; a < airport->numAirlines; a++) {
 			if (!clearAirline[a]) {
 				airport->airlineLock[a]->Acquire();
 				if (securityInspectorPassengerCount[a]
-						>= airport->airlines[a]->ticketsIssued) {
-						//&& airport->aircraft[a]->Size()
-							//	>= airport->airlines[a]->totalBagCount) {
+						>= airport->airlines[a]->ticketsIssued
+						&& airport->aircraft[a]->Size()
+								>= airport->airlines[a]->totalBagCount) {
+
 					printf(
 							"Airport manager gives a boarding call to airline %d\n",
 							a);
@@ -161,37 +170,22 @@ void Manager::LiaisonDataRequest(Liaison *L) {
 		liaisonPassengerCount[i] = 0;
 		liaisonBaggageCount[i] = 0;
 	}
+
+	airport->liaisonManagerLock->Acquire();
+
 	for (int j = 0; j < airport->liaisonList->Size(); j++) {
 		L = (Liaison*) airport->liaisonList->Remove();
 
 		airport->liaisonList->Append((void *) L);
 
-		if (airport->liaisonState[j] == L_FREE) {
-			airport->liaisonManagerLock->Acquire();
-
-			L = (Liaison*) airport->liaisonList->Remove();
-
-			airport->liaisonList->Append((void *) L);
-			airport->RequestingLiaisonData[L->getID()] = true;
-			airport->liaisonCV[L->getID()]->Signal(
-					airport->liaisonLock[L->getID()]);
-
-			airport->liaisonManagerCV->Wait(airport->liaisonManagerLock);
-			//Waits for the signal of corresponding Liaison
-			airport->liaisonLock[L->getID()]->Acquire();
-
-			//Records the number of passengers per airline and stores into an array
-			for (int k = 0; k < airport->numAirlines; k++) {
-				liaisonPassengerCount[k] += L->getPassengers(k);
-				liaisonBaggageCount[k] += L->getLuggageCount(k);
-			}
-
-			//Signals liaison that all the data has been collected
-			airport->liaisonCV[L->getID()]->Signal(
-					airport->liaisonLock[L->getID()]);
-			airport->liaisonLock[L->getID()]->Release();
+		//Records the number of passengers per airline and stores into an array
+		for (int k = 0; k < airport->numAirlines; k++) {
+			liaisonPassengerCount[k] += L->getPassengers(k);
+			liaisonBaggageCount[k] += L->getLuggageCount(k);
 		}
 	}
+
+	airport->liaisonManagerLock->Release();
 }
 
 void Manager::CheckinDataRequest(CheckIn *C) {
@@ -203,32 +197,43 @@ void Manager::CheckinDataRequest(CheckIn *C) {
 		newCheckinBaggageWeight[i] = 0;
 	}
 
+	airport->checkinManagerLock->Acquire();
+
 	for (int j = 0; j < airport->checkInStaffList->Size(); j++) {
 		C = (CheckIn*) airport->checkInStaffList->Remove();
 
 		airport->checkInStaffList->Append((void *) C);
 
 		if (!airport->finalCheckin[C->getID()]) {
-			airport->checkinManagerLock->Acquire();
-
-			airport->RequestingCheckinData[C->getID()] = true;
 			airport->checkinBreakCV[C->getID()]->Signal(
-					airport->checkinLock[C->getID()]);
-			airport->checkinManagerCV->Wait(airport->checkinManagerLock);
+					airport->checkinManagerLock);
+			/*airport->checkinManagerLock->Acquire();
+			 airport->checkinLock[C->getID()]->Acquire();
 
-			//Waits for the signal of corresponding CheckIn
-			airport->checkinLock[C->getID()]->Acquire();
-			//Records the number of passengers per airline and stores into an array
+			 airport->RequestingCheckinData[C->getID()] = true;
+			 airport->checkinBreakCV[C->getID()]->Signal(
+			 airport->checkinLock[C->getID()]);
+			 airport->checkinLock[C->getID()]->Release();
+			 airport->checkinManagerCV->Wait(airport->checkinManagerLock);
+
+			 //Waits for the signal of corresponding CheckIn
+			 airport->checkinLock[C->getID()]->Acquire();
+			 //Records the number of passengers per airline and stores into an array
+			 newCheckinPassengerCount[C->getAirline()] += C->getPassengers();
+			 newCheckinBaggageWeight[C->getAirline()] += C->getLuggageWeight();
+
+			 //Signals checkin that all the data has been collected
+			 airport->checkinDataCV[C->getID()]->Signal(
+			 airport->checkinLock[C->getID()]);
+			 airport->checkinLock[C->getID()]->Release();*/
+
 			newCheckinPassengerCount[C->getAirline()] += C->getPassengers();
 			newCheckinBaggageWeight[C->getAirline()] += C->getLuggageWeight();
-
-			//Signals checkin that all the data has been collected
-			airport->checkinCV[C->getID()]->Signal(
-					airport->checkinLock[C->getID()]);
-			airport->checkinLock[C->getID()]->Release();
 		}
-
 	}
+
+	airport->checkinManagerLock->Release();
+
 	for (int i = 0; i < airport->numAirlines; i++) {
 		if (newCheckinPassengerCount[i] > checkinPassengerCount[i])
 			checkinPassengerCount[i] = newCheckinPassengerCount[i];
@@ -245,35 +250,39 @@ void Manager::CargoRequest(Cargo *CH) {
 
 	int cargoNum = airport->cargoHandlerList->Size();
 
+	airport->CargoHandlerManagerLock->Acquire();
+
 	for (int i = 0; i < cargoNum; i++) {
 
 		//if (airport->cargoState[i] == C_BREAK) {
-		airport->CargoHandlerManagerLock->Acquire();
+		//airport->CargoHandlerManagerLock->Acquire();
 		CH = (Cargo*) airport->cargoHandlerList->Remove();
 		airport->cargoHandlerList->Append((void *) CH);
-		airport->RequestingCargoData[CH->getID()] = true;
-		airport->cargoDataCV[i]->Signal(airport->cargoLock[i]);
-		airport->cargoManagerCV[CH->getID()]->Wait(
-				airport->CargoHandlerManagerLock);
+		/*airport->RequestingCargoData[CH->getID()] = true;
+		 airport->cargoDataCV[i]->Signal(airport->cargoLock[i]);
+		 airport->cargoManagerCV[CH->getID()]->Wait(
+		 airport->CargoHandlerManagerLock);
 
-		//Waits for the signal of corresponding Cargo
-		airport->cargoDataLock[CH->getID()]->Acquire();
+		 //Waits for the signal of corresponding Cargo
+		 airport->cargoDataLock[CH->getID()]->Acquire(); */
 		//Records the total weight per airline and stores into an array
 		for (int k = 0; k < airport->numAirlines; k++) {
 			cargoHandlersBaggageWeight[k] += CH->getWeight(k);
 			cargoHandlersBaggageCount[k] += CH->getLuggage(k);
 		}
-		//Signals cargo that all the data has been collected
-		airport->cargoDataCV[CH->getID()]->Signal(
-				airport->cargoDataLock[CH->getID()]);
-		airport->cargoDataLock[CH->getID()]->Release();
-		//}
+		/*Signals cargo that all the data has been collected
+		 airport->cargoDataCV[CH->getID()]->Signal(
+		 airport->cargoDataLock[CH->getID()]);
+		 airport->cargoDataLock[CH->getID()]->Release();
+		 //}*/
 
 	}
+
+	airport->CargoHandlerManagerLock->Release();
 }
 
 void Manager::SecurityDataRequest(SecurityInspector *SI) {
-	airport->securityQueuesLock->Acquire();
+	airport->securityManagerLock->Acquire();
 
 	//reset to 0
 	for (int i = 0; i < (airport->numAirlines); i++) {
@@ -285,12 +294,12 @@ void Manager::SecurityDataRequest(SecurityInspector *SI) {
 	//gather clear passenger count from all security inspector
 	for (int i = 0; i < securityNum; i++) {
 		si = (SecurityInspector*) airport->securityInspectorList->Remove();
+		airport->securityInspectorList->Append(si);
 		int* count = si->getClearCount();
 		for (int j = 0; j < (airport->numAirlines); j++) {
 			securityInspectorPassengerCount[j] += count[j];
 		}
-		airport->securityInspectorList->Append(si);
 	}
 
-	airport->securityQueuesLock->Release();
+	airport->securityManagerLock->Release();
 }

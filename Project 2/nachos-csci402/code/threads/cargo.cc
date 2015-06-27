@@ -46,11 +46,13 @@ void Cargo::StartCargo()
             printf("Cargo Handler %d picked bag of airline %d weighing %d lbs\n",
                     id, bag->airlineCode, bag->weight);
             airport->aircraft[bag->airlineCode]->Append(bag);
+            airport->CargoHandlerManagerLock->Acquire();
             luggage[bag->airlineCode]++;
             weight[bag->airlineCode] += bag->weight;
+            airport->CargoHandlerManagerLock->Release();
             airport->conveyorLock->Release();
         }
-        if(airport->RequestingCargoData[id]){
+       /* if(airport->RequestingCargoData[id]){
             airport->CargoHandlerManagerLock->Acquire();
             //Give manager data
            
@@ -61,6 +63,6 @@ void Cargo::StartCargo()
             airport->cargoDataCV[id]->Wait(airport->cargoDataLock[id]);
             //Wait for manager to signal that all the data has been collected
             airport->RequestingCargoData[id] = false;
-        }
+        }*/
     }
 }
