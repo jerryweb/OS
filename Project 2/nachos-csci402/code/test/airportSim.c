@@ -53,6 +53,7 @@ int passengerCount;
 int passengerArrayLock;
 	/**/
 	Passenger*  passengerLiaisonInteractionOrder[21];
+    Passenger*  passengerCheckinInteractionOrder[21];
 Passenger* passengerArray[21];
 /* Liaison variables */
 	Liaison l0;
@@ -73,6 +74,15 @@ int liaisonCV[5];
 LiaisonState liaisonState[5];
 bool requestingLiaisonData[5];
 /* Check-in variables */
+	Checkin ci1;
+	Checkin ci2;	
+	Checkin ci3;
+	Checkin ci5;
+	Checkin ci6;
+	Checkin ci7;
+	Checkin ci9;	
+	Checkin ci10;
+	Checkin ci11;
 int checkinCount;
 int checkinArrayLock;
 Checkin* checkinArray[12];
@@ -88,6 +98,12 @@ CheckinState checkinState[12];
 bool finalCheckin[12];
 bool requestingCheckinData[12];
 /* Cargo variables */
+	Cargo c0;
+	Cargo c1;	
+	Cargo c2;
+	Cargo c3;
+	Cargo c4;
+	Cargo c5;
 int cargoCount;
 int cargoArrayLock;
 Cargo* cargoArray[6];
@@ -159,6 +175,7 @@ void Init()
     for (i = 5; i < 21; i++)
     {
     	passengerLiaisonInteractionOrder[i] = NULL;
+    	passengerCheckinInteractionOrder[i] = NULL;
         passengerArray[i] = NULL;
     }
     /* Liaison variables */
@@ -190,6 +207,16 @@ void Init()
     checkinCount = 0;
     checkinArrayLock = CreateLock("CheckinArrayLock", 16);
     checkinManagerLock = CreateLock("CheckinManagerLock", 18);
+    /*must be statically declared*/
+    checkinArray[1] = &ci1;
+    checkinArray[2] = &ci2;
+    checkinArray[3] = &ci3;
+    checkinArray[5] = &ci5;
+    checkinArray[6] = &ci6;
+    checkinArray[7] = &ci7;
+    checkinArray[9] = &ci9;
+    checkinArray[10] = &ci10;
+    checkinArray[11] = &ci11;
     for (i = 0; i < 12; i++)
     {
         if (i%4 == 0) /* 0, 4, 8 */
@@ -216,6 +243,13 @@ void Init()
     cargoArrayLock = CreateLock("CargoArrayLock", 14);
     cargoCV = CreateCondition("CargoCV", 7);
     cargoManagerLock = CreateLock("CargoManagerLock", 16);
+    /*must be statically declared*/
+    cargoArray[0] = &c0;
+    cargoArray[1] = &c1;
+    cargoArray[2] = &c2;
+    cargoArray[3] = &c3;
+    cargoArray[4] = &c4;
+    cargoArray[5] = &c5;
     for (i = 0; i < 6; i++)
     {
         cargoArray[i] = NULL;
@@ -465,14 +499,12 @@ void PassengerFindShortestCISLine(Passenger p){
 
 void RunLiaison()
 {
-    int i, elementCount, lCount, tempPassengerID, order;
+    int i, elementCount, lCount, tempPassengerID;
 
     Passenger* p;
     
-    Liaison l;
-    lCount = liaisonCount;
     Acquire(liaisonArrayLock);
-    l.id = liaisonCount;
+    lCount = liaisonCount;
     liaisonArray[lCount]->id = liaisonCount;
     liaisonCount++;
     for (i = 0; i < 3; i++)
@@ -481,7 +513,6 @@ void RunLiaison()
         liaisonArray[lCount]->luggage[i] = 0;
         liaisonArray[lCount]->weight[i] = 0;
     }
-    /*liaisonArray[l.id] = &l;*/order = 0;
     Release(liaisonArrayLock);
         
     while(true)
@@ -489,12 +520,7 @@ void RunLiaison()
         Acquire(liaisonLineLock);
         
         tempPassengerID  = liaisonLine[lCount][0]->id;
-/*      	for(i = 0; i <21; i++){
-      		Printf("Passenger %d\n", 13, 1, liaisonLine[1][i]->id);
-      	}
-*/		
-      	/*tempPassengerID = p->id;*/
-
+        
         if (passengerArray[tempPassengerID] != NULL)
         {
             for (i = 1; i < 21; i++)
@@ -569,13 +595,13 @@ void RunLiaison()
 void RunCheckin()
 {
     int i, j, len;
+    int elementCount, ciCount, tempPassengerID;
     int execLine;
     Passenger* p;
     BoardingPass bp;
     bool exec;
     bool talked = false;
     
-    Checkin ci;
     Acquire(checkinArrayLock);
     while (checkinCount%4 == 0) /* 0, 4, 8 */
     {
