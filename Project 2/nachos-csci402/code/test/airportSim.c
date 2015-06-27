@@ -52,7 +52,7 @@ int boardingLock[3];
 int passengerCount;
 int passengerArrayLock;
 	/**/
-	Passenger*  passengerLiaisonInteractionOrder[21];
+	Passenger*  passengerLiaisonInteractionOrder[6][21];
 Passenger* passengerArray[21];
 /* Liaison variables */
 	Liaison l0;
@@ -62,6 +62,7 @@ Passenger* passengerArray[21];
 	Liaison l4;
 int liaisonCount;
 int liaisonArrayLock;
+	Liaison*  LiaisonPassengerInteractionOrder[5];
 Liaison* liaisonArray[5];
 Passenger* liaisonLine[5][21];
 int liaisonManagerLock;
@@ -158,8 +159,15 @@ void Init()
 	passengerArray[21] = &p21;
     for (i = 5; i < 21; i++)
     {
-    	passengerLiaisonInteractionOrder[i] = NULL;
+
         passengerArray[i] = NULL;
+    }
+
+    for(i = 0; i < 6; i++){
+    	for (j = 0; j < 21; j++)
+    	{
+    		passengerLiaisonInteractionOrder[i][j] = NULL;
+    	}
     }
     /* Liaison variables */
     liaisonCount = 0;
@@ -176,6 +184,7 @@ void Init()
     for (i = 0; i < 5; i++)
     {
         /*liaisonArray[i] = NULL;*/
+        LiaisonPassengerInteractionOrder[i] = NULL;
         liaisonLineCV[i] = CreateCondition("LiaisonLineCV", 13);
         liaisonLock[i] = CreateLock("LiaisonLock", 11);
         liaisonCV[i] = CreateCondition("LiaisonCV", 9);
@@ -385,24 +394,51 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
 	}
 	else
 		Release(liaisonLineLock);
+
 	Acquire(passengerArrayLock);
-    p = passengerLiaisonInteractionOrder[0];
+    p = passengerLiaisonInteractionOrder[0][0];
     for (i = 1; i < 21; i++)
     {
-        passengerLiaisonInteractionOrder[i-1] = passengerLiaisonInteractionOrder[i];
+        passengerLiaisonInteractionOrder[0][i-1] = passengerLiaisonInteractionOrder[0][i];
     }
-    passengerLiaisonInteractionOrder[20] = NULL;
+    passengerLiaisonInteractionOrder[0][20] = NULL;
     Release(passengerArrayLock);
 
     Printf("p id is now: %d\n", 16,1,p->id);
 	Acquire(liaisonLock[passengerArray[p->id]->myLine]);
 	/*Give liaison information
-	
+	*/
 	Signal(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
 	/*wait for liaison confirmation*/
-	/*Printf("FU\n",3,0,0);
+	/*Printf("FU\n",3,0,0);*/
+
+    elementCount = 0;
+    for (i = 0; i < 5; i++){
+		if(LiaisonPassengerInteractionOrder[i] != NULL){
+			elementCount++;				
+		}
+	}
+	/*add passenger to the end of the array*/
+    LiaisonPassengerInteractionOrder[elementCount] = liaisonArray[p->myLine];
+	
 	Wait(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
-*/
+
+	Acquire(passengerArrayLock);
+    p = passengerLiaisonInteractionOrder[0][0];
+    for (i = 1; i < 21; i++)
+    {
+        passengerLiaisonInteractionOrder[0][i-1] = passengerLiaisonInteractionOrder[0][i];
+    }
+    passengerLiaisonInteractionOrder[0][20] = NULL;
+    Release(passengerArrayLock);
+
+    p = passengerLiaisonInteractionOrder[1][0];
+    for (i = 1; i < 21; i++)
+    {
+        passengerLiaisonInteractionOrder[1][i-1] = passengerLiaisonInteractionOrder[1][i];
+    }
+    passengerLiaisonInteractionOrder[1][20] = NULL;
+
 	Printf("Passenger %d of Airline %d is directed to the airline counter.\n",
 		63, 2, passengerArray[p->id]->id*100 + passengerArray[p->id]->airline);
 
@@ -487,16 +523,19 @@ void RunLiaison()
     while(true)
     {
         Acquire(liaisonLineLock);
-        
-        tempPassengerID  = liaisonLine[lCount][0]->id;
+        tempPassengerID = 0;
+        p = liaisonLine[lCount][0];
 /*      	for(i = 0; i <21; i++){
       		Printf("Passenger %d\n", 13, 1, liaisonLine[1][i]->id);
       	}
 */		
       	/*tempPassengerID = p->id;*/
-
-        if (passengerArray[tempPassengerID] != NULL)
+        if (p != NULL)
         {
+        	tempPassengerID = p->id;
+        	Printf("id: %d\n", 7,1,p->id);
+
+        	liaisonArray[lCount]->myPassengerID = p->id;
             for (i = 1; i < 21; i++)
             {
                 liaisonLine[lCount][i-1] = liaisonLine[lCount][i];
@@ -506,28 +545,26 @@ void RunLiaison()
 				if(liaisonLine[lCount][i] != NULL){
 					elementCount++;				
 				}
-			}
-			
-			Printf("elemenlCount: %d\n", 17, 1, elementCount);
-			
+			}			
             Signal(liaisonLineCV[lCount], liaisonLineLock);
             liaisonLine[lCount][20] = NULL;
 
             liaisonState[lCount] = L_BUSY;
+
             passengerArray[tempPassengerID]->airline = passengerArray[tempPassengerID]->ticket->airline;
             elementCount = 0;
             for (i = 0; i < 21; i++){
-				if(passengerLiaisonInteractionOrder[i] != NULL){
+				if(passengerLiaisonInteractionOrder[0][i] != NULL){
 					elementCount++;				
 				}
 			}
 			/*add passenger to the end of the array*/
-			
-            passengerLiaisonInteractionOrder[elementCount] = passengerArray[tempPassengerID];
+            passengerLiaisonInteractionOrder[0][elementCount] = passengerArray[tempPassengerID];
+            
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
                     liaisonArray[lCount]->id*100*100 + passengerArray[tempPassengerID]->id*100 + passengerArray[tempPassengerID]->airline);
-        	
-        	Printf("elementCount: %d\n", 17, 1, elementCount + 1);
+        	/*
+        	Printf("elementCount: %d\n", 17, 1, elementCount + 1);*/
         }
         else
         {
@@ -537,16 +574,40 @@ void RunLiaison()
         Release(liaisonLineLock);
         if (passengerArray[tempPassengerID] != NULL)
         {
+
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
 
+            lCount = LiaisonPassengerInteractionOrder[0]->id;
+		    for (i = 1; i < 5; i++)
+		    {
+		        LiaisonPassengerInteractionOrder[i-1] = LiaisonPassengerInteractionOrder[i];
+		    }
+		    LiaisonPassengerInteractionOrder[5] = NULL;
+
             Acquire(liaisonLock[lCount]);
-            liaisonArray[lCount]->passengers[passengerArray[tempPassengerID]->airline]++;
+            Printf("liaison %d has recieved a response from passenger %d\n",53,2,lCount*100 + liaisonArray[lCount]->myPassengerID);
+            order = liaisonArray[lCount]->myPassengerID;
+
+            liaisonArray[lCount]->passengers[passengerArray[order]->airline]++;
+            
             for (i = 0; i < 3; i++)
             {
-                liaisonArray[lCount]->luggage[passengerArray[tempPassengerID]->airline]++;
-                liaisonArray[lCount]->weight[passengerArray[tempPassengerID]->airline] += passengerArray[tempPassengerID]->bags[i]->weight;
+                liaisonArray[lCount]->luggage[passengerArray[order]->airline]++;
+                liaisonArray[lCount]->weight[passengerArray[order]->airline] += passengerArray[tempPassengerID]->bags[i]->weight;
             }
+
+            elementCount = 0;
+            for (i = 0; i < 21; i++){
+				if(passengerLiaisonInteractionOrder[1][i] != NULL){
+					elementCount++;				
+				}
+			}
+			/*add passenger to the end of the array*/
+            passengerLiaisonInteractionOrder[1][elementCount] = passengerArray[order];
+            
             Signal(liaisonCV[lCount], liaisonLock[lCount]);
+
+            p = NULL;
             Release(liaisonLock[lCount]);
         }
         else
