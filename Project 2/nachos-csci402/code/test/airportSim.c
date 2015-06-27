@@ -52,12 +52,10 @@ int boardingLock[3];
 int passengerCount;
 int passengerArrayLock;
 	/**/
-<<<<<<< HEAD
+
 	Passenger*  passengerLiaisonInteractionOrder[6][21];
-=======
-	Passenger*  passengerLiaisonInteractionOrder[21];
     Passenger*  passengerCheckinInteractionOrder[21];
->>>>>>> origin/master
+
 Passenger* passengerArray[21];
 /* Liaison variables */
 	Liaison l0;
@@ -177,7 +175,8 @@ void Init()
 	passengerArray[19] = &p19;
 	passengerArray[20] = &p20;
 	passengerArray[21] = &p21;
-    for (i = 5; i < 21; i++)
+
+    for (i = 6; i < 21; i++)
     {
         passengerArray[i] = NULL;
     }
@@ -375,30 +374,8 @@ int findShortestLine(bool CISline, int pCount){
 
 
 void PassengerFindShortestLiaisonLine(Passenger *p){
-    int i, elementCount, hackVar;/*
-		Acquire(passengerArrayLock);
+    int i, elementCount, hackVar;
 
-		pCount = passengerCount;
-		passengerCount++;
-		passengerArray[pCount]->id = pCount;
-		passengerArray[pCount]->ticket->airline = pCount % 3;
-		passengerArray[pCount]->ticket->executive = false;
-		passengerArray[pCount]->myLine = 0;
-		passengerArray[pCount]->CISline = false;
-		
-		
-		for(i = 0; i < 3; i++){
-			passengerArray[pCount]->bags[i]->airlineCode = 0;
-			passengerArray[pCount]->bags[i]->weight = 30 + i;
-		}
-
-		passengerArray[pCount]->boardingPass->gate = 0;
-		passengerArray[pCount]->boardingPass->seatNum = 0;
-		Printf("Passenger %d of airline %d created\n",
-		 35, 2, passengerArray[pCount]->id*100
-		  + passengerArray[pCount]->ticket->airline);
-		Printf("Forking passenger\n", 18, 0,0);
-		Release(passengerArrayLock);*/
 	hackVar = 0;
 	Acquire(liaisonLineLock);
 	passengerArray[p->id]->myLine = findShortestLine(false, p->id);
@@ -441,13 +418,14 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
     Release(passengerArrayLock);
 
     Printf("p id is now: %d\n", 16,1,p->id);
+
 	Acquire(liaisonLock[passengerArray[p->id]->myLine]);
 	/*Give liaison information
 	*/
 	Signal(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
 	/*wait for liaison confirmation*/
 	/*Printf("FU\n",3,0,0);*/
-
+    Acquire(liaisonArrayLock);
     elementCount = 0;
     for (i = 0; i < 5; i++){
 		if(LiaisonPassengerInteractionOrder[i] != NULL){
@@ -456,24 +434,18 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
 	}
 	/*add passenger to the end of the array*/
     LiaisonPassengerInteractionOrder[elementCount] = liaisonArray[p->myLine];
+    Release(liaisonArrayLock);
 	
 	Wait(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
 
-	Acquire(passengerArrayLock);
-    p = passengerLiaisonInteractionOrder[0][0];
-    for (i = 1; i < 21; i++)
-    {
-        passengerLiaisonInteractionOrder[0][i-1] = passengerLiaisonInteractionOrder[0][i];
-    }
-    passengerLiaisonInteractionOrder[0][20] = NULL;
-    Release(passengerArrayLock);
-
+Acquire(passengerArrayLock);
     p = passengerLiaisonInteractionOrder[1][0];
     for (i = 1; i < 21; i++)
     {
         passengerLiaisonInteractionOrder[1][i-1] = passengerLiaisonInteractionOrder[1][i];
     }
     passengerLiaisonInteractionOrder[1][20] = NULL;
+Release(passengerArrayLock);
 
 	Printf("Passenger %d of Airline %d is directed to the airline counter.\n",
 		63, 2, passengerArray[p->id]->id*100 + passengerArray[p->id]->airline);
@@ -488,6 +460,7 @@ void forkPassenger(){
 	int i, elementCount, pCount;
 	Acquire(passengerArrayLock);
 	pCount = passengerCount;
+
 	passengerCount++;
 	passengerArray[pCount]->id = pCount;
 	passengerArray[pCount]->ticket->airline = pCount % 3;
@@ -537,7 +510,8 @@ void PassengerFindShortestCISLine(Passenger p){
 
 void RunLiaison()
 {
-    int i, elementCount, lCount, tempPassengerID;
+    int i, elementCount, lCount, tempPassengerID, order;
+    int var[10];
 
     Passenger* p;
     
@@ -550,7 +524,11 @@ void RunLiaison()
         liaisonArray[lCount]->passengers[i] = 0;
         liaisonArray[lCount]->luggage[i] = 0;
         liaisonArray[lCount]->weight[i] = 0;
-    }
+    }    
+    for(i = 0; i <10; i++)
+    	var[i] = 0;
+
+    order =0;
     Release(liaisonArrayLock);
         
     while(true)
@@ -563,21 +541,21 @@ void RunLiaison()
       	}
 */		
       	/*tempPassengerID = p->id;*/
-        if (p != NULL)
-
-        {
+        if (p != NULL){
         	tempPassengerID = p->id;
         	/*Printf("id: %d\n", 7,1,p->id);*/
 
         	liaisonArray[lCount]->myPassengerID = p->id;
+
+
             for (i = 1; i < 21; i++)
             {
                 liaisonLine[lCount][i-1] = liaisonLine[lCount][i];
             }
-            elementCount = 0;
+            var[0] = 0;
 		    for (i = 0; i < 21; i++){
 				if(liaisonLine[lCount][i] != NULL){
-					elementCount++;				
+					var[0]++;				
 				}
 			}			
             Signal(liaisonLineCV[lCount], liaisonLineLock);
@@ -586,19 +564,20 @@ void RunLiaison()
             liaisonState[lCount] = L_BUSY;
 
             passengerArray[tempPassengerID]->airline = passengerArray[tempPassengerID]->ticket->airline;
-            elementCount = 0;
+            Acquire(passengerArrayLock);
+            var[1] = 0;
             for (i = 0; i < 21; i++){
 				if(passengerLiaisonInteractionOrder[0][i] != NULL){
-					elementCount++;				
+					var[1]++;				
 				}
 			}
 			/*add passenger to the end of the array*/
-            passengerLiaisonInteractionOrder[0][elementCount] = passengerArray[tempPassengerID];
-            
+            passengerLiaisonInteractionOrder[0][var[1]] = passengerArray[tempPassengerID];
+            Release(passengerArrayLock);
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
                     liaisonArray[lCount]->id*100*100 + passengerArray[tempPassengerID]->id*100 + passengerArray[tempPassengerID]->airline);
         	/*
-        	Printf("elementCount: %d\n", 17, 1, elementCount + 1);*/
+        	Printf("var[1]: %d\n", 17, 1, var[1] + 1);*/
         }
         else
         {
@@ -611,14 +590,17 @@ void RunLiaison()
 
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
 
+            Acquire(liaisonArrayLock);
             lCount = LiaisonPassengerInteractionOrder[0]->id;
 		    for (i = 1; i < 5; i++)
 		    {
 		        LiaisonPassengerInteractionOrder[i-1] = LiaisonPassengerInteractionOrder[i];
 		    }
 		    LiaisonPassengerInteractionOrder[5] = NULL;
+Release(liaisonArrayLock);
 
             Acquire(liaisonLock[lCount]);
+
             Printf("liaison %d has recieved a response from passenger %d\n",53,2,lCount*100 + liaisonArray[lCount]->myPassengerID);
             order = liaisonArray[lCount]->myPassengerID;
 
@@ -630,17 +612,18 @@ void RunLiaison()
                 liaisonArray[lCount]->weight[passengerArray[order]->airline] += passengerArray[tempPassengerID]->bags[i]->weight;
             }
 
-            elementCount = 0;
+            Acquire(passengerArrayLock);
+            var[2] = 0;
             for (i = 0; i < 21; i++){
 				if(passengerLiaisonInteractionOrder[1][i] != NULL){
-					elementCount++;				
+					var[2]++;				
 				}
 			}
 			/*add passenger to the end of the array*/
-            passengerLiaisonInteractionOrder[1][elementCount] = passengerArray[order];
+            passengerLiaisonInteractionOrder[1][var[2]] = passengerArray[order];
             
             Signal(liaisonCV[lCount], liaisonLock[lCount]);
-
+			Release(passengerArrayLock);
             p = NULL;
             Release(liaisonLock[lCount]);
         }
@@ -663,6 +646,7 @@ void RunLiaison()
 
 void RunCheckin()
 {
+	Checkin ci;
     int i, j, len;
     int elementCount, ciCount, tempPassengerID;
     int execLine;
@@ -858,16 +842,10 @@ int main()
     int i;
     
     Init();
-    /*for (i = 0; i < 5; i++)
+    for (i = 0; i < 6; i++)
     {
-    	Fork(PassengerFindShortestLiaisonLine, "Passenger", 9);
-	}	*/
-
-	Fork(forkPassenger, "Passenger0", 10);
-	Fork(forkPassenger, "Passenger1", 10);
-	Fork(forkPassenger, "Passenger2", 10);
-	Fork(forkPassenger, "Passenger3", 10);
-	Fork(forkPassenger, "Passenger4", 10);
+    	Fork(forkPassenger, "Passenger", 9);
+	}	
     
     for (i = 0; i < 5; i++)
     {
