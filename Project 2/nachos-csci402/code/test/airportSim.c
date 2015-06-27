@@ -61,7 +61,7 @@ int passengerArrayLock;
 	seperate occasions where one passenger and one liaison will communicate with
 	each other. */
 	Passenger*  passengerLiaisonInteractionOrder[5][21];
-    Passenger*  passengerCheckinInteractionOrder[21];
+    Passenger*  passengerCheckinInteractionOrder[12][21];
 
 Passenger* passengerArray[21];
 /* Liaison variables */
@@ -95,6 +95,7 @@ bool requestingLiaisonData[5];
 	Checkin ci11;
 int checkinCount;
 int checkinArrayLock;
+	Checkin*  CheckinPassengerInteractionOrder[12];
 Checkin* checkinArray[12];
 Passenger* checkinLine[12][21];
 int checkinLineLock[3];
@@ -668,117 +669,123 @@ void RunCheckin()
     {
         checkinCount++;
     }
-    ci.id = checkinCount;
-    ci.airline = ci.id/4;
+    ciCount = checkinCount;
+    checkinArray[ciCount]->id = checkinCount;
+    checkinArray[ciCount]->airline = checkinCount/4;
     checkinCount++;
-    ci.passengers = 0;
-    ci.luggage = 0;
-    ci.weight = 0;
-    checkinArray[ci.id] = &ci;
+    checkinArray[ciCount]->passengers = 0;
+    checkinArray[ciCount]->luggage = 0;
+    checkinArray[ciCount]->weight = 0;
     Release(checkinArrayLock);
     
-    execLine = ci.airline * 4;
+    execLine = checkinArray[ciCount]->airline * 4;
     
     while (true)
     {
-        Acquire(checkinLineLock[ci.airline]);
-        if (checkinState[ci.id] != CI_CLOSED)
+        Acquire(checkinLineLock[checkinArray[ciCount]->airline]);
+        tempPassengerID = 0;
+        if (checkinState[checkinArray[ciCount]->id] != CI_CLOSED)
         {
             len = 0;
             if (checkinLine[execLine][0] != NULL)
             {
                 p = checkinLine[execLine][0];
+                tempPassengerID = p->id;
                 for (i = 1; i < 21; i++)
                 {
                     checkinLine[execLine][i-1] = liaisonLine[execLine][i];
                     if (checkinLine[execLine][i] != NULL) len++;
                 }
                 checkinLine[execLine][20] = NULL;
-                Printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + len);
+                Printf("Airline check-in staff %d of airline %d serves an executive class passenger and economy class line length = %d\n", 111, 3, checkinArray[ciCount]->id*100*100 + checkinArray[ciCount]->airline*100 + len);
             }
-            else if (checkinLine[ci.id][0] != NULL)
+            else if (checkinLine[checkinArray[ciCount]->id][0] != NULL)
             {
-                p = checkinLine[ci.id][0];
+                p = checkinLine[checkinArray[ciCount]->id][0];
+                tempPassengerID = p->id;
                 for (i = 1; i < 21; i++)
                 {
-                    checkinLine[ci.id][i-1] = liaisonLine[ci.id][i];
-                    if (checkinLine[ci.id][i] != NULL) len++;
+                    checkinLine[checkinArray[ciCount]->id][i-1] = liaisonLine[checkinArray[ciCount]->id][i];
+                    if (checkinLine[checkinArray[ciCount]->id][i] != NULL) len++;
                 }
-                checkinLine[ci.id][20] = NULL;
-                Printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n", 111, 3, ci.id*100*100 + ci.airline*100 + len);
+                checkinLine[checkinArray[ciCount]->id][20] = NULL;
+                Printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n", 111, 3, checkinArray[ciCount]->id*100*100 + checkinArray[ciCount]->airline*100 + len);
             }
             else
             {
-                Acquire(checkinLock[ci.id]);
-                checkinState[ci.id] = CI_BREAK;
-                Release(checkinLineLock[ci.airline]);
-                Wait(checkinBreakCV[ci.id], checkinLock[ci.id]);
-                checkinState[ci.id] = CI_BUSY;
-                Acquire(checkinLineLock[ci.airline]);
+                Acquire(checkinLock[checkinArray[ciCount]->id]);
+                checkinState[checkinArray[ciCount]->id] = CI_BREAK;
+                Release(checkinLineLock[checkinArray[ciCount]->airline]);
+                Wait(checkinBreakCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
+                /* +? */
+                checkinState[checkinArray[ciCount]->id] = CI_BUSY;
+                Acquire(checkinLineLock[checkinArray[ciCount]->airline]);
             }
         }
-        Acquire(checkinLock[ci.id]);
-        Release(checkinLineLock[ci.airline]);
+        Acquire(checkinLock[checkinArray[ciCount]->id]);
+        Release(checkinLineLock[checkinArray[ciCount]->airline]);
         if (p != NULL)
         {
-            Acquire(airlineLock[ci.airline]);
+            /*wait on cv i guess*/
+            
+            Acquire(airlineLock[checkinArray[ciCount]->airline]);
             exec = p->ticket->executive;
-            ci.passengers++;
-            bp.seatNum = airlines[ci.airline]->seatsAssigned;
-            airlines[ci.airline]->seatsAssigned++;
-            bp.gate = ci.airline;
+            checkinArray[ciCount]->passengers++;
+            bp.seatNum = airlines[checkinArray[ciCount]->airline]->seatsAssigned;
+            airlines[checkinArray[ciCount]->airline]->seatsAssigned++;
+            bp.gate = checkinArray[ciCount]->airline;
             p->boardingPass = &bp;
             
             if (exec)
             {
-                Printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n", 97, 4, ci.id*100*100*100 + ci.airline*100*100 + p->id*100 + p->boardingPass->gate);
-                Signal(checkinLineCV[execLine], checkinLineLock[ci.airline]);
+                Printf("Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n", 97, 4, checkinArray[ciCount]->id*100*100*100 + checkinArray[ciCount]->airline*100*100 + p->id*100 + p->boardingPass->gate);
+                Signal(checkinLineCV[execLine], checkinLineLock[checkinArray[ciCount]->airline]);
             }
             else
             {
-                Printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n", 95, 4, ci.id*100*100*100 + ci.airline*100*100 + p->id*100 + p->boardingPass->gate);
-                Signal(checkinLineCV[ci.id], checkinLineLock[ci.airline]);
+                Printf("Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n", 95, 4, checkinArray[ciCount]->id*100*100*100 + checkinArray[ciCount]->airline*100*100 + p->id*100 + p->boardingPass->gate);
+                Signal(checkinLineCV[checkinArray[ciCount]->id], checkinLineLock[checkinArray[ciCount]->airline]);
             }
-            Release(airlineLock[ci.airline]);
+            Release(airlineLock[checkinArray[ciCount]->airline]);
             
             Acquire(conveyorLock);
             for (i = 0; i < 3; i++)
             {
                 Luggage* bag = p->bags[i];
                 p->bags[i] = NULL;
-                bag->airlineCode = ci.airline;
+                bag->airlineCode = checkinArray[ciCount]->airline;
                 conveyor[conveyorSize] = bag;
-                ci.luggage++;
-                ci.weight += bag->weight;
+                checkinArray[ciCount]->luggage++;
+                checkinArray[ciCount]->weight += bag->weight;
             }
-            Printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system\n", 76, 2, ci.id*100 + ci.airline);
+            Printf("Airline check-in staff %d of airline %d dropped bags to the conveyor system\n", 76, 2, checkinArray[ciCount]->id*100 + checkinArray[ciCount]->airline);
             p = NULL;
             Release(conveyorLock);
         }
         
-        if (requestingCheckinData[ci.id])
+        if (requestingCheckinData[checkinArray[ciCount]->id])
         {
             Acquire(checkinManagerLock);
-            Acquire(checkinLock[ci.id]);
-            Signal(checkinManagerCV[ci.id], checkinManagerLock);
+            Acquire(checkinLock[checkinArray[ciCount]->id]);
+            Signal(checkinManagerCV[checkinArray[ciCount]->id], checkinManagerLock);
             Release(checkinManagerLock);
-            Wait(checkinCV[ci.id], checkinLock[ci.id]);
-            requestingCheckinData[ci.id] = false;
+            Wait(checkinCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
+            requestingCheckinData[checkinArray[ciCount]->id] = false;
         }
         
-        Acquire(airlineLock[ci.airline]);
-        if (airlines[ci.id]->seatsAssigned >= airlines[ci.id]->ticketsIssued)
+        Acquire(airlineLock[checkinArray[ciCount]->airline]);
+        if (airlines[checkinArray[ciCount]->id]->seatsAssigned >= airlines[checkinArray[ciCount]->id]->ticketsIssued)
         {
-            Acquire(checkinLock[ci.id]);
-            checkinState[ci.id] = CI_CLOSED;
-            Release(airlineLock[ci.airline]);
-            if (finalCheckin[ci.id]) Exit(0);
-            else Wait(checkinBreakCV[ci.id], checkinLock[ci.id]);
-            Printf("Airline check-in staff %d is closing the counter\n", 49, 1, ci.id);
-            Acquire(airlineLock[ci.airline]);
-            finalCheckin[ci.id] = true;
+            Acquire(checkinLock[checkinArray[ciCount]->id]);
+            checkinState[checkinArray[ciCount]->id] = CI_CLOSED;
+            Release(airlineLock[checkinArray[ciCount]->airline]);
+            if (finalCheckin[checkinArray[ciCount]->id]) Exit(0);
+            else Wait(checkinBreakCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
+            Printf("Airline check-in staff %d is closing the counter\n", 49, 1, checkinArray[ciCount]->id);
+            Acquire(airlineLock[checkinArray[ciCount]->airline]);
+            finalCheckin[checkinArray[ciCount]->id] = true;
         }
-        Release(airlineLock[ci.airline]);
+        Release(airlineLock[checkinArray[ciCount]->airline]);
     }
     Exit(0); /* should never reach this line */
 }

@@ -317,6 +317,7 @@ V. Testing:
         nachos -x ../test/exitTest -d z
         nachos -x ../test/lockTest -d z
         nachos -x ../test/condTest -d z
+        nachos -x ../test/printfTest -d z
         run without "-rs" to ensure proper sequence of events
         "-d z" is necessary to see print statements
         
