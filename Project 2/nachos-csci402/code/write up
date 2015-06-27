@@ -30,13 +30,59 @@ II. Assumptions:
 
 III. Design:
         Fork:
-            
+            If the function pointer is null, return. (No way to check for other types of invalid.)
+            Read the name in; return if invalid.
+            Create a new thread, and set its process to the current process.
+            Update the process's thread table.
+            Fork the kernel function for the thread:
+                Set the program counter of the machine to the function pointer.
+                Set the stack register of the machine to the new thread's stack.
+                Run the thread.
         Exec:
-            
-        Exit:
-            
+            Read the filename in; return -1 if invalid.
+            Open the file; return -1 if invalid.
+            Create a new process with the file handle and a new kernel thread for that process.
+            Fork the kernel thread: 
+                Initialize registers and run.
+            Return the id of the new process (set in the address space constructor).
         Yield:
             Yield the current thread.
+        Exit:
+            Acquire the process table's lock.
+            Get the current process.
+            Acquire the current process's thread table's lock.
+            Get the current thread's stack location.
+            If the process is not the last process:
+                If the thread is the last thread in the process:
+                    Acquire the lock table's lock.
+                    For each lock in the table: if it belongs to the process, destroy it (releasing the lock table's lock in the process), and reacquire the lock table's lock.
+                    Release the lock table's lock.
+                    Acquire the CV table's lock.
+                    For each condition in the table: if it belongs to the process, destroy it (releasing the CV table's lock in the process), and reacquire the CV table's lock.
+                    Release the CV table's lock.
+                    Clear the process's pages.
+                    Remove the process from the process table (releasing the process table's lock in the process).
+                Else (if the thread is not the last in the process):
+                    Release the process table's lock.
+                    Clear the thread's pages.
+                Remove the current thread from the process's thread table (releasing the thread table's lock in the process).
+                Call finish on the thread.
+            Else (if the process is the last process):
+                If the thread is the last thread in the process:
+                    Acquire the lock table's lock.
+                    For each lock in the table: if it belongs to the process, destroy it (releasing the lock table's lock in the process), and reacquire the lock table's lock.
+                    Release the lock table's lock.
+                    Acquire the CV table's lock.
+                    For each condition in the table: if it belongs to the process, destroy it (releasing the CV table's lock in the process), and reacquire the CV table's lock.
+                    Release the CV table's lock.
+                    Clear the process's pages.
+                    Remove the process from the process table (releasing the process table's lock in the process).
+                    Halt nachos.
+                Else (if the thread is not the last in the process):
+                    Release the process table's lock.
+                    Clear the thread's pages.
+                    Remove the current thread from the process's thread table (releasing the thread table's lock in the process).
+                    Call finish on the thread.
         CreateLock:
             Acquire the lock table's lock.
             Read the name in; return -1 if invalid.
@@ -118,6 +164,9 @@ III. Design:
             Find the appropriate print statement and print.
 
 IV. Implementation:
+
+    The structs/enums/functions/whatever else from the .c test files are not included in the sections below, because they're functionally the same from project 1. Also, files with minor modifications which shouldn't affect how the system actually runs (e.g. adding/removing comments or making #include paths more specific) are not listed here.
+
 	+ Files Modified (from project 1, not from base)
         in code:
             Makefile.common
@@ -149,25 +198,117 @@ IV. Implementation:
 
 	+ Data Structures added, and the file they were added to.
         Classes: 
-            
+            None
 
         Structs:
-            
+            In userprog\exception.cc:
+                struct KernelLock
+                {
+                    Lock* lock;
+                    AddrSpace* owner;
+                    bool isToBeDeleted;
+                };
+                struct KernelCondition
+                {
+                    Condition* condition;
+                    AddrSpace* owner;
+                    bool isToBeDeleted;
+                };
 
         Enums:
-            
+            None
 
         Arrays, Lists, and Tables:
-            
+            In threads\system.h:
+                extern Table* lockTable;
+                extern Table* CVTable;
+                extern Table* processTable;	
+                extern BitMap* memMap;
+            In userprog\addrspace.cc:
+                BitMap* memMap;
+            In userprog\exception.cc:
+                Table* lockTable;
+                Table* cvTable;
+                Table* processTable;
 
 	+ Data Structures modified, and the file they were added to.
-        
+        In threads\thread.h:
+            class thread:
+                int threadID;
+        In userprog\addrspace.cc:
+            class AddrSpace:
+                int id;
+                Table* threadTable;
+        In userprog\table.h:
+            class Table:
+                int count;
+                int maxCount;
 
 	+ Functions added and in which file.
-        
+        In threads\synch.h:
+            Thread* getOwner();
+        In threads\thread.h:
+            int getThreadTableLocation();
+            void setThreadTableLocation(int loc);
+            int getThreadID();
+            void setThreadID(int id);
+        In userprog\addrspace.h:
+            int getNumPages();
+            int getID();
+            TranslationEntry* getPageTable();
+            void setNewPageTable();
+            bool getPageTableValidBit(int i);
+        In userprog\exception.cc:
+            void kernel_function(int vaddr)
+            void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
+            void exec_thread(int n)
+            int Exec_Syscall(unsigned int vaddr, int len)
+            void Yield_Syscall()
+            void Exit_Syscall(int status)
+            void Acquire_Syscall(int id)
+            void Release_Syscall(int id)
+            void Wait_Syscall(int id, int lockID)
+            void Signal_Syscall(int id, int lockID)
+            void Broadcast_Syscall(int id, int lockID)
+            int CreateLock_Syscall(unsigned int vaddr, int len)
+            int CreateCondition_Syscall(unsigned int vaddr, int len)
+            void DestroyLock_Syscall(int id)
+            void DestroyCondition_Syscall(int id)
+            void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
+            int GetID_Syscall()
+            void SetID_Syscall(int id)
+        In userprog\syscall.h:
+            void Acquire(int id);
+            void Release(int id);
+            void Wait(int id, int lockID);
+            void Signal(int id, int lockID);
+            void Broadcast(int id, int lockID);
+            int CreateLock(char* name, int len);
+            int CreateCondition(char* name, int len);
+            void DestroyLock(int id);
+            void DestroyCondition(int id);
+            void Printf(char* string, int len, int numParams, int params);
+            int GetID();
+            void SetID(int id);
+        In userprog\table.h:
+            void lockAcquire();
+            void lockRelease();
+            int Size();
+            int getCount();
+            int getMaxCount();
 
 	+ Functions modified and in which file.
-        
+        In threads\system.cc:
+            void Initialize(int argc, char **argv)
+        In userprog\addrspace.cc:
+            AddrSpace(OpenFile *executable)
+        In userprog\exception.cc:
+            void ExceptionHandler(ExceptionType which)
+        In userprog\progtest.cc:
+            void StartProcess(char *filename)
+        In userprog\syscall.h:
+            SpaceId Exec(char *name, int len);
+            void Fork(void (*func)(), char* name, int len);
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
@@ -550,7 +691,7 @@ V. Testing:  (For each test case, you must show)
             Thread main: Finishing last process, ending Nachos
 
         airportTest:
-            Two sets of standard airport outputs (see output guidelines from first project).
+            Two sets of standard airport outputs, hopefully (see output guidelines from first project).
             
 VI. Discussion:
 	+ Experiment expectation.  (What you hope will happen.)
@@ -580,6 +721,8 @@ VI. Discussion:
 
 VIII. Miscellaneous:
     Security unfinished
+    
+    We changed NumPhysPages in machine.h to 10000.
     
     
     
