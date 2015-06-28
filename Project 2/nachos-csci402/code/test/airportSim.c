@@ -96,7 +96,8 @@ bool requestingLiaisonData[5];
 	Checkin ci11;
 int checkinCount;
 int checkinArrayLock;
-	Checkin*  checkinPassengerInteractionOrder[12];
+	Checkin*  checkinBreakOrder[12];
+	Checkin*  checkinManagerInteractionOrder[12];
 Checkin* checkinArray[12];
 Passenger* checkinLine[12][21];
 int checkinLineLock[3];
@@ -251,7 +252,8 @@ void Init()
             checkinState[i] = CI_NONE;
         }
         else checkinState[i] = CI_BUSY;
-        checkinPassengerInteractionOrder[i] = NULL;
+        checkinBreakOrder[i] = NULL;
+        checkinManagerInteractionOrder[i] = NULL;
         checkinArray[i] = NULL;
         checkinLineCV[i] = CreateCondition("CheckinLineCV", 13);
         checkinCV[i] = CreateCondition("CheckinCV", 9);
@@ -739,12 +741,12 @@ void RunCheckin()
                 Wait(checkinBreakCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
                 
                 Acquire(checkinArrayLock);
-                ciCount = checkinPassengerInteractionOrder[0]->id;
+                ciCount = checkinBreakOrder[0]->id;
                 for (i = 1; i < 12; i++)
                 {
-                    checkinPassengerInteractionOrder[i-1] = checkinPassengerInteractionOrder[i];
+                    checkinBreakOrder[i-1] = checkinBreakOrder[i];
                 }
-                checkinPassengerInteractionOrder[11] = NULL;
+                checkinBreakOrder[11] = NULL;
                 Release(checkinArrayLock);
                 
                 checkinState[checkinArray[ciCount]->id] = CI_BUSY;
@@ -797,7 +799,16 @@ void RunCheckin()
             Signal(checkinManagerCV[checkinArray[ciCount]->id], checkinManagerLock);
             Release(checkinManagerLock);
             Wait(checkinCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
-            /* manager interaction queue */
+            
+            Acquire(checkinArrayLock);
+            ciCount = checkinManagerInteractionOrder[0]->id;
+            for (i = 1; i < 12; i++)
+            {
+                checkinManagerInteractionOrder[i-1] = checkinManagerInteractionOrder[i];
+            }
+            checkinManagerInteractionOrder[11] = NULL;
+            Release(checkinArrayLock);
+            
             requestingCheckinData[checkinArray[ciCount]->id] = false;
         }
         
