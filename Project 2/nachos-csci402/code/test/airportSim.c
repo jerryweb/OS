@@ -331,7 +331,7 @@ int findShortestLine(bool CISline, int pCount){
 		}
 	}
 
-	p.minValue = p.lineLength[0];
+	p.minValue = 21;
 	/*Printf("lineLength: %d\n", 15, 1, p.lineLength[0]);
 	Printf("min value: %d\n", 14, 1, p.minValue);
 	/*finds the shortest liaison line*/
@@ -364,9 +364,9 @@ int findShortestLine(bool CISline, int pCount){
 	else if(CISline){
 		int CIS_ID = p.airline * 4 + 1;
 
+        Printf("CIS_ID %d\n", 10, 1, CIS_ID);
 
-
-		for(i = CIS_ID;  i < CIS_ID +3; i++){
+		for(i = CIS_ID;  i < CIS_ID + 3; i++){
 			elementCount = 0;
 			while(true){
 				if(checkinLine[i][elementCount] == NULL)
@@ -390,9 +390,48 @@ int findShortestLine(bool CISline, int pCount){
 			}
 		}
 		Printf("Checkin Staff %d has the shortest line with a length of %d\n",
-		 53, 2, p.location*100 + p.minValue);
+		 59, 2, p.location*100 + p.minValue);
 		return p.location;		
 	}
+	Exit(0);
+}
+
+void PassengerFindShortestCISLine(Passenger *p){
+	int i, j, elementCount;
+	int tempID = p->id;
+	passengerArray[tempID]->myLine = passengerArray[tempID]->airline * 4;
+	Acquire(checkinLineLock[passengerArray[tempID]->ticket->airline]);
+
+	if(!passengerArray[tempID]->ticket->executive){
+		passengerArray[tempID]->myLine = findShortestLine(true,passengerArray[tempID]->id);
+		Printf("Passenger %d of Airline %d chose Airline Check-In staff %d with line length %d\n",
+			79, 4, passengerArray[tempID]->id*100*100*100 + passengerArray[tempID]->airline*100*100 
+			+ passengerArray[tempID]->myLine*100 + passengerArray[tempID]->minValue);
+	}
+	else
+		Printf("Passenger %d of Airline %d is waiting in the executive line\n",
+		 60, 2, passengerArray[tempID]->id*100 + passengerArray[tempID]->airline);
+	
+	elementCount = 0;
+	for (j = 1; j < 21; j++){
+		if(checkinLine[passengerArray[tempID]->myLine][j] != NULL)
+			elementCount++;			
+	}
+	/*Printf("elementCount: %d\n", 17, 1, elementCount);	*/
+	checkinLine[passengerArray[tempID]->myLine][elementCount] = passengerArray[passengerArray[tempID]->id];
+
+	Wait(checkinLineCV[passengerArray[passengerArray[tempID]->id]->myLine], checkinLineLock[passengerArray[passengerArray[tempID]->id]->airline]);
+    
+	Acquire(passengerArrayLock);
+    p = passengerCheckinInteractionOrder[0];
+    for (i = 1; i < 21; i++)
+    {
+        passengerCheckinInteractionOrder[i-1] = passengerCheckinInteractionOrder[i];
+    }
+    passengerCheckinInteractionOrder[20] = NULL;
+    Release(passengerArrayLock);
+
+    /*go to next step*/
 }
 
 void PassengerFindShortestLiaisonLine(Passenger *p){
@@ -469,10 +508,7 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
 	Printf("Passenger %d of Airline %d is directed to the airline counter.\n",
 		63, 2, passengerArray[p->id]->id*100 + passengerArray[p->id]->airline);
 
-	/*move to the designated checkin counter
 	PassengerFindShortestCISLine(passengerArray[p->id]);
-	*/
-	Exit(0);
 }
 
 void forkPassenger(){
@@ -500,44 +536,6 @@ void forkPassenger(){
 	Printf("Forking passenger\n", 18, 0,0);
 	Release(passengerArrayLock);
 	PassengerFindShortestLiaisonLine(passengerArray[pCount]);
-}
-
-void PassengerFindShortestCISLine(Passenger *p){
-	int i, j, elementCount;
-	int tempID = p->id;
-	passengerArray[tempID]->myLine = passengerArray[tempID]->airline * 4;
-	Acquire(checkinLineLock[passengerArray[tempID]->ticket->airline]);
-
-	if(!passengerArray[tempID]->ticket->executive){
-		passengerArray[tempID]->myLine = findShortestLine(true,passengerArray[tempID]->id);
-		Printf("Passenger %d of Airline %d chose Airline Check-In staff %d with line length %d\n",
-			79, 4, passengerArray[tempID]->id*100*100*100 + passengerArray[tempID]->airline*100*100 
-			+ passengerArray[tempID]->myLine*100 + passengerArray[tempID]->minValue);
-	}
-	else
-		Printf("Passenger %d of Airline %d is waiting in the executive line\n",
-		 60, 2, passengerArray[tempID]->id*100 + passengerArray[tempID]->airline);
-	
-	elementCount = 0;
-	for (j = 1; j < 21; j++){
-		if(checkinLine[passengerArray[tempID]->myLine][j] != NULL)
-			elementCount++;			
-	}
-	/*Printf("elementCount: %d\n", 17, 1, elementCount);	*/
-	checkinLine[passengerArray[tempID]->myLine][elementCount] = passengerArray[passengerArray[tempID]->id];
-
-	Wait(checkinLineCV[passengerArray[passengerArray[tempID]->id]->myLine], checkinLineLock[passengerArray[passengerArray[tempID]->id]->airline]);
-    
-	Acquire(passengerArrayLock);
-    p = passengerCheckinInteractionOrder[0];
-    for (i = 1; i < 21; i++)
-    {
-        passengerCheckinInteractionOrder[i-1] = passengerCheckinInteractionOrder[i];
-    }
-    passengerCheckinInteractionOrder[20] = NULL;
-    Release(passengerArrayLock);
-
-    /*go to next step*/
 }
 
 void RunLiaison()
@@ -568,14 +566,9 @@ void RunLiaison()
         Acquire(liaisonLineLock);
         tempPassengerID = 0;
         p = liaisonLine[lCount][0];
-		/*      	for(i = 0; i <21; i++){
-      		Printf("Passenger %d\n", 13, 1, liaisonLine[1][i]->id);
-      	}
- 		*/		
-      	/*tempPassengerID = p->id;*/
+        
         if (p != NULL){
         	tempPassengerID = p->id;
-        	/*Printf("id: %d\n", 7,1,p->id);*/
 
         	liaisonArray[lCount]->myPassengerID = p->id;
 
@@ -603,8 +596,6 @@ void RunLiaison()
             Release(passengerArrayLock);
             Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
                     liaisonArray[lCount]->id*100*100 + liaisonArray[lCount]->myPassengerID*100 + passengerArray[tempPassengerID]->airline);
-        	/*
-        	Printf("var[1]: %d\n", 17, 1, var[1] + 1);*/
         }
         else
         {
@@ -616,8 +607,6 @@ void RunLiaison()
         {
         	Printf("Liaison %d is waiting for Passenger %d\n", 39, 2, lCount*100 + liaisonArray[lCount]->myPassengerID);
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
-            
-            Printf("FU\n",3,0,0);
             Acquire(liaisonArrayLock);
             lCount = liaisonPassengerInteractionOrder[0]->id;
             Printf("liaison %d has recieved a response from passenger %d\n",53,2,lCount*100 + liaisonArray[lCount]->myPassengerID);
@@ -660,7 +649,6 @@ void RunLiaison()
         else
         {
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
-            
             Acquire(liaisonArrayLock);
             lCount = liaisonWaitOrder[0]->id;
 		    for (i = 1; i < 5; i++)
@@ -677,6 +665,7 @@ void RunLiaison()
             Signal(liaisonManagerCV, liaisonManagerLock);
             Release(liaisonManagerLock);
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
+            Printf("c\n", 2, 0, 0);
             /* manager interaction queue */
             requestingLiaisonData[lCount] = false;
         }
@@ -708,12 +697,12 @@ void RunCheckin()
     checkinArray[ciCount]->weight = 0;
     Release(checkinArrayLock);
     
-    execLine = checkinArray[ciCount]->airline * 4;
-    
     while (true)
     {
         Acquire(checkinLineLock[checkinArray[ciCount]->airline]);
         tempPassengerID = 0;
+        execLine = checkinArray[ciCount]->airline * 4;
+        
         if (checkinState[checkinArray[ciCount]->id] != CI_CLOSED)
         {
             len = 0;
@@ -746,8 +735,18 @@ void RunCheckin()
                 Acquire(checkinLock[checkinArray[ciCount]->id]);
                 checkinState[checkinArray[ciCount]->id] = CI_BREAK;
                 Release(checkinLineLock[checkinArray[ciCount]->airline]);
-                Wait(checkinBreakCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
                 
+                Acquire(checkinArrayLock);
+                for(i = 0; i < 12; i++)
+                {
+                    if (checkinBreakOrder[i] == NULL)
+                    {
+                        checkinBreakOrder[i] = checkinArray[ciCount];
+                        break;
+                    }
+                }
+                Release(checkinArrayLock);
+                Wait(checkinBreakCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
                 Acquire(checkinArrayLock);
                 ciCount = checkinBreakOrder[0]->id;
                 for (i = 1; i < 12; i++)
@@ -761,6 +760,7 @@ void RunCheckin()
                 Acquire(checkinLineLock[checkinArray[ciCount]->airline]);
             }
         }
+        
         Acquire(checkinLock[checkinArray[ciCount]->id]);
         Release(checkinLineLock[checkinArray[ciCount]->airline]);
         if (p != NULL)
@@ -808,7 +808,6 @@ void RunCheckin()
             Signal(checkinManagerCV, checkinManagerLock);
             Release(checkinManagerLock);
             Wait(checkinCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
-            
             Acquire(checkinArrayLock);
             ciCount = checkinManagerInteractionOrder[0]->id;
             for (i = 1; i < 12; i++)
@@ -897,6 +896,7 @@ void RunCargo()
             Acquire(cargoDataLock[cargoArray[cCount]->id]);
             Signal(cargoManagerCV[cargoArray[cCount]->id], cargoManagerLock);
             Release(cargoManagerLock);
+            /* manager interaction queue */
             Wait(cargoDataCV[cargoArray[cCount]->id], cargoDataLock[cargoArray[cCount]->id]);
             /* manager interaction queue */
             requestingCargoData[cargoArray[cCount]->id] = false;
@@ -989,7 +989,21 @@ void CheckinDataRequest()
                 Acquire(checkinManagerLock);
                 requestingCheckinData[j] = true;
                 Signal(checkinBreakCV[j], checkinLock[j]);
+                
+                Acquire(checkinArrayLock);
+                for(i = 0; i < 12; i++)
+                {
+                    if (checkinManagerInteractionOrder[i] == NULL)
+                    {
+                        checkinManagerInteractionOrder[i] = checkinArray[j];
+                        break;
+                    }
+                }
+                Release(checkinArrayLock);
+            
                 Wait(checkinManagerCV, checkinManagerLock);
+                
+                
                 Acquire(checkinLock[j]);
                 newCheckinPassengerCount[checkinArray[j]->airline] += checkinArray[j]->passengers;
                 newCheckinBaggageWeight[checkinArray[j]->airline]  += checkinArray[j]->weight;
@@ -1022,6 +1036,7 @@ void CargoDataRequest()
 			Acquire(cargoManagerLock);
 			requestingCargoData[j] = true;
 			Signal(cargoDataCV[j], cargoLock[j]);
+            
 			Wait(cargoManagerCV[j], cargoManagerLock);
 			Acquire(cargoDataLock[j]);
 			for (k = 0; k < 3; k++) {
