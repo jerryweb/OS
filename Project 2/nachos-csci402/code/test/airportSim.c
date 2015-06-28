@@ -991,10 +991,10 @@ void CheckinDataRequest()
 	}
 	for (k = 0; k < 3; k++)
     {
-		if (newCheckinPassengerCount[k] > checkinPassengerCount[k])
-            checkinPassengerCount[k] = newCheckinPassengerCount[k];
-		if (newCheckinBaggageWeight[k]  > checkinBaggageWeight[k])
-            checkinBaggageWeight[k]  = newCheckinBaggageWeight[k];
+		if (newCheckinPassengerCount[k] > manager.checkinPassengerCount[k])
+            manager. checkinPassengerCount[k] = newCheckinPassengerCount[k];
+		if (newCheckinBaggageWeight[k]  > manager.checkinBaggageWeight[k])
+            manager.checkinBaggageWeight[k]  = newCheckinBaggageWeight[k];
 	}
 }
 
@@ -1004,8 +1004,8 @@ void CargoDataRequest()
     
 	for (i = 0; i < 3; i++)
     {
-		cargoHandlersBaggageCount[i] = 0;
-		cargoHandlersBaggageWeight[i] = 0;
+		manager.cargoHandlersBaggageCount[i] = 0;
+		manager.cargoHandlersBaggageWeight[i] = 0;
 	}
 
 	for (j = 0; j < 6; j++) {
@@ -1016,8 +1016,8 @@ void CargoDataRequest()
 			Wait(cargoManagerCV[j], cargoManagerLock);
 			Acquire(cargoDataLock[j]);
 			for (k = 0; k < 3; k++) {
-				cargoHandlersBaggageWeight[k] += cargoArray[j]->weight[k];
-				cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
+				manager.cargoHandlersBaggageWeight[k] += cargoArray[j]->weight[k];
+				manager.cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
 			}
 			Signal(cargoDataCV[j], cargoDataLock[j]);
 			Release(cargoDataLock[j]);
