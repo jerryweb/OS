@@ -121,7 +121,7 @@ bool requestingCheckinData[12];
 int cargoCount;
 int cargoArrayLock;
 Cargo* cargoArray[6];
-Cargo* cargoManagerInteractionOrder[6];
+Cargo* cargoManagerInteractionOrder[2][6];
 int cargoCV[6];
 int cargoDataCV[6];
 int cargoDataLock[6];
@@ -287,7 +287,9 @@ void Init()
     cargoArray[5] = &c5;
     for (i = 0; i < 6; i++)
     {
-    	cargoManagerInteractionOrder[6] = NULL;
+    	for(j = 0; j <2; j++)
+    		cargoManagerInteractionOrder[j][i] = NULL;
+
         cargoDataCV[i] = CreateCondition("CargoDataCV", 11);
         cargoDataLock[i] = CreateLock("CargoDataLock", 13);
         cargoManagerCV[i] = CreateCondition("CargoManagerCV", 14);
@@ -852,7 +854,13 @@ void RunCargo()
             }
             Release(conveyorLock);
             Wait(cargoDataCV[cargoArray[cCount]->id], cargoLock[cargoArray[cCount]->id]);
-            
+            Printf("hey\n",4,0,0);
+            cCount = cargoManagerInteractionOrder[0][0]->id;
+		    for (r = 1; r < 6; r++)
+		        cargoManagerInteractionOrder[0][r-1] = cargoManagerInteractionOrder[0][r];
+
+		    cargoManagerInteractionOrder[0][5] = NULL;
+
             Acquire(conveyorLock);
             if (conveyorSize > 0)
             {
@@ -883,11 +891,11 @@ void RunCargo()
             Printf("Cargo %d will give manager data\n",32,1,cargoArray[cCount]->id);
             Wait(cargoCV[cargoArray[cCount]->id], cargoDataLock[cargoArray[cCount]->id]);
             
-            cCount = cargoManagerInteractionOrder[0]->id;
+            cCount = cargoManagerInteractionOrder[1][0]->id;
 		    for (r = 1; r < 6; r++)
-		        cargoManagerInteractionOrder[r-1] = cargoManagerInteractionOrder[r];
+		        cargoManagerInteractionOrder[1][r-1] = cargoManagerInteractionOrder[1][r];
 
-		    cargoManagerInteractionOrder[5] = NULL;
+		    cargoManagerInteractionOrder[1][5] = NULL;
             /* manager interaction queue */
             Printf("Cargo %d is done giving manager data\n",37,1,cargoArray[cCount]->id);
 
@@ -1026,7 +1034,7 @@ void CheckinDataRequest()
 
 void CargoDataRequest()
 {
-    int i, j, k,l;
+    int i, j, k,l,ma;
     
 	for (i = 0; i < 3; i++)
     {
@@ -1036,28 +1044,37 @@ void CargoDataRequest()
 
 	for (j = 0; j < 6; j++) {
 
-			Acquire(cargoManagerLock);
-			requestingCargoData[j] = true;
-			Signal(cargoDataCV[j], cargoLock[j]);
+		Acquire(cargoManagerLock);
+		requestingCargoData[j] = true;
+		Signal(cargoDataCV[j], cargoLock[j]);
 
-            for(l = 0; l < 6; l++){
-                if (cargoManagerInteractionOrder[l] == NULL)
-                {
-                    cargoManagerInteractionOrder[l] = cargoArray[j];
-                    break;
-                }
+        for(l = 0; l < 6; l++){
+            if (cargoManagerInteractionOrder[0][l] == NULL)
+            {
+                cargoManagerInteractionOrder[0][l] = cargoArray[j];
+                break;
             }
-            Printf("Manager is requestingCargoData from cargo %d\n", 45,1, cargoArray[j]->id);
-			
-			Wait(cargoManagerCV[j], cargoManagerLock);
+        }
+        Printf("Manager is requestingCargoData from cargo %d\n", 45,1, cargoArray[j]->id);
+		
+		Wait(cargoManagerCV[j], cargoManagerLock);
 
-			Acquire(cargoDataLock[j]);
-			for (k = 0; k < 3; k++) {
-				manager.cargoHandlersBaggageWeight[k] += cargoArray[j]->weight[k];
-				manager.cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
-			}
-			Signal(cargoCV[j], cargoDataLock[j]);
-			Release(cargoDataLock[j]);
+		Acquire(cargoDataLock[j]);
+		for (k = 0; k < 3; k++) {
+			manager.cargoHandlersBaggageWeight[k] += cargoArray[j]->weight[k];
+			manager.cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
+		}
+
+
+		for(ma = 0; ma < 6; ma++){
+            if (cargoManagerInteractionOrder[1][ma] == NULL)
+            {
+                cargoManagerInteractionOrder[1][ma] = cargoArray[j];
+                break;
+            }
+        }
+		Signal(cargoCV[j], cargoDataLock[j]);
+		Release(cargoDataLock[j]);
 
 	}
 }
