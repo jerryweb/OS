@@ -310,7 +310,6 @@ int findArrayElementCount(Passenger*** array, int pLine){
 	int elementCount = 0;
 	int i;
 	for(i = 0; i < 21; i++){
-			Printf("adf\n", 4, 0,0);
 		if(array[pLine][elementCount] == NULL)
 			break;
 		else
@@ -338,8 +337,6 @@ int findShortestLine(bool CISline, int pCount){
 				p.location = i;
 			}
 		}
-		Printf("Liaison %d has the shortest line with a length of %d\n",
-		 53, 2, p.location*100 + p.minValue);
 		return p.location;
 	}
 
@@ -355,8 +352,6 @@ int findShortestLine(bool CISline, int pCount){
 					p.location = i;
 			}
 		}
-		Printf("Checkin Staff %d has the shortest line with a length of %d\n",
-		 59, 2, p.location*100 + p.minValue);
 		return p.location;		
 	}
 }
@@ -496,10 +491,8 @@ void forkPassenger(){
 
 	passengerArray[pCount]->boardingPass->gate = 0;
 	passengerArray[pCount]->boardingPass->seatNum = 0;
-	Printf("Passenger %d of airline %d created\n",
 	 35, 2, passengerArray[pCount]->id*100
 	  + passengerArray[pCount]->ticket->airline);
-	Printf("Forking passenger\n", 18, 0,0);
 	Release(passengerArrayLock);
 	PassengerFindShortestLiaisonLine(passengerArray[pCount]);
 }
@@ -570,13 +563,10 @@ void RunLiaison()
         Release(liaisonLineLock);
         if (P != NULL)
         {
-        	Printf("Liaison %d is waiting for Passenger %d\n", 39, 2, lCount*100 + liaisonArray[lCount]->myPassengerID);
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
             Acquire(liaisonArrayLock);
 
             lCount = liaisonPassengerInteractionOrder[0]->id;
-            Printf("liaison %d has recieved a response from passenger %d\n",53,2,lCount*100 + liaisonArray[lCount]->myPassengerID);
-
 		    for (i = 1; i < 5; i++)
 		    {
 		        liaisonPassengerInteractionOrder[i-1] = liaisonPassengerInteractionOrder[i];
@@ -633,7 +623,6 @@ void RunLiaison()
             Signal(liaisonManagerCV, liaisonManagerLock);
             Release(liaisonManagerLock);
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
-             Printf("Wait for manager to signal that all the data has been collected\n", 64, 0, 0);
             /* Wait for manager to signal that all the data has been collected*/
 
             lCount = liaisonManagerInteractionOrder[0]->id;
@@ -779,7 +768,6 @@ void RunCheckin()
         
         if (requestingCheckinData[checkinArray[ciCount]->id])
         {
-        	Printf("Checkin %d is going to give manager data\n", 41, 1, checkinArray[ciCount]->id);
             Acquire(checkinManagerLock);
             Acquire(checkinLock[checkinArray[ciCount]->id]);
             Signal(checkinManagerCV, checkinManagerLock);
@@ -792,7 +780,6 @@ void RunCheckin()
                 checkinManagerInteractionOrder[i-1] = checkinManagerInteractionOrder[i];
             }
             checkinManagerInteractionOrder[11] = NULL;
-            Printf("Checkin %d is done giving data to manager\n",42,1, checkinArray[ciCount]->id );
             Release(checkinArrayLock);
             
             requestingCheckinData[checkinArray[ciCount]->id] = false;
@@ -825,7 +812,6 @@ void RunCargo()
     Luggage* bag;
     cCount =0;
     Acquire(cargoArrayLock);
-    Printf("cCount = %d, cargoCount = %d\n", 29,2,cCount*100 + cargoCount);
     for(i = 0; i < 6; i++)
     	cargoArray[i]->id = i;
 
@@ -855,7 +841,6 @@ void RunCargo()
             Release(conveyorLock);
 
             Wait(cargoDataCV[cargoArray[cCount]->id], cargoLock[cargoArray[cCount]->id]);
-            Printf("hey\n",4,0,0);
             cCount = cargoManagerInteractionOrder[0][0]->id;
 		    for (r = 1; r < 6; r++)
 		        cargoManagerInteractionOrder[0][r-1] = cargoManagerInteractionOrder[0][r];
@@ -883,13 +868,11 @@ void RunCargo()
         }
         if (requestingCargoData[cargoArray[cCount]->id])
         {
-        	Printf("cCount = %d\n", 12, 1, cCount);
             Acquire(cargoManagerLock);
             Acquire(cargoDataLock[cargoArray[cCount]->id]);
             Signal(cargoManagerCV[cargoArray[cCount]->id], cargoManagerLock);
             Release(cargoManagerLock);
             /* manager interaction queue */
-            Printf("Cargo %d will give manager data\n",32,1,cargoArray[cCount]->id);
             Wait(cargoCV[cargoArray[cCount]->id], cargoDataLock[cargoArray[cCount]->id]);
             
             cCount = cargoManagerInteractionOrder[1][0]->id;
@@ -898,7 +881,6 @@ void RunCargo()
 
 		    cargoManagerInteractionOrder[1][5] = NULL;
             /* manager interaction queue */
-            Printf("Cargo %d is done giving manager data\n",37,1,cargoArray[cCount]->id);
 
             requestingCargoData[cargoArray[cCount]->id] = false;
         }
@@ -957,10 +939,8 @@ void LiaisonDataRequest(){
 				else
 					break;
 			}
-			/*Printf("elementNum = %d\n", 16, 1, elementNum[0]);*/
 			/*put the fifo queue here if needed*/
 			liaisonManagerInteractionOrder[elementNum[0]] = liaisonArray[j];
-			Printf("Requesting data from Liaison %d\n", 32, 1,liaisonArray[j]->id);
 			Wait(liaisonManagerCV, liaisonManagerLock);
 			
 
@@ -1056,7 +1036,6 @@ void CargoDataRequest()
                 break;
             }
         }
-        Printf("Manager is requestingCargoData from cargo %d\n", 45,1, cargoArray[j]->id);
 		
 		Wait(cargoManagerCV[j], cargoManagerLock);
 
@@ -1164,7 +1143,6 @@ void RunManager(){
 
 		if (clearAirlineCount == 3) {
             ManagerPrint();
-            Printf("Manager is finsihing\n", 21,0,0);
 			Exit(0);
 		}
 
