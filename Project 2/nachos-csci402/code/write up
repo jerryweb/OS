@@ -731,9 +731,18 @@ VI. Discussion:
         One of the more difficult tasks was to convert the original airport simulation into system executable code. Since C does not have a heap or the ability to use classes, a large portion of the logic used in our airport had to be changed. This mean that all of our lists, classes, dynamically allocated variables, etc. were incompatible. We decided to use structs as a replacement for the classes as they allowed for a degree of personalization of data. This also meant that dynamic data structures were also unusable, therefore, more primitive data structures such as arrays had to be used and adapted. Our project 1 design of the airport is not opitimal for conversion to a heapless architecture. This is one of the reasons why part 3 presented the most challenge, and also why the -rs function produces race conditions. 
 
 VIII. Miscellaneous:
-    Security unfinished
+    Security for project2 part unfinished
     
     We changed NumPhysPages in machine.h to 10000.
+    
+    For threads folder:
+    We updated the project 1 airport in the threads folder to run smoothly under -rs test, we tested -manager -rs x, x from 1 to 100 without errors and all classes function correctly.
+    What we have done for the Optimization:
+    We optimized passenger, check-in, screen officer, security inspecotr and manager class, the major design changes we made are:
+    1. Doing double wait and double signal for all the basic interactions between different classes.
+    2. Optimize the data requesting calls made from manager class, instead of using conditions we use locks to simplify the structure, and these eliminate some potential synchronization traps.
+    3. Optimize the ending condition for the classes mentioned above.
+      
     
     
     
