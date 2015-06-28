@@ -321,40 +321,18 @@ int findShortestLine(bool CISline, int pCount){
     int i, j, k, elementCount;
     i = 0;
     p.location = 0;
-    /*for(i = 0; i < 5;i++)
-    	p.lineLength[i] = 0;
-
-	for(j = 0; j < 21; j++){
-		if(liaisonLine[0][j] == NULL)
-			break;
-		else{
-			p.lineLength[0]++;
-		}
-	}
-*/
 	p.minValue = 21;
-	/*Printf("lineLength: %d\n", 15, 1, p.lineLength[0]);
-	Printf("min value: %d\n", 14, 1, p.minValue);
-	/*finds the shortest liaison line*/
+    
 	if(!CISline){
 		for (i = 0; i < 5; i++) {
 
-			for(j = 0; j < 21; j++){
-				if(liaisonLine[i][j] == NULL)
-					break;
-				else
-					p.lineLength[i]++;
-			}
+            elementCount = 0;
+            while(liaisonLine[i][elementCount] != NULL) elementCount++;
 
-			if(p.lineLength[i] < p.minValue){
-				p.minValue = p.lineLength[i];
+			if(elementCount < p.minValue){
+				p.minValue = elementCount;
 				p.location = i;
 			}
-
-	/*		Printf("lineLength: %d\n", 15, 1, p.lineLength[i]);
-			Printf("min value: %d\n", 14, 1, p.minValue);
-			Printf("i: %d\n", 6, 1, i);
-			Printf("Location: %d\n", 13,1, p.location);*/
 		}
 		Printf("Liaison %d has the shortest line with a length of %d\n",
 		 53, 2, p.location*100 + p.minValue);
@@ -364,37 +342,19 @@ int findShortestLine(bool CISline, int pCount){
 	/*finds the shortest checkin staff line*/
 	else if(CISline){
 		int CIS_ID = p.airline * 4 + 1;
-		/*
-        Printf("CIS_ID %d\n", 10, 1, CIS_ID);
-		*/
 		for(i = CIS_ID;  i < CIS_ID + 3; i++){
 			elementCount = 0;
-			while(true){
-				if(checkinLine[i][elementCount] == NULL)
-					break;
-				else
-					elementCount++;
-			}
+			while(checkinLine[i][elementCount] != NULL) elementCount++;
 			if((p.minValue < 0 || p.minValue > elementCount) &&
 				(checkinState[i] != CI_CLOSED || checkinState[i] != CI_NONE)){
-
-				for(j = 0; j < 21; j++){
-					if(checkinLine[i][j] == NULL)
-						break;
-					else
-						p.lineLength[i]++;
-				}
-				if(p.lineLength[i] < p.minValue){
-					p.minValue = p.lineLength[i];
+					p.minValue = elementCount;
 					p.location = i;
-				}
 			}
 		}
 		Printf("Checkin Staff %d has the shortest line with a length of %d\n",
 		 59, 2, p.location*100 + p.minValue);
 		return p.location;		
 	}
-	Exit(0);
 }
 
 void PassengerFindShortestCISLine(Passenger *p){
@@ -405,20 +365,19 @@ void PassengerFindShortestCISLine(Passenger *p){
 
 	if(!passengerArray[tempID]->ticket->executive){
 		passengerArray[tempID]->myLine = findShortestLine(true,passengerArray[tempID]->id);
+        elementCount = 0;
+        while(checkinLine[passengerArray[tempID]->myLine][elementCount] != NULL) elementCount++;
 		Printf("Passenger %d of Airline %d chose Airline Check-In staff %d with line length %d\n",
 			79, 4, passengerArray[tempID]->id*100*100*100 + passengerArray[tempID]->airline*100*100 
-			+ passengerArray[tempID]->myLine*100 + passengerArray[tempID]->minValue);
+			+ passengerArray[tempID]->myLine*100 + elementCount);
 	}
 	else
 		Printf("Passenger %d of Airline %d is waiting in the executive line\n",
 		 60, 2, passengerArray[tempID]->id*100 + passengerArray[tempID]->airline);
 	
-	elementCount = 0;
-	for (j = 1; j < 21; j++){
-		if(checkinLine[passengerArray[tempID]->myLine][j] != NULL)
-			elementCount++;			
-	}
-	/*Printf("elementCount: %d\n", 17, 1, elementCount);	*/
+    elementCount = 0;
+    while(checkinLine[passengerArray[tempID]->myLine][elementCount] != NULL) elementCount++;
+    
 	checkinLine[passengerArray[tempID]->myLine][elementCount] = passengerArray[passengerArray[tempID]->id];
 
 	Wait(checkinLineCV[passengerArray[passengerArray[tempID]->id]->myLine], checkinLineLock[passengerArray[passengerArray[tempID]->id]->airline]);
@@ -569,7 +528,6 @@ void RunLiaison()
         Acquire(liaisonLineLock);
         tempPassengerID = 0;
         P = liaisonLine[lCount][0];
-        Printf("l p->id = %d\n", 13, 1, P->id);
         if (P != NULL){
         	tempPassengerID = P->id;
 
@@ -625,7 +583,6 @@ void RunLiaison()
             Acquire(liaisonLock[lCount]);
             order = liaisonArray[lCount]->myPassengerID;
             liaisonArray[lCount]->passengers[passengerArray[order]->airline]++;
-            Printf("Help\n", 5,0,0);
             for (q = 0; q < 3; q++)
             {
                 liaisonArray[lCount]->luggage[passengerArray[order]->airline]++;
@@ -680,8 +637,6 @@ void RunLiaison()
 		        liaisonManagerInteractionOrder[o-1] = liaisonManagerInteractionOrder[o];
 
 		    liaisonManagerInteractionOrder[4] = NULL;
-
-		     Printf("lCount = %d\n", 12, 1, lCount);
 
             /* manager interaction queue */
             requestingLiaisonData[lCount] = false;
@@ -1102,8 +1057,7 @@ void RunManager(){
 		arrayCount = 0;
 	    for (i = 0; i < 63; i++){
 			if(conveyor[i] != NULL){
-				arrayCount++;	
-				Printf("poo\n", 4,0,0);			
+				arrayCount++;		
 			}
 		}
 
@@ -1157,6 +1111,7 @@ void RunManager(){
 		for(l = 0; l < 10; l++)
 			Yield();
 	}
+    Exit(0);
 }
 
 int main()
