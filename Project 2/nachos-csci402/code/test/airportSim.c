@@ -72,7 +72,7 @@ Passenger* passengerArray[21];
 	Liaison l4;
 int liaisonCount;
 int liaisonArrayLock;
-	Liaison*  LiaisonPassengerInteractionOrder[5];
+	Liaison*  liaisonPassengerInteractionOrder[5];
     Liaison*  liaisonWaitOrder[5];
 Liaison* liaisonArray[5];
 Passenger* liaisonLine[5][21];
@@ -135,7 +135,9 @@ Manager manager;
 	bool CargoDone;
 	bool CheckinDone;
 	bool ready;
+	bool clearAirline[3];
 	int counter;
+	int clearAirlineCount;
 
 void Init()
 {
@@ -290,6 +292,9 @@ void Init()
     }
 
     /* Manager variables */
+    for(i = 0; i < 3; i++)
+    	clearAirline[i] = false;
+    
 }
 
 /*Used to find the number of elements in an array*/
@@ -438,13 +443,13 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
 
     elementCount = 0;
     for (i = 0; i < 5; i++){
-		if(LiaisonPassengerInteractionOrder[i] != NULL){
+		if(liaisonPassengerInteractionOrder[i] != NULL){
 			elementCount++;	
 			/*Printf("daf %d\n", 7,1,passengerArray[p->id]->id);*/			
 		}
 	}
 	/*add passenger to the end of the array*/
-    LiaisonPassengerInteractionOrder[elementCount] = liaisonArray[p->myLine];
+    liaisonPassengerInteractionOrder[elementCount] = liaisonArray[p->myLine];
 
     Release(liaisonArrayLock);
 	
@@ -611,12 +616,12 @@ void RunLiaison()
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
 
             Acquire(liaisonArrayLock);
-            lCount = LiaisonPassengerInteractionOrder[0]->id;
+            lCount = liaisonPassengerInteractionOrder[0]->id;
 		    for (i = 1; i < 5; i++)
 		    {
-		        LiaisonPassengerInteractionOrder[i-1] = LiaisonPassengerInteractionOrder[i];
+		        liaisonPassengerInteractionOrder[i-1] = liaisonPassengerInteractionOrder[i];
 		    }
-		    LiaisonPassengerInteractionOrder[4] = NULL;
+		    liaisonPassengerInteractionOrder[4] = NULL;
 			Release(liaisonArrayLock);
 
             Acquire(liaisonLock[lCount]);
@@ -835,7 +840,7 @@ void RunCargo()
         cargoArray[cCount]->luggage[i] = 0;
         cargoArray[cCount]->weight[i] = 0;
     }
-    cargoArray[cargoArray[cCount]->id] = &c;
+    /*cargoArray[cargoArray[cCount]->id] = &c;*/
     Release(cargoArrayLock);
     
     while (true)
@@ -884,29 +889,91 @@ void RunCargo()
     Exit(0);
 }
 
+void LiaisonDataRequest(){
+	int i, j, k, elementNum;
+		/*Gather data from liaisons*/
+	for (i = 0; i < 3; i++) {	
+		manager.liaisonPassengerCount[i] = 0;
+		manager.liaisonBaggageCount[i] = 0;
+	}
+
+	for(j = 0; j < 5; j++){
+		if(liaisonState[j] == L_FREE){
+			Acquire(liaisonManagerLock);
+			requestingLiaisonData[j] = true;
+			Signal(liaisonCV[j], liaisonLock[j]);
+
+			Wait(liaisonManagerCV, liaisonManagerLock);
+			/*put the fifo queue here if needed*/
+
+			/*Waits for the signal of corresponding Liaison*/
+			Acquire(liaisonLock[j]);
+			
+			for (k = 0; k < 3; k++) {
+				manager.liaisonPassengerCount[k] += liaisonArray[j]->passengers[k];
+				manager.liaisonBaggageCount[k] += liaisonArray[j]->luggage[k];
+			}
+
+			Signal(liaisonCV[j], liaisonLock[j]);
+			Release(liaisonLock[j]);
+		}
+	}
+}
+
+void CheckinDataRequest(){
+}
+
+void ManagerPrint(){
+	
+	int a;
+    int totalLiaisonPassengers  = 0;
+    int totalCheckinPassengers  = 0;
+    int totalSecurityPassengers = 0;
+	Printf("\n",1,0,0);
+	for (a = 0; a < 3; a++){
+        totalLiaisonPassengers  += manager.liaisonPassengerCount[a];
+        totalCheckinPassengers  += manager.checkinPassengerCount[a];
+        totalSecurityPassengers += manager.securityInspectorPassengerCount[a];
+    }
+
+    Printf("Passenger count reported by airport liaison = %d\n", 49, 1, totalLiaisonPassengers);
+    Printf("Passenger count reported by airline check-in staff = %d\n", 56, 1, totalCheckinPassengers);
+    Printf("Passenger count reported by security inspector = %d\n", 52, 1, totalSecurityPassengers);
+
+    for(a = 0; a < 3; a++){
+        Printf("From setup: Baggage count of airline %d = %d\n", 45, 2, a*100 + airlines[a]->totalBagCount);
+        Printf("From airport liaison: Baggage count of airline %d = %d\n", 55, 2, a*100 + manager.liaisonBaggageCount[a]);
+        Printf("From cargo handlers: Baggage count of airline %d = %d\n", 54, 2, a*100 + manager.cargoHandlersBaggageCount[a]);
+        Printf("From setup: Baggage weight of airline %d = %d\n", 46, 2, a*100 + airlines[a]->totalBagWeight);
+        Printf("From airline check-in staff: Baggage weight of airline %d = %d\n", 63, 2, a*100 + manager.checkinBaggageWeight[a]);
+        Printf("From cargo handlers: Baggage weight of airline %d = %d\n", 55, 2, a*100 + manager.cargoHandlersBaggageWeight[a]);    	
+    }
+
+	Printf("\n",1,0,0);
+}
+
 void RunManager(){
-	int i,j,k,l,arrayCount;
+	int i,j,k,l,m,arrayCount;
 	cargoHandlersOnBreak = false;
 	liaisonDone = false;
 	CargoDone = false;
 	CheckinDone = false;
 	ready = true;
 	counter = 0;
-	/*clearAirline = false;
-	clearAirlineCount =0;*/
+	clearAirlineCount =0;
 
 	for(i =0; i < 3; i++){
-		liaisonBaggageCount[i] = 0;
-		cargoHandlersBaggageWeight[i] = 0;
-		checkinBaggageWeight[i] = 0;
-		cargoHandlersBaggageCount[i] = 0;
-    	liaisonPassengerCount[i] = 0;	
-    	checkinPassengerCount[i] = 0;
-    	securityInspectorPassengerCount[i] = 0;
+		manager.liaisonBaggageCount[i] = 0;
+		manager.cargoHandlersBaggageWeight[i] = 0;
+		manager.checkinBaggageWeight[i] = 0;
+		manager.cargoHandlersBaggageCount[i] = 0;
+    	manager.liaisonPassengerCount[i] = 0;	
+    	manager.checkinPassengerCount[i] = 0;
+    	manager.securityInspectorPassengerCount[i] = 0;
 	}
 
 	while(true){
-		Acquire(ConveyorLock);
+		Acquire(conveyorLock);
 
 		arrayCount = 0;
 	    for (i = 0; i < 68; i++){
@@ -936,31 +1003,35 @@ void RunManager(){
 			}
 		}
 
-		Release(ConveyorLock);
+		Release(conveyorLock);
+
+		LiaisonDataRequest();
+
+		for(m = 0; m < 3; m++){
+			if(!clearAirline[m]){
+				Acquire(airlineLock[m]);
+				if(manager.securityInspectorPassengerCount[m] >= airlines[m]->ticketsIssued
+					&& 21 >= airlines[m]->totalBagCount) {
+					Printf("Airport manager gives a boarding call to airline %d\n", 53, 1, m);
+					Acquire(boardingLock[m]);
+					Broadcast(boardingCV[m], boardingLock[m]);
+					clearAirline[m] = true;
+					clearAirlineCount++;
+					Release(boardingLock[m]);
+				}
+				Release(airlineLock[m]);
+			}	
+		}
+
+		if (clearAirlineCount == 3) {
+            ManagerPrint();
+			Exit(0);
+		}
 
 		for(l = 0; l < 10; l++)
 			Yield();
 	}
 }
-
-void CheckinDataRequest(){
-	
-}
-
-void ManagerPrint(){
-	Printf("\n",1,0,0);
-	int a;
-    int totalLiaisonPassengers  = 0;
-    int totalCheckinPassengers  = 0;
-    int totalSecurityPassengers = 0;
-	for (int a = 0; a < 3; a++)
-	    {
-	        totalLiaisonPassengers  += liaisonPassengerCount[a];
-	        totalCheckinPassengers  += checkinPassengerCount[a];
-	        totalSecurityPassengers += securityInspectorPassengerCount[a];
-	    }
-}
-
 int main()
 {
     int i;
@@ -982,7 +1053,7 @@ int main()
     for (i = 0; i < 6; i++)
     {
         Fork(RunCargo, "Cargo", 5);
-    }
+    }*/
 	Fork(RunManager, "Manager",7);
-    */
+    
 }
