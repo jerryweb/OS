@@ -954,8 +954,74 @@ void RunManager(){
 	}
 }
 
-void CheckinDataRequest(){
+void LiaisonDataRequest(){
 	
+}
+
+void CheckinDataRequest()
+{
+    int i, j, k;
+    int newCheckinBaggageWeight[3];
+	int newCheckinPassengerCount[3];
+    
+	for (i = 0; i < 3; i++)
+    {
+		newCheckinPassengerCount[i] = 0;
+		newCheckinBaggageWeight[i] = 0;
+	}
+
+	for (j = 0; j < 12; j++)
+    {
+		if (j%4 != 0) /* not 0, 4, or 8 */
+        {
+            if (! finalCheckin[j])
+            {
+                Acquire(checkinManagerLock);
+                requestingCheckinData[j] = true;
+                Signal(checkinBreakCV[j], checkinLock[j]);
+                Wait(checkinManagerCV, checkinManagerLock);
+                Acquire(checkinLock[j]);
+                newCheckinPassengerCount[checkinArray[j]->airline] += checkinArray[j]->passengers;
+                newCheckinBaggageWeight[checkinArray[j]->airline]  += checkinArray[j]->weight;
+                Signal(checkinCV[j], checkinLock[j]);
+                Release(checkinLock[j]);
+            }
+        }
+	}
+	for (k = 0; k < 3; k++)
+    {
+		if (newCheckinPassengerCount[k] > checkinPassengerCount[k])
+            checkinPassengerCount[k] = newCheckinPassengerCount[k];
+		if (newCheckinBaggageWeight[k]  > checkinBaggageWeight[k])
+            checkinBaggageWeight[k]  = newCheckinBaggageWeight[k];
+	}
+}
+
+void CargoDataRequest()
+{
+    int i, j, k;
+    
+	for (i = 0; i < 3; i++)
+    {
+		cargoHandlersBaggageCount[i] = 0;
+		cargoHandlersBaggageWeight[i] = 0;
+	}
+
+	for (j = 0; j < 6; j++) {
+\
+			Acquire(cargoManagerLock);
+			requestingCargoData[j] = true;
+			Signal(cargoDataCV[j], cargoLock[j]);
+			Wait(cargoManagerCV[j], cargoManagerLock);
+			Acquire(cargoDataLock[j]);
+			for (k = 0; k < 3; k++) {
+				cargoHandlersBaggageWeight[k] += cargoArray[j]->weight[k];
+				cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
+			}
+			Signal(cargoDataCV[j], cargoDataLock[j]);
+			Release(cargoDataLock[j]);
+
+	}
 }
 
 void ManagerPrint(){
