@@ -198,8 +198,8 @@ void Init()
 	passengerArray[20] = &p20;
 	passengerArray[21] = &p21;
 
-	for(i = 5; i<21; i++)
-		passengerArray[i] = NULL;
+	/*for(i = 5; i<21; i++)
+		passengerArray[i] = NULL;*/
 
     for(i = 0; i < 6; i++){
     	for (j = 0; j < 21; j++)
@@ -1178,7 +1178,7 @@ int main()
     int i;
     Printf("Initializing Airport\n",21,0,0);
     Init();
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < 21; i++)
     {
     	Fork(forkPassenger, "Passenger", 9);
 	}	
