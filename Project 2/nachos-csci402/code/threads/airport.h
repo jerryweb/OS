@@ -66,6 +66,9 @@ public:
 									//  Index corresponds to ID.
 	LiaisonState liaisonState[7];   // Array of states for each liaison.
 									//  Index corresponds to ID.
+	Condition* liaisonFinishCV[7];
+	Condition* liaisonFreeCV[7];
+
 	// Check-in variables
 	bool* finalCheckin;
 	List** checkinQueues;           // Array of check-in queues (list of
@@ -90,6 +93,8 @@ public:
 	Condition* checkinManagerCV;
 	Lock* checkinManagerLock;       // for interaction with manager
 
+	Condition** checkinDataCV;
+
 	// Cargo variables
 	List* conveyor;                 // Conveyor belt for bag transfer
 									//  from check-in to cargo (list of
@@ -112,7 +117,7 @@ public:
 									//  Luggage). Index corresponds
 									//  to airline ID.
 
-	// Screening and security variables
+   // Screening and security variables
 
 	List* securityInspectorList;            //Contain security inspector class
 	List* screenOfficerList;             //contain screen officer class
@@ -143,7 +148,7 @@ public:
 	Lock** securityLocks; //Array of locks for security lines (each inspector has a lock)
 						  //index corresponds to inspector id
 
-	Lock* securityMangerLock; 
+	Lock* securityManagerLock;
 
 
 
@@ -151,6 +156,7 @@ public:
 
     Condition** screenCV;
     Condition** screenFreeCV;
+    Condition** securityCV;
     Condition** screenQueuesCV;
     Condition** returnQueuesCV;
     Condition** securityQueuesCV;
@@ -160,7 +166,7 @@ public:
     Condition** securityManagerCV;
 
 	//  Manager variables
-    
+    bool allFinished;
 
 };
 

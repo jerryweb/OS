@@ -2,7 +2,7 @@
 
 Airport::Airport(){
     int i;
-
+    allFinished = false;
 
 	// General variables
 	numAirlines = 3;
@@ -36,6 +36,8 @@ Airport::Airport(){
 		liaisonCV[i] = new Condition("liaisonCV");
 		liaisonLock[i] = new Lock("liaisonLock");
 		liaisonState[i] = L_BUSY;
+		liaisonFinishCV[i] = new Condition("liaisonFinishCV");
+		liaisonFreeCV[i] = new Condition("liaisonFreeCV");
 	}
 
 	// Check-in variables
@@ -53,6 +55,9 @@ Airport::Airport(){
     checkinState = new CheckinState[numCheckin];
     checkinManagerLock = new Lock("checkinManagerLock");
     checkinManagerCV = new Condition("checkinManagerCV");
+
+    checkinDataCV = new Condition*[numCheckin];
+
 	for (i = 0; i < numAirlines; i++) {
 		checkinLineLock[i] = new Lock("checkinLineLock");
 	}
@@ -67,6 +72,7 @@ Airport::Airport(){
         else            checkinState[i] = CI_BUSY;
         finalCheckin[i] = false;
         RequestingCheckinData[i] = false;
+        checkinDataCV[i] = new Condition("checkinDataCV");
     }
 
 	// Cargo variables
@@ -96,7 +102,7 @@ Airport::Airport(){
 
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
-    securityMangerLock =  new Lock("securityMangerLock");
+    securityManagerLock =  new Lock("securityMangerLock");
 
 	screenLocks = new Lock*[3];
 	securityLocks = new Lock*[3];
@@ -107,6 +113,7 @@ Airport::Airport(){
 	returnQueues = new List*[3];
     screenCV = new Condition*[3];
     screenQueuesCV = new Condition*[3];
+    securityCV = new Condition*[3];
     securityQueuesCV = new Condition*[3];
     returnQueuesCV = new Condition*[3];
     securityFinishCV = new Condition*[3];
@@ -136,6 +143,7 @@ Airport::Airport(){
         securityFreeCV[i] = new Condition("securityFreeCV");
         securityManagerCV[i] = new Condition("securityManagerCV");
 
+        securityCV[i] = new Condition("securityCV");
         screenQueuesCV[i] = new Condition("screenQueuesCV");
         securityQueuesCV[i] = new Condition("securityQueuesCV");
         returnQueuesCV[i] = new Condition("returnQueuesCV");	
@@ -245,7 +253,7 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 
 	screenQueuesLock = new Lock("screenQueuesLock");
 	securityQueuesLock = new Lock("securityQueuesLock");
-    securityMangerLock =  new Lock("securityMangerLock");
+    securityManagerLock =  new Lock("securityManagerLock");
 
 	screenLocks = new Lock*[security];
 	securityLocks = new Lock*[security];
