@@ -1079,8 +1079,8 @@ void RunManager(){
 		Release(conveyorLock);
 
 		LiaisonDataRequest();
-		CheckinDataRequest();
-		CargoDataRequest();
+		/*CheckinDataRequest();
+		CargoDataRequest();*/
 
 		for(m = 0; m < 3; m++){
 			if(!clearAirline[m]){
