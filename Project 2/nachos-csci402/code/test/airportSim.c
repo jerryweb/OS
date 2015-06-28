@@ -122,7 +122,7 @@ int cargoCount;
 int cargoArrayLock;
 Cargo* cargoArray[6];
 Cargo* cargoManagerInteractionOrder[6];
-int cargoCV;
+int cargoCV[6];
 int cargoDataCV[6];
 int cargoDataLock[6];
 int cargoManagerLock;
@@ -277,7 +277,6 @@ void Init()
     /* Cargo variables */
     cargoCount = 0;
     cargoArrayLock = CreateLock("CargoArrayLock", 14);
-    cargoCV = CreateCondition("CargoCV", 7);
     cargoManagerLock = CreateLock("CargoManagerLock", 16);
     /*must be statically declared*/
     cargoArray[0] = &c0;
@@ -292,6 +291,7 @@ void Init()
         cargoDataCV[i] = CreateCondition("CargoDataCV", 11);
         cargoDataLock[i] = CreateLock("CargoDataLock", 13);
         cargoManagerCV[i] = CreateCondition("CargoManagerCV", 14);
+        cargoCV[i] = CreateCondition("CargoCV", 7);
         cargoLock[i] = CreateLock("CargoLock", 9);
         cargoState[i] = C_BUSY;
         requestingCargoData[i] = false;
@@ -881,7 +881,7 @@ void RunCargo()
             Release(cargoManagerLock);
             /* manager interaction queue */
             Printf("Cargo %d will give manager data\n",32,1,cargoArray[cCount]->id);
-            Wait(cargoDataCV[cargoArray[cCount]->id], cargoDataLock[cargoArray[cCount]->id]);
+            Wait(cargoCV[cargoArray[cCount]->id], cargoDataLock[cargoArray[cCount]->id]);
             
             cCount = cargoManagerInteractionOrder[0]->id;
 		    for (r = 1; r < 6; r++)
@@ -1056,7 +1056,7 @@ void CargoDataRequest()
 				manager.cargoHandlersBaggageWeight[k] += cargoArray[j]->weight[k];
 				manager.cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
 			}
-			Signal(cargoDataCV[j], cargoDataLock[j]);
+			Signal(cargoCV[j], cargoDataLock[j]);
 			Release(cargoDataLock[j]);
 
 	}
