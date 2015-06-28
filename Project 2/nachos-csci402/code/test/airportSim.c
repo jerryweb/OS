@@ -163,10 +163,12 @@ void Init()
         for (j = 0; j < 21; j++)
         {
             boardingQueue[i][j] = NULL;
-            conveyor[(i+1)*(j+1)-1] = NULL;
+            /*conveyor[(i+1)*(j+1)-1] = NULL;*/
             aircraft[i][j] = NULL;
         }
     }
+    for(i = 0; i < 63; i++)
+    	conveyor[i] = NULL;
     /* Passenger variables */
     passengerCount = 0;
     passengerArrayLock = CreateLock("PassengerArrayLock", 18);
@@ -429,15 +431,12 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
     }
     passengerLiaisonInteractionOrder[0][20] = NULL;
     Release(passengerArrayLock);
-    /*
+    
     Printf("p id is now: %d\n", 16,1,p->id);
-    */
+    
 	Acquire(liaisonLock[passengerArray[p->id]->myLine]);
-	/*Give liaison information
-	*/
-	Signal(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
-	/*wait for liaison confirmation*/
-	/*Printf("FU\n",3,0,0);*/
+		/*wait for liaison confirmation*/
+	
     Acquire(liaisonArrayLock);		/*prevent alteration while calculating the # of elements in
     								  the array*/
 
@@ -450,6 +449,9 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
 	}
 	/*add passenger to the end of the array*/
     liaisonPassengerInteractionOrder[elementCount] = liaisonArray[p->myLine];
+	/*Give liaison information
+	*/
+	Signal(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
 
     Release(liaisonArrayLock);
 	
@@ -614,9 +616,12 @@ void RunLiaison()
         {
         	Printf("Liaison %d is waiting for Passenger %d\n", 39, 2, lCount*100 + liaisonArray[lCount]->myPassengerID);
             Wait(liaisonCV[lCount], liaisonLock[lCount]);
-
+            
+            Printf("FU\n",3,0,0);
             Acquire(liaisonArrayLock);
             lCount = liaisonPassengerInteractionOrder[0]->id;
+            Printf("liaison %d has recieved a response from passenger %d\n",53,2,lCount*100 + liaisonArray[lCount]->myPassengerID);
+
 		    for (i = 1; i < 5; i++)
 		    {
 		        liaisonPassengerInteractionOrder[i-1] = liaisonPassengerInteractionOrder[i];
@@ -797,6 +802,7 @@ void RunCheckin()
         
         if (requestingCheckinData[checkinArray[ciCount]->id])
         {
+        	Printf("Checkin %d is going to give manager data\n", 41, 1, checkinArray[ciCount]->id);
             Acquire(checkinManagerLock);
             Acquire(checkinLock[checkinArray[ciCount]->id]);
             Signal(checkinManagerCV, checkinManagerLock);
@@ -865,6 +871,7 @@ void RunCargo()
             }
             Release(conveyorLock);
             Wait(cargoDataCV[cargoArray[cCount]->id], cargoLock[cargoArray[cCount]->id]);
+            
             Acquire(conveyorLock);
             if (conveyorSize > 0)
             {
@@ -898,36 +905,6 @@ void RunCargo()
     Exit(0);
 }
 
-void LiaisonDataRequest(){
-	int i, j, k, elementNum;
-		/*Gather data from liaisons*/
-	for (i = 0; i < 3; i++) {	
-		manager.liaisonPassengerCount[i] = 0;
-		manager.liaisonBaggageCount[i] = 0;
-	}
-
-	for(j = 0; j < 5; j++){
-		if(liaisonState[j] == L_FREE){
-			Acquire(liaisonManagerLock);
-			requestingLiaisonData[j] = true;
-			Signal(liaisonCV[j], liaisonLock[j]);
-
-			Wait(liaisonManagerCV, liaisonManagerLock);
-			/*put the fifo queue here if needed*/
-
-			/*Waits for the signal of corresponding Liaison*/
-			Acquire(liaisonLock[j]);
-			
-			for (k = 0; k < 3; k++) {
-				manager.liaisonPassengerCount[k] += liaisonArray[j]->passengers[k];
-				manager.liaisonBaggageCount[k] += liaisonArray[j]->luggage[k];
-			}
-
-			Signal(liaisonCV[j], liaisonLock[j]);
-			Release(liaisonLock[j]);
-		}
-	}
-}
 
 
 void ManagerPrint(){
@@ -959,6 +936,38 @@ void ManagerPrint(){
 	Printf("\n",1,0,0);
 }
 
+
+void LiaisonDataRequest(){
+	int i, j, k, elementNum;
+		/*Gather data from liaisons*/
+	for (i = 0; i < 3; i++) {	
+		manager.liaisonPassengerCount[i] = 0;
+		manager.liaisonBaggageCount[i] = 0;
+	}
+
+	for(j = 0; j < 5; j++){
+		if(liaisonState[j] == L_FREE){
+			Acquire(liaisonManagerLock);
+			requestingLiaisonData[j] = true;
+			Signal(liaisonCV[j], liaisonLock[j]);
+
+			Wait(liaisonManagerCV, liaisonManagerLock);
+			/*put the fifo queue here if needed*/
+
+			/*Waits for the signal of corresponding Liaison*/
+			Acquire(liaisonLock[j]);
+			
+			for (k = 0; k < 3; k++) {
+				manager.liaisonPassengerCount[k] += liaisonArray[j]->passengers[k];
+				manager.liaisonBaggageCount[k] += liaisonArray[j]->luggage[k];
+			}
+
+			Signal(liaisonCV[j], liaisonLock[j]);
+			Release(liaisonLock[j]);
+		}
+	}
+}
+
 void CheckinDataRequest()
 {
     int i, j, k;
@@ -980,7 +989,7 @@ void CheckinDataRequest()
                 Acquire(checkinManagerLock);
                 requestingCheckinData[j] = true;
                 Signal(checkinBreakCV[j], checkinLock[j]);
-                Wait(checkinManagerCV[j], checkinManagerLock);
+                Wait(checkinManagerCV, checkinManagerLock);
                 Acquire(checkinLock[j]);
                 newCheckinPassengerCount[checkinArray[j]->airline] += checkinArray[j]->passengers;
                 newCheckinBaggageWeight[checkinArray[j]->airline]  += checkinArray[j]->weight;
@@ -1049,10 +1058,10 @@ void RunManager(){
 		Acquire(conveyorLock);
 
 		arrayCount = 0;
-	    for (i = 0; i < 68; i++){
+	    for (i = 0; i < 63; i++){
 			if(conveyor[i] != NULL){
 				arrayCount++;	
-				/*Printf("daf %d\n", 7,1,passengerArray[p->id]->id);*/			
+				Printf("poo\n", 4,0,0);			
 			}
 		}
 

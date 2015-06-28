@@ -67,7 +67,7 @@ void Manager::MakeRounds() {
 	bool liaisonDone = false;
 	bool CargoDone = false;
 	bool CheckinDone = false;
-	bool ready = true;
+conveyor[	bool ready = true;
 	int counter = 0;
 	Liaison* L = NULL;
 	Cargo* CH = NULL;
