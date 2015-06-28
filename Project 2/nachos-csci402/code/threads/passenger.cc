@@ -134,6 +134,7 @@ int Passenger::findShortestLine(List** list, bool CISline, bool Screenline,
 void Passenger::findShortestLiaisonLine() {
 	int myLine = 0;
 
+	//start first C.S.
 	airport->liaisonLineLock->Acquire();
 	myLine = findShortestLine(airport->liaisonQueues, false, false, false);	// passenger will find shortest line
 
@@ -141,16 +142,18 @@ void Passenger::findShortestLiaisonLine() {
 			myLine, airport->liaisonQueues[myLine]->Size());
 	airport->liaisonQueues[myLine]->Append((void *) this);
 	//wait liaison to start service
-	airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock);
+	airport->liaisonLineCV[myLine]->Wait(airport->liaisonLineLock); //ending first C.S.
 
+	//start second C.S.
 	airport->liaisonLock[myLine]->Acquire();
 	airport->liaisonCV[myLine]->Signal(airport->liaisonLock[myLine]);
 	//wait liaison to give direction
 	airport->liaisonCV[myLine]->Wait(airport->liaisonLock[myLine]);
 
 	airport->liaisonLock[myLine]->Acquire();
+	//signal liaison that I aknowledge the direction
 	airport->liaisonCV[myLine]->Signal(airport->liaisonLock[myLine]);
-	airport->liaisonLock[myLine]->Release();
+	airport->liaisonLock[myLine]->Release();  //end second C.S.
 
 
 	printf("Passenger %d of Airline %d is directed to the airline counter.\n",
@@ -163,6 +166,8 @@ void Passenger::findShortestLiaisonLine() {
 }
 
 void Passenger::CheckIn() {
+
+	//start 1st C.S.
 	airport->checkinLineLock[airline]->Acquire();
 
 	int myLine;
@@ -179,7 +184,7 @@ void Passenger::CheckIn() {
 	}
 	airport->checkinQueues[myLine]->Append(this);
 	//wait check-in to start service to me
-	airport->checkinLineCV[myLine]->Wait(airport->checkinLineLock[airline]);
+	airport->checkinLineCV[myLine]->Wait(airport->checkinLineLock[airline]); //end 1st C.S.
 
 	airport->checkinLock[queueIndex]->Acquire();
 	airport->checkinCV[queueIndex]->Signal(airport->checkinLock[queueIndex]);
@@ -191,7 +196,7 @@ void Passenger::CheckIn() {
 	airport->checkinCV[queueIndex]->Signal(airport->checkinLock[queueIndex]);
 	airport->checkinLock[queueIndex]->Release();
 
-
+	//go to next procedure
 	if (airport->screenOfficerList->Size() > 0)
     {
 		Screening();
@@ -201,13 +206,15 @@ void Passenger::CheckIn() {
 void Passenger::Screening() {
 	int myLine;
 
+	//start 1st C.S.
 	airport->screenQueuesLock->Acquire();
 	myLine = findShortestLine(airport->screenQueues,false,true,false);
 	airport->screenQueues[myLine]->Append(this);
 
 	//wait officer to check me
-	airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock);
+	airport->screenQueuesCV[myLine]->Wait(airport->screenQueuesLock); //end of 1st C.S.
 
+	//start 2nd C.S.
 	airport->screenLocks[myLine]->Acquire();
 	airport->screenCV[myLine]->Signal(airport->screenLocks[myLine]);
 	// Give bag to officer
@@ -220,7 +227,7 @@ void Passenger::Screening() {
 	//tell officer I acknowledge I'm ok to proceed
 	airport->screenLocks[myLine]->Acquire();
 	airport->screenCV[myLine]->Signal(airport->screenLocks[myLine]);
-	airport->screenLocks[myLine]->Release();
+	airport->screenLocks[myLine]->Release();   //end 2nd C.S.
 
 	//proceed to security inspecting
 	if (!airport->securityInspectorList->IsEmpty())
@@ -230,11 +237,13 @@ void Passenger::Screening() {
 void Passenger::Inspecting() {
 	srand(time(NULL));
 
+	//start 1st C.S.
 	airport->securityQueuesLock->Acquire();
 	airport->securityQueues[queueIndex]->Append(this);
 	printf("Passenger %d moves to security inspector %d\n", id, queueIndex);
-	airport->securityQueuesCV[queueIndex]->Wait(airport->securityQueuesLock);
+	airport->securityQueuesCV[queueIndex]->Wait(airport->securityQueuesLock); //end 1st C.S.
 
+	//start 2nd C.S.
 	airport->securityLocks[queueIndex]->Acquire();
 	airport->securityCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
 	//wait for security check
@@ -242,6 +251,7 @@ void Passenger::Inspecting() {
 
 	airport->securityLocks[queueIndex]->Acquire();
 
+	//if I failed the security test
 	if (!securityPass) {
 		//send security my aknowledgement
 		airport->securityCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
@@ -254,12 +264,14 @@ void Passenger::Inspecting() {
 			currentThread->Yield();
 		}
 
+		//start 3rd C.S. when I back from questioning
 		airport->securityQueuesLock->Acquire();
 		airport->returnQueues[queueIndex]->Append(this);
 		printf(
 				"Passenger %d comes back to security inspector %d after further examination\n",
 				id, queueIndex);
-		airport->securityQueuesCV[queueIndex]->Wait(airport->securityQueuesLock);
+		airport->securityQueuesCV[queueIndex]->Wait(airport->securityQueuesLock); //end 3rd C.S.
+		//start 2nd C.S. again
 		airport->securityLocks[queueIndex]->Acquire();
 		airport->securityCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
 		airport->securityCV[queueIndex]->Wait(airport->securityLocks[queueIndex]);
@@ -268,7 +280,7 @@ void Passenger::Inspecting() {
 
 	//send security my aknowledgement
 	airport->securityCV[queueIndex]->Signal(airport->securityLocks[queueIndex]);
-	airport->securityLocks[queueIndex]->Release();
+	airport->securityLocks[queueIndex]->Release();  //end 2nd C.S.
 
 	//add passenger himself to boarding queue
 	airport->boardingLock[airline]->Acquire();

@@ -736,7 +736,7 @@ VIII. Miscellaneous:
     We changed NumPhysPages in machine.h to 10000.
     
     For threads folder:
-    We updated the project 1 airport in the threads folder to run smoothly under -rs test, we tested -manager -rs x, x from 1 to 100 without errors and all classes function correctly.
+    We updated the project 1 airport in the threads folder to run smoothly under -rs test, we tested -manager -rs x, x from 1 to 100 without errors and all classes function correctly.(-manager is our full simulation for aiport)
     What we have done for the Optimization:
     We optimized passenger, liaison,check-in, screen officer, security inspecotr and manager class, the major design changes we made are:
     1. Doing double wait and double signal for all the basic interactions between different classes.

@@ -17,8 +17,9 @@ void ScreenOfficer::Screen() {
 
 	while (true) {
 		Passenger* p = NULL;
+
+		//start 1st C.S.
 		airport->screenQueuesLock->Acquire();
-		//airport->screenLocks[id]->Acquire();
 		if (!airport->screenQueues[id]->IsEmpty()) {
 			airport->screenLocks[id]->Acquire();
 			airport->screenState[id] = SO_BUSY;
@@ -26,9 +27,10 @@ void ScreenOfficer::Screen() {
 			airport->screenQueuesCV[id]->Signal(airport->screenQueuesLock);
 			airport->screenQueuesLock->Release();
 
-			airport->screenCV[id]->Wait(airport->screenLocks[id]);
-			airport->screenLocks[id]->Acquire();
+			airport->screenCV[id]->Wait(airport->screenLocks[id]); //end 1st C.S.
 
+			//start 2nd C.S.
+			airport->screenLocks[id]->Acquire();
 			bool luggageTest;
 			//do hand luggage test, assume 20% chance fail
 			int randNum = rand() % 100 + 1;
@@ -61,10 +63,13 @@ void ScreenOfficer::Screen() {
 			airport->securityQueuesLock->Release();
 
 			airport->screenCV[id]->Signal(airport->screenLocks[id]);
-			airport->screenCV[id]->Wait(airport->screenLocks[id]);
+			airport->screenCV[id]->Wait(airport->screenLocks[id]);   //end 2nd C.S.
 
+		//enter here if all passengers are boarded
 		} else if (airport->allFinished) {
 			currentThread->Finish();
+
+		//if my line is empty, yield
 		} else {
 			airport->screenState[id] = SO_FREE;
 			airport->screenQueuesLock->Release();

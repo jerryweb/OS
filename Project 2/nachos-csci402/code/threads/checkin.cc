@@ -47,11 +47,12 @@ void CheckIn::StartCheckInStaff() {
 	while (true) {
 		Passenger* p = NULL;
 		bool isExec = false;
-		//airport->checkinLock[id]->Acquire();
+
+		//start 1st C.S.
 		airport->checkinLineLock[airline]->Acquire();
 		airport->checkinLock[id]->Acquire();
+		//check executive line first
 		if (airport->checkinQueues[exec]->Size() > 0) {
-			//airport->checkinLock[id]->Acquire();
 			airport->checkinState[id] = CI_BUSY;
 			p = (Passenger*) airport->checkinQueues[exec]->Remove();
 			isExec = true;
@@ -59,8 +60,8 @@ void CheckIn::StartCheckInStaff() {
 			airport->checkinLineCV[exec]->Signal(
 					airport->checkinLineLock[airline]);
 			airport->checkinLineLock[airline]->Release();
+		//then check my own line
 		} else if (airport->checkinQueues[id]->Size() > 0) {
-			//airport->checkinLock[id]->Acquire();
 			airport->checkinState[id] = CI_BUSY;
 			p = (Passenger*) airport->checkinQueues[id]->Remove();
 			isExec = false;
@@ -68,6 +69,7 @@ void CheckIn::StartCheckInStaff() {
 			airport->checkinLineCV[id]->Signal(
 					airport->checkinLineLock[airline]);
 			airport->checkinLineLock[airline]->Release();
+		//if both empty wait on manager to wake me up
 		} else {
 			airport->checkinState[id] = CI_BREAK;
 			airport->checkinLineLock[airline]->Release();
@@ -77,11 +79,13 @@ void CheckIn::StartCheckInStaff() {
 
 		//handle passenger
 		if (p != NULL) {
-			airport->checkinCV[id]->Wait(airport->checkinLock[id]);
+			airport->checkinCV[id]->Wait(airport->checkinLock[id]);  //end 1st C.S.
 
 			//start check-in
+			//start 2nd C.S.
 			airport->checkinLock[id]->Acquire();
 
+			//handle passenger info
 			airport->airlineLock[airline]->Acquire();
 			passengers++;
 			bp.seatNum = airport->airlines[airline]->seatsAssigned;
@@ -100,9 +104,10 @@ void CheckIn::StartCheckInStaff() {
 			}
 			airport->conveyorLock->Release();
 
+			//tell passenger I'm done
 			airport->checkinCV[id]->Signal(airport->checkinLock[id]);
 			airport->checkinCV[id]->Wait(airport->checkinLock[id]);
-		}
+		}//end 2nd C.S.
 
 		// Check if all passengers are processed, close if done.
 		airport->airlineLock[airline]->Acquire();
@@ -114,7 +119,6 @@ void CheckIn::StartCheckInStaff() {
 			if (airport->finalCheckin[id])
 				currentThread->Finish();
 			else {
-				//airport->checkinLock[id]->Acquire();
 				airport->checkinManagerLock->Acquire();
 				airport->checkinBreakCV[id]->Wait(airport->checkinManagerLock);
 			}
@@ -123,6 +127,7 @@ void CheckIn::StartCheckInStaff() {
 		} else
 			airport->airlineLock[airline]->Release();
 
+		//will only enter this after all passengers boarded
 		if (airport->allFinished) {
 			currentThread->Finish();
 		}

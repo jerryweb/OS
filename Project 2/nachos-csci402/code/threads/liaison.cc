@@ -24,18 +24,14 @@ Passenger* Liaison::CheckForPassengers() {
 	Passenger* p;
 	if (airport->liaisonQueues[id]->Size() > 0) { // If line is not empty, signal next passenger.
 		airport->liaisonState[id] = L_BUSY;
-		//  airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);
-		//airport->liaisonLineCV[id]->Signal(airport->liaisonLock[id]);
 		airport->liaisonLineLock->Acquire();
 		p = (Passenger*) airport->liaisonQueues[id]->Remove();
 		airport->liaisonLineLock->Release();
-
 		printf("Airport Liaison %d directed passenger %d of airline %d\n", id,
 				p->getID(), p->getTicket().airline);
-		// airport->liaisonState[id] = L_BUSY;
 		p->SetAirline(p->getTicket().airline);
 		airport->liaisonLineCV[id]->Signal(airport->liaisonLock[id]);
-	} else { // If line is empty, do nothing; also make sure state is set correctly.
+	} else { // If line is empty, do nothing;
 		p = NULL;
 		airport->liaisonState[id] = L_FREE;
 	}
@@ -53,6 +49,7 @@ Passenger* Liaison::CheckForPassengers() {
 void Liaison::DirectPassengers() {
 	while (true) {
 		Passenger* p = NULL;
+		//start first C.S.
 		airport->liaisonLineLock->Acquire();
 		if (airport->liaisonQueues[id]->Size() > 0) {
 			p = (Passenger*) airport->liaisonQueues[id]->Remove();
@@ -61,9 +58,12 @@ void Liaison::DirectPassengers() {
 			airport->liaisonLineCV[id]->Signal(airport->liaisonLineLock);
 			airport->liaisonLineLock->Release();
 			//wait passenger to start service
-			airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+			airport->liaisonCV[id]->Wait(airport->liaisonLock[id]); //ending first C.S.
+
+			//starting 2nd C.S.
 			airport->liaisonLock[id]->Acquire();
 
+			//acquire data lock to update data
 			airport->liaisonManagerLock->Acquire();
 			p->SetAirline(p->getTicket().airline);
 
@@ -81,9 +81,13 @@ void Liaison::DirectPassengers() {
 			printf("Airport Liaison %d directed passenger %d of airline %d\n",
 					id, p->getID(), p->getTicket().airline);
 
-			airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
+			airport->liaisonCV[id]->Wait(airport->liaisonLock[id]); //ending 2nd C.S.
+
+		//allFinished only be called when all passenger has boarded
 		} else if (airport->allFinished) {
 			currentThread->Finish();
+
+		//if line is empty
 		} else {
 			airport->liaisonState[id] = L_FREE;
 			airport->liaisonLineLock->Release();
