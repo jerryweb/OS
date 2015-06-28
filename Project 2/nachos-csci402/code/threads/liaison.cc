@@ -18,6 +18,7 @@ Liaison::~Liaison() {
 	delete[] totalLuggageWeight;
 }
 
+/****this function is no longer being used in -manager test****/
 // Finds the first passenger in the list (if applicable).
 Passenger* Liaison::CheckForPassengers() {
 	Passenger* p;
@@ -48,64 +49,6 @@ Passenger* Liaison::CheckForPassengers() {
 // airline check-in counter to go to, then remove that passenger from the liaison's 
 // queue
 //----------------------------------------------------------------------
-/*void Liaison::DirectPassengers() {
- Passenger* p = NULL;
-
- while (true) {
- // Check line for passengers.
- airport->liaisonLock[id]->Acquire();
-
- //   airport->liaisonLineLock->Acquire();
- p = CheckForPassengers();
-
- // airport->liaisonLock[id]->Acquire();
- //  airport->liaisonLineLock->Release();
- if (p != NULL) {
- //airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
- //Wait for passenger to give liaison information
- airport->liaisonLock[id]->Acquire();
-
- // This adds the statistics for # of passengers and weight of bags for each
- // of the airlines
-
- passengers[p->getTicket().airline]++;
-
- List *bags = p->getLuggage(); //Temp list for iterating through luggage
- for (int j = bags->Size(); j > 0; j--) { //This calculates the weights of each of the bags
- //and puts it into a temp array to be read
- luggageCount[p->getTicket().airline]++;
- }
- airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
- // airport->liaisonLock[id]->Release();
- }
-
- else {
- airport->liaisonFreeCV[id]->Wait(airport->liaisonLock[id]);
-
- }
-
- //   airport->liaisonLock[id]->Acquire();
-
- if (airport->RequestingLiaisonData[id]) { //prevent race conditions with other liaisons
-
- airport->liaisonManagerLock->Acquire();
-
- //Give manager data
-
- // airport->liaisonLock[id]->Acquire();
- airport->liaisonManagerCV->Signal(airport->liaisonManagerLock);
- airport->liaisonManagerLock->Release();
-
- // Wait for manager to signal that all the data has been collected
- airport->RequestingLiaisonData[id] = false;
-
- airport->liaisonCV[id]->Wait(airport->liaisonLock[id]);
- // Wait for manager to signal that all the data has been collected
- // airport->RequestingLiaisonData[id] = false;
- }
-
- }
- }*/
 
 void Liaison::DirectPassengers() {
 	while (true) {

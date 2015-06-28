@@ -13,6 +13,7 @@ CheckIn::~CheckIn() {
 	airport = NULL;
 }
 
+/****this function is no longer being used in -manager test****/
 Passenger* CheckIn::FindPassenger(int execLine) {
 	Passenger* pass = NULL;
 	if (!airport->checkinQueues[execLine]->IsEmpty()) { // Passenger in executive line.
@@ -36,101 +37,6 @@ Passenger* CheckIn::FindPassenger(int execLine) {
 	}
 	return pass;
 }
-
-/*void CheckIn::StartCheckInStaff() {
- Passenger* pass = NULL;
- bool exec;
- bool talked = false;
- int execLine = airline * 6;
- BoardingPass bp;
- while (true) {
- airport->checkinLineLock[airline]->Acquire();
- if (airport->checkinState[id] != CI_CLOSED) {
- pass = FindPassenger(execLine);
- }
-
- airport->checkinLock[id]->Acquire();
- airport->checkinLineLock[airline]->Release();
- // Process ticket, create boarding pass.
- if (pass != NULL) {
- airport->airlineLock[airline]->Acquire();
- exec = pass->getTicket().executive;
- airport->checkinManagerLock->Acquire();
- passengers++;
- airport->checkinManagerLock->Release();
- bp.seatNum = airport->airlines[airline]->seatsAssigned;
- airport->airlines[airline]->seatsAssigned++;
- bp.gate = airline;
- pass->SetBoardingPass(bp);
-
- if (exec) {
- printf(
- "Airline check-in staff %d of airline %d informs executive class passenger %d to board at gate %d\n",
- id, airline, pass->getID(),
- pass->GetBoardingPass().gate);
- airport->checkinLineCV[execLine]->Signal(
- airport->checkinLineLock[airline]);
- } else {
- printf(
- "Airline check-in staff %d of airline %d informs economy class passenger %d to board at gate %d\n",
- id, airline, pass->getID(),
- pass->GetBoardingPass().gate);
- airport->checkinLineCV[id]->Signal(
- airport->checkinLineLock[airline]);
- }
- airport->airlineLock[airline]->Release();
- // Process luggage and add it to conveyor.
- airport->conveyorLock->Acquire();
- while (!pass->getLuggage()->IsEmpty()) {
- Luggage* bag = (Luggage*) pass->getLuggage()->Remove();
- bag->airlineCode = airline;
- airport->conveyor->Append(bag);
- airport->checkinManagerLock->Acquire();
- luggage++;
- airport->checkinManagerLock->Release();
- weight += bag->weight;
- }
- printf(
- "Airline check-in staff %d of airline %d dropped bags to the conveyor system\n",
- id, airline);
- pass = NULL;
- airport->conveyorLock->Release();
- }
-
- if (airport->RequestingCheckinData[id]) {
- airport->checkinManagerLock->Acquire();
-
- // Give manager data
-
- airport->checkinLock[id]->Acquire();
- airport->checkinManagerCV->Signal(airport->checkinManagerLock);
-
- airport->checkinManagerLock->Release();
-
- airport->checkinCV[id]->Wait(airport->checkinLock[id]);
- //Wait for manager to signal that all the data has been collected
- airport->RequestingCheckinData[id] = false;
- }
-
- // Check if all passengers are processed, close if done.
- airport->airlineLock[airline]->Acquire();
- if (airport->airlines[airline]->seatsAssigned
- >= airport->airlines[airline]->ticketsIssued) {
- airport->checkinLock[id]->Acquire();
- airport->checkinState[id] = CI_CLOSED;
- airport->airlineLock[airline]->Release();
- if (airport->finalCheckin[id])
- currentThread->Finish();
- else
- airport->checkinBreakCV[id]->Wait(airport->checkinLock[id]);
- printf("Airline check-in staff %d is closing the counter\n", id);
- airport->airlineLock[airline]->Acquire();
- airport->finalCheckin[id] = true;
- }
- airport->airlineLock[airline]->Release();
-
- }
- }*/
 
 void CheckIn::StartCheckInStaff() {
 	int exec = airline * 6;
@@ -197,21 +103,6 @@ void CheckIn::StartCheckInStaff() {
 			airport->checkinCV[id]->Signal(airport->checkinLock[id]);
 			airport->checkinCV[id]->Wait(airport->checkinLock[id]);
 		}
-
-		/*if (airport->RequestingCheckinData[id]) {
-		 airport->checkinLock[id];
-		 airport->checkinManagerLock->Acquire();
-
-		 // Give manager data
-		 airport->checkinLock[id]->Acquire();
-		 airport->checkinManagerCV->Signal(airport->checkinManagerLock);
-
-		 airport->checkinManagerLock->Release();
-
-		 airport->checkinDataCV[id]->Wait(airport->checkinLock[id]);
-		 //Wait for manager to signal that all the data has been collected
-		 airport->RequestingCheckinData[id] = false;
-		 }*/
 
 		// Check if all passengers are processed, close if done.
 		airport->airlineLock[airline]->Acquire();
