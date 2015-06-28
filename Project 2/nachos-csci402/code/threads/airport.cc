@@ -115,11 +115,6 @@ Airport::Airport(){
     screenQueuesCV = new Condition*[3];
     securityCV = new Condition*[3];
     securityQueuesCV = new Condition*[3];
-    returnQueuesCV = new Condition*[3];
-    securityFinishCV = new Condition*[3];
-    screenFreeCV = new Condition*[3];
-    securityFreeCV = new Condition*[3];
-    securityManagerCV = new Condition*[3];
 
 
 	for (i = 0; i < 3; i++)
@@ -138,15 +133,9 @@ Airport::Airport(){
 		returnQueues[i] = new List();
 
         screenCV[i] = new Condition("screenCV");
-        screenFreeCV[i] = new Condition("screenFreeCV");
-        securityFinishCV[i] = new Condition("securityFinishCV");
-        securityFreeCV[i] = new Condition("securityFreeCV");
-        securityManagerCV[i] = new Condition("securityManagerCV");
-
         securityCV[i] = new Condition("securityCV");
         screenQueuesCV[i] = new Condition("screenQueuesCV");
         securityQueuesCV[i] = new Condition("securityQueuesCV");
-        returnQueuesCV[i] = new Condition("returnQueuesCV");	
 	}
 }
 
@@ -265,12 +254,6 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
     screenCV = new Condition*[security];
     screenQueuesCV = new Condition*[security];
     securityQueuesCV = new Condition*[security];
-    returnQueuesCV = new Condition*[security];
-    securityFinishCV = new Condition*[security];
-    screenFreeCV = new Condition*[security];
-    securityFreeCV = new Condition*[security];
-    securityManagerCV = new Condition*[security];
-
 
 	for (i = 0; i < security; i++)
     {
@@ -287,14 +270,8 @@ Airport::Airport(int airlineNum, int passengers, int liaisons, int checkins, int
 		returnQueues[i] = new List();
 
         screenCV[i] = new Condition("screenCV");
-        screenFreeCV[i] = new Condition("screenFreeCV");
-        securityFinishCV[i] = new Condition("securityFinishCV");
-        securityFreeCV[i] = new Condition("securityFreeCV");
-        securityManagerCV[i] = new Condition("securityManagerCV");
-
         screenQueuesCV[i] = new Condition("screenQueuesCV");
         securityQueuesCV[i] = new Condition("securityQueuesCV");
-        returnQueuesCV[i] = new Condition("returnQueuesCV");	
 	}
 }
 
@@ -318,5 +295,4 @@ Airport::~Airport() {
     delete[] securityLocks;
     delete securityQueuesLock;
     delete[] screenCV;
-    delete[] securityFinishCV;
 }

@@ -150,20 +150,11 @@ public:
 
 	Lock* securityManagerLock;
 
-
-
-	Lock* endLock;
-
     Condition** screenCV;
-    Condition** screenFreeCV;
     Condition** securityCV;
     Condition** screenQueuesCV;
-    Condition** returnQueuesCV;
     Condition** securityQueuesCV;
-    Condition** securityFinishCV;
-    Condition** securityFreeCV;
-    Condition** securityDataCV;
-    Condition** securityManagerCV;
+
 
 	//  Manager variables
     bool allFinished;
