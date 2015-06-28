@@ -61,7 +61,7 @@ int passengerArrayLock;
 	seperate occasions where one passenger and one liaison will communicate with
 	each other. */
 	Passenger*  passengerLiaisonInteractionOrder[5][21];
-    Passenger*  passengerCheckinInteractionOrder[12][21];
+    Passenger*  passengerCheckinInteractionOrder[21];
 
 Passenger* passengerArray[21];
 /* Liaison variables */
@@ -126,9 +126,15 @@ int cargoManagerCV[6];
 int cargoLock[6];
 CargoState cargoState[6];
 bool requestingCargoData[6];
-/* Screener variables */
-/* Security variables */
+
 /* Manager variables */
+Manager manager;
+	bool cargoHandlersOnBreak;
+	bool liaisonDone;
+	bool CargoDone;
+	bool CheckinDone;
+	bool ready;
+	int counter;
 
 void Init()
 {
@@ -183,6 +189,9 @@ void Init()
 	passengerArray[19] = &p19;
 	passengerArray[20] = &p20;
 	passengerArray[21] = &p21;
+
+	for(i = 5; i<21; i++)
+		passengerArray[i] = NULL;
 
     for(i = 0; i < 6; i++){
     	for (j = 0; j < 21; j++)
@@ -273,8 +282,7 @@ void Init()
         cargoState[i] = C_BUSY;
         requestingCargoData[i] = false;
     }
-    /* Screener variables */
-    /* Security variables */
+
     /* Manager variables */
 }
 
@@ -292,7 +300,6 @@ int findArrayElementCount(Passenger*** array, int pLine){
 
 	return elementCount;
 }
-
 
 
 int findShortestLine(bool CISline, int pCount){
@@ -375,8 +382,8 @@ int findShortestLine(bool CISline, int pCount){
 	}
 }
 
-
 void PassengerFindShortestLiaisonLine(Passenger *p){
+
     int i, elementCount;
 	Acquire(liaisonLineLock);
 	passengerArray[p->id]->myLine = findShortestLine(false, p->id);
@@ -449,9 +456,9 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
 	Printf("Passenger %d of Airline %d is directed to the airline counter.\n",
 		63, 2, passengerArray[p->id]->id*100 + passengerArray[p->id]->airline);
 
-	/*move to the designated checkin counter*/
+	/*move to the designated checkin counter
 	PassengerFindShortestCISLine(passengerArray[p->id]);
-
+	*/
 	Exit(0);
 }
 
@@ -483,10 +490,8 @@ void forkPassenger(){
 }
 
 void PassengerFindShortestCISLine(Passenger *p){
-	int j, elementCount;
+	int i, j, elementCount;
 	int tempID = p->id;
-
-
 	passengerArray[tempID]->myLine = passengerArray[tempID]->airline * 4;
 	Acquire(checkinLineLock[passengerArray[tempID]->ticket->airline]);
 
@@ -852,12 +857,89 @@ void RunCargo()
     Exit(0);
 }
 
+void RunManager(){
+	int i,j,k,l,arrayCount;
+	cargoHandlersOnBreak = false;
+	liaisonDone = false;
+	CargoDone = false;
+	CheckinDone = false;
+	ready = true;
+	counter = 0;
+	/*clearAirline = false;
+	clearAirlineCount =0;*/
+
+	for(i =0; i < 3; i++){
+		liaisonBaggageCount[i] = 0;
+		cargoHandlersBaggageWeight[i] = 0;
+		checkinBaggageWeight[i] = 0;
+		cargoHandlersBaggageCount[i] = 0;
+    	liaisonPassengerCount[i] = 0;	
+    	checkinPassengerCount[i] = 0;
+    	securityInspectorPassengerCount[i] = 0;
+	}
+
+	while(true){
+		Acquire(ConveyorLock);
+
+		arrayCount = 0;
+	    for (i = 0; i < 68; i++){
+			if(conveyor[i] != NULL){
+				arrayCount++;	
+				/*Printf("daf %d\n", 7,1,passengerArray[p->id]->id);*/			
+			}
+		}
+
+		if(arrayCount > 0){
+			counter = 0;
+
+			for ( j = 0; j < 6; ++j){
+				if(cargoState[j] == C_BREAK)
+					counter++;
+			}
+
+			if(counter == 6){
+				Printf("Airport manager calls back all the cargo handlers from break\n",61,0,0);
+				for(k = 0; k < 6; k++){
+					Acquire(cargoLock[k]);
+					Signal(cargoDataCV[k], cargoLock[k]);
+				}
+
+				for(k = 0; k < 6; k++)
+					Release(cargoLock[k]);
+			}
+		}
+
+		Release(ConveyorLock);
+
+		for(l = 0; l < 10; l++)
+			Yield();
+	}
+}
+
+void CheckinDataRequest(){
+	
+}
+
+void ManagerPrint(){
+	Printf("\n",1,0,0);
+	int a;
+    int totalLiaisonPassengers  = 0;
+    int totalCheckinPassengers  = 0;
+    int totalSecurityPassengers = 0;
+	for (int a = 0; a < 3; a++)
+	    {
+	        totalLiaisonPassengers  += liaisonPassengerCount[a];
+	        totalCheckinPassengers  += checkinPassengerCount[a];
+	        totalSecurityPassengers += securityInspectorPassengerCount[a];
+	    }
+}
+
 int main()
 {
     int i;
     
     Init();
-    for (i = 0; i < 21; i++)
+    for (i = 0; i < 5; i++)
     {
     	Fork(forkPassenger, "Passenger", 9);
 	}	
@@ -873,5 +955,7 @@ int main()
     for (i = 0; i < 6; i++)
     {
         Fork(RunCargo, "Cargo", 5);
-    }*/
+    }
+	Fork(RunManager, "Manager",7);
+    */
 }
