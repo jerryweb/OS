@@ -164,8 +164,14 @@ III. Design:
             Find the appropriate print statement and print.
         
         Airport sim:
-            Mostly the same as project 1. Differences include:
-              - 
+            Mostly the same as project 1, including locks and CVs. Differences include:
+              - Because of lack of NULL definition, added "#define NULL (void*)0".
+              - Because of lack of classes in C, uses structs for everything instead.
+              - Numbers pre-defined - see part VI, airportTest for more details.
+              - Because of lack of heap in nachos, statically declares everything in hard-coded arrays instead of lists. Each new array has its own lock to ensure that it is thread-safe.
+              - FIFO for queues is maintained by taking the first element of each array and then moving all others one index up, sticking NULL in the last element.
+              - The luggage conveyor that the check-in staff and cargo use was converted to a stack for simplicity (apparently the conveyor belt broke down mid-conversion and they had to pile up the luggage where the cargo handlers could reach it, hence the newest ones getting picked up first).
+              - New interaction/break order queues record the order in which different objects interact or go on break to avoid overwriting of global variables between threads. More specifically, each agent thread function has a pointer to the struct of that type and every other type it interacts with (e.g. Liaison* l and Passenger* p for the liaison function), which get overwritten with every context switch. Therefore, if the liaison wakes up from a wait without its interaction queue, p will point to the most recently awake passenger instead of the value before the liaison went to sleep. The interaction queue records the order in which passengers sleep so that the liaisons can interact with the correct passenger. However, this may not work with -rs, because the order in which things go to sleep will not always match the order in which they wake up.
 
 IV. Implementation:
 

@@ -96,7 +96,8 @@ bool requestingLiaisonData[5];
 	Checkin ci11;
 int checkinCount;
 int checkinArrayLock;
-	Checkin*  checkinPassengerInteractionOrder[12];
+	Checkin*  checkinBreakOrder[12];
+	Checkin*  checkinManagerInteractionOrder[12];
 Checkin* checkinArray[12];
 Passenger* checkinLine[12][21];
 int checkinLineLock[3];
@@ -253,8 +254,8 @@ void Init()
             checkinState[i] = CI_NONE;
         }
         else checkinState[i] = CI_BUSY;
-        checkinPassengerInteractionOrder[i] = NULL;
-        checkinArray[i] = NULL;
+        checkinBreakOrder[i] = NULL;
+        checkinManagerInteractionOrder[i] = NULL;
         checkinLineCV[i] = CreateCondition("CheckinLineCV", 13);
         checkinCV[i] = CreateCondition("CheckinCV", 9);
         checkinLock[i] = CreateLock("CheckinLock", 11);
@@ -282,7 +283,6 @@ void Init()
     cargoArray[5] = &c5;
     for (i = 0; i < 6; i++)
     {
-        cargoArray[i] = NULL;
         cargoDataCV[i] = CreateCondition("CargoDataCV", 11);
         cargoDataLock[i] = CreateLock("CargoDataLock", 13);
         cargoManagerCV[i] = CreateCondition("CargoManagerCV", 14);
@@ -744,12 +744,12 @@ void RunCheckin()
                 Wait(checkinBreakCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
                 
                 Acquire(checkinArrayLock);
-                ciCount = checkinPassengerInteractionOrder[0]->id;
+                ciCount = checkinBreakOrder[0]->id;
                 for (i = 1; i < 12; i++)
                 {
-                    checkinPassengerInteractionOrder[i-1] = checkinPassengerInteractionOrder[i];
+                    checkinBreakOrder[i-1] = checkinBreakOrder[i];
                 }
-                checkinPassengerInteractionOrder[11] = NULL;
+                checkinBreakOrder[11] = NULL;
                 Release(checkinArrayLock);
                 
                 checkinState[checkinArray[ciCount]->id] = CI_BUSY;
@@ -802,7 +802,16 @@ void RunCheckin()
             Signal(checkinManagerCV[checkinArray[ciCount]->id], checkinManagerLock);
             Release(checkinManagerLock);
             Wait(checkinCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
-            /* manager interaction queue */
+            
+            Acquire(checkinArrayLock);
+            ciCount = checkinManagerInteractionOrder[0]->id;
+            for (i = 1; i < 12; i++)
+            {
+                checkinManagerInteractionOrder[i-1] = checkinManagerInteractionOrder[i];
+            }
+            checkinManagerInteractionOrder[11] = NULL;
+            Release(checkinArrayLock);
+            
             requestingCheckinData[checkinArray[ciCount]->id] = false;
         }
         
@@ -920,8 +929,6 @@ void LiaisonDataRequest(){
 	}
 }
 
-void CheckinDataRequest(){
-}
 
 void ManagerPrint(){
 	
@@ -950,6 +957,72 @@ void ManagerPrint(){
     }
 
 	Printf("\n",1,0,0);
+}
+
+void CheckinDataRequest()
+{
+    int i, j, k;
+    int newCheckinBaggageWeight[3];
+	int newCheckinPassengerCount[3];
+    
+	for (i = 0; i < 3; i++)
+    {
+		newCheckinPassengerCount[i] = 0;
+		newCheckinBaggageWeight[i] = 0;
+	}
+
+	for (j = 0; j < 12; j++)
+    {
+		if (j%4 != 0) /* not 0, 4, or 8 */
+        {
+            if (! finalCheckin[j])
+            {
+                Acquire(checkinManagerLock);
+                requestingCheckinData[j] = true;
+                Signal(checkinBreakCV[j], checkinLock[j]);
+                Wait(checkinManagerCV, checkinManagerLock);
+                Acquire(checkinLock[j]);
+                newCheckinPassengerCount[checkinArray[j]->airline] += checkinArray[j]->passengers;
+                newCheckinBaggageWeight[checkinArray[j]->airline]  += checkinArray[j]->weight;
+                Signal(checkinCV[j], checkinLock[j]);
+                Release(checkinLock[j]);
+            }
+        }
+	}
+	for (k = 0; k < 3; k++)
+    {
+		if (newCheckinPassengerCount[k] > checkinPassengerCount[k])
+            checkinPassengerCount[k] = newCheckinPassengerCount[k];
+		if (newCheckinBaggageWeight[k]  > checkinBaggageWeight[k])
+            checkinBaggageWeight[k]  = newCheckinBaggageWeight[k];
+	}
+}
+
+void CargoDataRequest()
+{
+    int i, j, k;
+    
+	for (i = 0; i < 3; i++)
+    {
+		cargoHandlersBaggageCount[i] = 0;
+		cargoHandlersBaggageWeight[i] = 0;
+	}
+
+	for (j = 0; j < 6; j++) {
+
+			Acquire(cargoManagerLock);
+			requestingCargoData[j] = true;
+			Signal(cargoDataCV[j], cargoLock[j]);
+			Wait(cargoManagerCV[j], cargoManagerLock);
+			Acquire(cargoDataLock[j]);
+			for (k = 0; k < 3; k++) {
+				cargoHandlersBaggageWeight[k] += cargoArray[j]->weight[k];
+				cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
+			}
+			Signal(cargoDataCV[j], cargoDataLock[j]);
+			Release(cargoDataLock[j]);
+
+	}
 }
 
 void RunManager(){
@@ -1006,6 +1079,8 @@ void RunManager(){
 		Release(conveyorLock);
 
 		LiaisonDataRequest();
+		CheckinDataRequest();
+		CargoDataRequest();
 
 		for(m = 0; m < 3; m++){
 			if(!clearAirline[m]){
@@ -1032,6 +1107,7 @@ void RunManager(){
 			Yield();
 	}
 }
+
 int main()
 {
     int i;
