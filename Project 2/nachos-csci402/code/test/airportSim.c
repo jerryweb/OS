@@ -980,7 +980,7 @@ void CheckinDataRequest()
                 Acquire(checkinManagerLock);
                 requestingCheckinData[j] = true;
                 Signal(checkinBreakCV[j], checkinLock[j]);
-                Wait(checkinManagerCV, checkinManagerLock);
+                Wait(checkinManagerCV[j], checkinManagerLock);
                 Acquire(checkinLock[j]);
                 newCheckinPassengerCount[checkinArray[j]->airline] += checkinArray[j]->passengers;
                 newCheckinBaggageWeight[checkinArray[j]->airline]  += checkinArray[j]->weight;
