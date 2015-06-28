@@ -171,7 +171,7 @@ III. Design:
               - Because of lack of heap in nachos, statically declares everything in hard-coded arrays instead of lists. Each new array has its own lock to ensure that it is thread-safe.
               - FIFO for queues is maintained by taking the first element of each array and then moving all others one index up, sticking NULL in the last element.
               - The luggage conveyor that the check-in staff and cargo use was converted to a stack for simplicity (apparently the conveyor belt broke down mid-conversion and they had to pile up the luggage where the cargo handlers could reach it, hence the newest ones getting picked up first).
-              - New interaction/break order queues record the order in which different objects interact or go on break to avoid overwriting of global variables between threads. More specifically, each agent thread function has a pointer to the struct of that type and every other type it interacts with (e.g. Liaison* l and Passenger* p for the liaison function), which get overwritten with every context switch. Therefore, if the liaison wakes up from a wait without its interaction queue, p will point to the most recently awake passenger instead of the value before the liaison went to sleep. The interaction queue records the order in which passengers sleep so that the liaisons can interact with the correct passenger. However, this may not work with -rs, because the order in which things go to sleep will not always match the order in which they wake up.
+              - New interaction/break order queues record the order in which different objects interact(Wait, Signal, etc.) or go on break to avoid overwriting of global variables between threads. More specifically, each agent thread function has a pointer to the struct of that type and every other type it interacts with (e.g. Liaison* l and Passenger* p for the liaison function), which get overwritten with every context switch. Therefore, if the liaison wakes up from a wait without its interaction queue, p will point to the most recently awake passenger instead of the value before that specific liaison went to sleep. The interaction queue records the order in which passengers sleep so that the liaisons can interact with the correct passenger. However, this may not work with -rs, because the order in which things go to sleep will not always match the order in which they wake up.
 
 IV. Implementation:
 
@@ -329,7 +329,7 @@ V. Testing:
         nachos -x ../test/condTest -d z
         nachos -x ../test/printfTest -d z
         run without "-rs" to ensure proper sequence of events
-        "-d z" is necessary to see print statements
+        "-d z" is necessary to see print statements of the creation of locks and thread/process operations
         
         nachos -x ../test/airportTest
 
@@ -728,7 +728,7 @@ VI. Discussion:
         airportTest...does not.
 
 	+ Explanation
-        
+        One of the more difficult tasks was to convert the original airport simulation into system executable code. Since C does not have a heap or the ability to use classes, a large portion of the logic used in our airport had to be changed. This mean that all of our lists, classes, dynamically allocated variables, etc. were incompatible. We decided to use structs as a replacement for the classes as they allowed for a degree of personalization of data. This also meant that dynamic data structures were also unusable, therefore, more primitive data structures such as arrays had to be used and adapted. Our project 1 design of the airport is not opitimal for conversion to a heapless architecture. This is one of the reasons why part 3 presented the most challenge, and also why the -rs function produces race conditions. 
 
 VIII. Miscellaneous:
     Security unfinished

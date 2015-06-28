@@ -469,10 +469,8 @@ void PassengerFindShortestLiaisonLine(Passenger *p){
 	Printf("Passenger %d of Airline %d is directed to the airline counter.\n",
 		63, 2, passengerArray[p->id]->id*100 + passengerArray[p->id]->airline);
 
-	/*move to the designated checkin counter
-	PassengerFindShortestCISLine(passengerArray[p->id]);
-	*/
-	Exit(0);
+	/*move to the designated checkin counter*/
+	PassengerFindShortestCISLine(passengerArray[p->id]);	
 }
 
 void forkPassenger(){
@@ -538,6 +536,8 @@ void PassengerFindShortestCISLine(Passenger *p){
     Release(passengerArrayLock);
 
     /*go to next step*/
+
+    Exit(0);
 }
 
 void RunLiaison()
@@ -905,8 +905,6 @@ void RunCargo()
     Exit(0);
 }
 
-
-
 void ManagerPrint(){
 	
 	int a;
@@ -935,7 +933,6 @@ void ManagerPrint(){
 
 	Printf("\n",1,0,0);
 }
-
 
 void LiaisonDataRequest(){
 	int i, j, k, elementNum;
@@ -1120,13 +1117,12 @@ void RunManager(){
 int main()
 {
     int i;
-    
+    Printf("Initializing Airport\n",21,0,0);
     Init();
     for (i = 0; i < 5; i++)
     {
     	Fork(forkPassenger, "Passenger", 9);
 	}	
-    
     for (i = 0; i < 5; i++)
     {
         Fork(RunLiaison, "Liaison", 7);
@@ -1139,6 +1135,5 @@ int main()
     {
         Fork(RunCargo, "Cargo", 5);
     }
-	Fork(RunManager, "Manager",7);
-    
+	Fork(RunManager, "Manager",7);  
 }
