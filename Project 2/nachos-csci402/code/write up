@@ -742,6 +742,11 @@ VIII. Miscellaneous:
     1. Doing double wait and double signal for all the basic interactions between different classes.
     2. Optimize the data requesting calls made from manager class, instead of using conditions we use locks to simplify the structure, and these eliminate some potential synchronization traps.
     3. Optimize the ending condition for the classes mentioned above.
+    
+   	airportSimSim under test folder:
+   	It is a seperate approach for testing passenger and screen officer/security inspector interactions.
+   	The main difference from airprotSim is trying to mainly use array index (int) to simulate the process.
+   	Unfortunately at the moment it has segmentation fault for some of the helper function for arrays.
       
     
     
