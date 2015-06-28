@@ -491,8 +491,6 @@ void forkPassenger(){
 
 	passengerArray[pCount]->boardingPass->gate = 0;
 	passengerArray[pCount]->boardingPass->seatNum = 0;
-	 35, 2, passengerArray[pCount]->id*100
-	  + passengerArray[pCount]->ticket->airline);
 	Release(passengerArrayLock);
 	PassengerFindShortestLiaisonLine(passengerArray[pCount]);
 }
