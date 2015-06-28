@@ -106,7 +106,7 @@ int checkinCV[12];
 int checkinLock[12];
 int checkinBreakCV[12];
 int checkinManagerLock;
-int checkinManagerCV[12];
+int checkinManagerCV;
 CheckinState checkinState[12];
 bool finalCheckin[12];
 bool requestingCheckinData[12];
@@ -236,6 +236,7 @@ void Init()
     checkinCount = 0;
     checkinArrayLock = CreateLock("CheckinArrayLock", 16);
     checkinManagerLock = CreateLock("CheckinManagerLock", 18);
+    checkinManagerCV = CreateCondition("CheckinManagerCV", 16);
     /*must be statically declared*/
     checkinArray[1] = &ci1;
     checkinArray[2] = &ci2;
@@ -260,7 +261,6 @@ void Init()
         checkinCV[i] = CreateCondition("CheckinCV", 9);
         checkinLock[i] = CreateLock("CheckinLock", 11);
         checkinBreakCV[i] = CreateCondition("CheckinBreakCV", 14);
-        checkinManagerCV[i] = CreateCondition("CheckinManagerCV", 16);
         finalCheckin[i] = false;
         requestingCheckinData[i] = false;;
         for (j = 0; j < 21; j++)
@@ -799,7 +799,7 @@ void RunCheckin()
         {
             Acquire(checkinManagerLock);
             Acquire(checkinLock[checkinArray[ciCount]->id]);
-            Signal(checkinManagerCV[checkinArray[ciCount]->id], checkinManagerLock);
+            Signal(checkinManagerCV, checkinManagerLock);
             Release(checkinManagerLock);
             Wait(checkinCV[checkinArray[ciCount]->id], checkinLock[checkinArray[ciCount]->id]);
             
@@ -1079,8 +1079,8 @@ void RunManager(){
 		Release(conveyorLock);
 
 		LiaisonDataRequest();
-		/*CheckinDataRequest();
-		CargoDataRequest();*/
+		CheckinDataRequest();
+		CargoDataRequest();
 
 		for(m = 0; m < 3; m++){
 			if(!clearAirline[m]){
@@ -1122,14 +1122,14 @@ int main()
     {
         Fork(RunLiaison, "Liaison", 7);
     }
-   /* for (i = 0; i < 9; i++)
+    for (i = 0; i < 9; i++)
     {
         Fork(RunCheckin, "CheckIn", 7);
     }
     for (i = 0; i < 6; i++)
     {
         Fork(RunCargo, "Cargo", 5);
-    }*/
+    }
 	Fork(RunManager, "Manager",7);
     
 }
