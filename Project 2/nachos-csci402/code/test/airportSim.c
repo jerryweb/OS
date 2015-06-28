@@ -816,7 +816,7 @@ void RunCheckin()
         }
         Release(airlineLock[checkinArray[ciCount]->airline]);
     }
-    Exit(0); /* should never reach this line */
+    /*Exit(0); /* should never reach this line */
 }
 
 void RunCargo()
@@ -853,6 +853,7 @@ void RunCargo()
                 cargoState[cargoArray[cCount]->id] = C_BREAK;
             }
             Release(conveyorLock);
+
             Wait(cargoDataCV[cargoArray[cCount]->id], cargoLock[cargoArray[cCount]->id]);
             Printf("hey\n",4,0,0);
             cCount = cargoManagerInteractionOrder[0][0]->id;
@@ -1065,7 +1066,7 @@ void CargoDataRequest()
 			manager.cargoHandlersBaggageCount[k] += cargoArray[j]->luggage[k];
 		}
 
-
+		Signal(cargoCV[j], cargoDataLock[j]);
 		for(ma = 0; ma < 6; ma++){
             if (cargoManagerInteractionOrder[1][ma] == NULL)
             {
@@ -1073,14 +1074,13 @@ void CargoDataRequest()
                 break;
             }
         }
-		Signal(cargoCV[j], cargoDataLock[j]);
 		Release(cargoDataLock[j]);
 
 	}
 }
 
 void RunManager(){
-	int i,j,k,l,m,arrayCount;
+	int i,j,k,l,lol,m,arrayCount;
 
 		int t,u,v,w;
     int newCheckinBaggageWeight[3];
@@ -1126,6 +1126,13 @@ void RunManager(){
 				for(k = 0; k < 6; k++){
 					Acquire(cargoLock[k]);
 					Signal(cargoDataCV[k], cargoLock[k]);
+			       for(lol = 0; lol < 6; lol++){
+			            if (cargoManagerInteractionOrder[0][lol] == NULL)
+			            {
+			                cargoManagerInteractionOrder[0][lol] = cargoArray[j];
+			                break;
+			            }
+		        	}
 				}
 
 				for(k = 0; k < 6; k++)
