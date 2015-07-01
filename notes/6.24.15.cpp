@@ -12,7 +12,7 @@ MMU
 	3. Look in translation tables to find 
 		-location of needed VP 
 			* 3 locations: executable, swap, not on disk
-	4. Find an unused memory page 					// **** the page we select may be from a different process (in reference to the steps below)
+	4. Find an unused physical memory page 					// **** the page we select may be from a different process (in reference to the steps below)
 		a. if memory full, select a page to evict - some policy
 			- if page is dirty, write to swap file									//now translation table must be updated
 			- must update translation tables - to contain swap file location 		//need location and bool of where it is 
@@ -25,7 +25,7 @@ MMU
 	9. Restart the userprogram
 
 CPU Scheduling
-	Task: Which thread gets the CPU nest?
+	Task: Which thread gets the CPU next?
 	  Policy: Rules			Traffic Laws
 	  Mechanism: Implementation
 
@@ -77,5 +77,5 @@ CPU Scheduling
 			Issue: How many priorites?		// Ready Queue for each priority
 				3-5 						// Each ready queue can have a different scheduling policy
 				- not fair 					// Different time slice
-			Isssue: change over time?
+			Issue: change over time?
 				//static vs dynamic

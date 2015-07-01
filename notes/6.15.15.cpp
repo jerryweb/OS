@@ -38,7 +38,7 @@ System Calls
 						8-9 lines of code						//if data, Machos turns it into assembly code only up to 4 arguement
 						#define SC_Yield 10
 
-			When an interrupt occurs, eventuaally the interrupt handler will start up //all it knows there is an interrupt, but not what kind it is
+			When an interrupt occurs, eventually the interrupt handler will start up //all it knows there is an interrupt, but not what kind it is
 				Task 1: Must determine the interrupt type 
 						|
 						V
@@ -84,7 +84,7 @@ System Calls
 									Sizeof("myLock")	//Use this for long strings
 			c = 0; // or c++ etc.
 			Acquire(c);	//c should be the index number into the array of locks and conditinos
-				- We return a value that cannot damage the OS if changed
+				-We return a value that cannot damage the OS if changed
 				-Protect processes from each other
 		}
 
@@ -94,7 +94,7 @@ ExceptionHandler
 			.
 		Lock* l = new Lock(___);
 
-		rv = (int)l;	//dont do this (need verification)
+		rv = (int);	//dont do this (need verification)
 
 We need a table of:
 	Locks - Lock*
