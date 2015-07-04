@@ -288,6 +288,24 @@ AddrSpace::setNewPageTable(){
     RestoreState();
 }
 
+//Copy page table info to the tlb
+void AddrSpace::PageFault(){
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+    //page table index
+    unsigned int PTIndex = machine->ReadRegister(39)/PageSize;
+    //works like a circular queue
+    currentTLB = (currentTLB++) % TLBSize;
+
+    machine->tlb[currentTLB].virtualPage = pageTable[PTIndex].virtualPage;
+    machine->tlb[currentTLB].physicalPage = pageTable[PTIndex].physicalPage;
+    machine->tlb[currentTLB].valid = pageTable[PTIndex].valid;
+    machine->tlb[currentTLB].use = pageTable[PTIndex].use;
+    machine->tlb[currentTLB].dirty = pageTable[PTIndex].dirty; 
+    machine->tlb[currentTLB].readOnly = pageTable[PTIndex].readOnly;
+
+    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
+}
+
 void
 AddrSpace::InitRegisters()
 {
@@ -333,4 +351,8 @@ void AddrSpace::RestoreState()
 {
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+    //incalidate the TLB
+    for(int i = 0; i <TLBSize; i++){
+        machine->tlb[i].valid = false;
+    }
 }

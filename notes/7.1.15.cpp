@@ -51,7 +51,7 @@ Project 3 -3 parts
 				On a context switch
 					- invalidate the TLB //throw out the TLB info
 						* set the valid bit to false
-							//this ca go in the one of the following four places; if put in one of the first two, put it below the existing code
+							//this can go in the one of the following four places; if put in one of the first two, put it below the existing code
 							//Don't put a lock here
 							for(int i = 0; i <TLBSize; i++){
 								machine->TLB[i].valid = false;

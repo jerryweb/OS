@@ -40,6 +40,7 @@ class AddrSpace {
     Table fileTable;			// Table of openfiles
     Table* threadTable;
     TranslationEntry* getPageTable() { return pageTable; }
+    void PageFault();           //handles page fault exceptions
     void setNewPageTable();
     bool getPageTableValidBit(int i);
 

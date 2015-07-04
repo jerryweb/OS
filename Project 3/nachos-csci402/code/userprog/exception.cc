@@ -934,11 +934,18 @@ int GetID_Syscall()
 void SetID_Syscall(int id){
     currentThread->setThreadID(id);
 }
-
+/*
 void PageFault()
 {
     DEBUG('z', "Starting page fault handler\n");
-}
+    //page table index 
+    int PTIndex = machine->ReadRegister(39)/PageSize;
+    for(int i = 0; i < ;i++){
+            currentThread->space->pageTable.
+
+    }
+
+}*/
 
 void ExceptionHandler(ExceptionType which) {
     int type = machine->ReadRegister(2); // Which syscall?
@@ -1067,7 +1074,7 @@ void ExceptionHandler(ExceptionType which) {
     else if(which == PageFaultException)
     {
         DEBUG('a', "Page fault.\n");
-        PageFault();
+        currentThread->space->PageFault();
     }
     else
     {
