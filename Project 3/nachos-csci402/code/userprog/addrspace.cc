@@ -175,8 +175,6 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     for (i = 0; i < numPages; i++) {
     	ppn = memMap->Find();
-    
-        // POPULATE IPT
         
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
     	pageTable[i].physicalPage = ppn; //ppn not i
@@ -186,6 +184,14 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
     					// a separate page, we could set its 
     					// pages to be read-only
+        ipt[ppn].virtualPage = i;
+        ipt[ppn].space = &this;
+        ipt[ppn].processID = id;
+        ipt[ppn].valid = TRUE;
+    	ipt[ppn].use = FALSE;
+    	ipt[ppn].dirty = FALSE;
+    	ipt[ppn].readOnly = FALSE;
+                        
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
             noffH.code.virtualAddr, noffH.code.size);
 
@@ -256,13 +262,21 @@ AddrSpace::setNewPageTable(){
     for (unsigned int i = previousNumPages; i < numPages; ++i)
     {
         ppn = memMap->Find();
-        // POPULATE IPT
+        
         tempTable[i].virtualPage = i;   
         tempTable[i].physicalPage = ppn; //ppn not i
         tempTable[i].valid = TRUE;
         tempTable[i].use = FALSE;
         tempTable[i].dirty = FALSE;
         tempTable[i].readOnly = FALSE;
+        
+        ipt[ppn].virtualPage = i;
+        ipt[ppn].space = &this;
+        ipt[ppn].processID = id;
+        ipt[ppn].valid = TRUE;
+    	ipt[ppn].use = FALSE;
+    	ipt[ppn].dirty = FALSE;
+    	ipt[ppn].readOnly = FALSE;
     }
 
     delete pageTable; 

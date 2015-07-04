@@ -98,7 +98,15 @@ Initialize(int argc, char **argv)
 
     //used for finding unused memory pages
     memMap = new BitMap(NumPhysPages);
-
+    
+    // inverted page table
+    ipt = new TranslationEntryIPT[NumPhysPages];
+    for (int i = 0; i < NumPhysPages; i++)
+    {
+        ipt[i] = new TranslationEntryIPT;
+        ipt[i]->physicalPage = i;
+        ipt[i]->valid = false;
+    }
 
 #endif
 #ifdef FILESYS_NEEDED

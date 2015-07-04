@@ -431,7 +431,8 @@ void Exit_Syscall(int status)
                 if(memMap->Test(i)){
                     DEBUG('z', "clearing page %d for process %d\n", i, AddSP->getID());
                     memMap->Clear(i);
-                    // POPULATE IPT
+                    // assuming vpn = ppn
+                    ipt[i]->valid = false;
                 }
             }
             processTable->Remove(AddSP->getID()); 
@@ -446,7 +447,8 @@ void Exit_Syscall(int status)
                     DEBUG('z', "clearing page %d for thread  hhh %s\n", i, currentThread->getName());
                     // DEBUG('z', "pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
                     memMap->Clear(i);
-                    // POPULATE IPT
+                    // assuming vpn = ppn
+                    ipt[i]->valid = false;
                 }
             }
 
@@ -466,14 +468,14 @@ void Exit_Syscall(int status)
                 if(AddSP == KL->owner){
                     DEBUG('z', "DestroyLock called by exit\n");
                     DestroyLock_Syscall(i);
-                    //lockTable->Remove(i);
                 }
             }
 
             for(unsigned int i = 0; i < AddSP->getNumPages(); i++){
                 if(memMap->Test(i))
                     memMap->Clear(i);
-                    // POPULATE IPT
+                    // assuming vpn = ppn
+                    ipt[i]->valid = false;
             }
             //stop Nachos
             processTable->Remove(AddSP->getID()); 
@@ -488,7 +490,8 @@ void Exit_Syscall(int status)
                 if(memMap->Test(i)){
                     //DEBUG('z', "clearing page %d for thread %s\n", i, currentThread->getName());
                     memMap->Clear(i);
-                    // POPULATE IPT
+                    // assuming vpn = ppn
+                    ipt[i]->valid = false;
                 }
             }
             AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
