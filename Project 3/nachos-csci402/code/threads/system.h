@@ -36,6 +36,7 @@ extern Table* CVTable;
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes		
 extern BitMap* memMap;
+extern Table* ipt;
 
 #ifdef USER_PROGRAM
 #include "machine.h"

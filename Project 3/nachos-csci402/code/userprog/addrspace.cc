@@ -24,7 +24,7 @@
 
 extern "C" { int bzero(char *, int); };
 BitMap *memMap;
-
+Table* ipt;
 
 
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
@@ -175,6 +175,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     for (i = 0; i < numPages; i++) {
     	ppn = memMap->Find();
+    
+        // POPULATE IPT
         
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
     	pageTable[i].physicalPage = ppn; //ppn not i
@@ -254,6 +256,7 @@ AddrSpace::setNewPageTable(){
     for (unsigned int i = previousNumPages; i < numPages; ++i)
     {
         ppn = memMap->Find();
+        // POPULATE IPT
         tempTable[i].virtualPage = i;   
         tempTable[i].physicalPage = ppn; //ppn not i
         tempTable[i].valid = TRUE;
