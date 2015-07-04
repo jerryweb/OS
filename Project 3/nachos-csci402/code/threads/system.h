@@ -38,6 +38,8 @@ extern Table* processTable;				// Table for keeping tracking of all of the addre
 extern BitMap* memMap;
 extern Table* ipt;
 
+int currentTLB;
+
 #ifdef USER_PROGRAM
 #include "machine.h"
 extern Machine* machine;	// user program memory and registers

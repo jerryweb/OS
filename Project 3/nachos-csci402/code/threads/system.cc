@@ -99,6 +99,8 @@ Initialize(int argc, char **argv)
     //used for finding unused memory pages
     memMap = new BitMap(NumPhysPages);
 
+    //Used for the TLB Memory management
+    currentTLB = 0;
 
 #endif
 #ifdef FILESYS_NEEDED
