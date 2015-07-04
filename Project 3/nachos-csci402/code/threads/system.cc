@@ -100,7 +100,7 @@ Initialize(int argc, char **argv)
     memMap = new BitMap(NumPhysPages);
 
     // inverted page table
-    ipt = new TranslationEntryIPT*[NumPhysPages];
+    ipt = new TranslationEntryIPT[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++)
     {
         ipt[i].physicalPage = i;
