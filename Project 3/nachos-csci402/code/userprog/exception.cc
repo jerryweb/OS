@@ -432,7 +432,7 @@ void Exit_Syscall(int status)
                     DEBUG('z', "clearing page %d for process %d\n", i, AddSP->getID());
                     memMap->Clear(i);
                     // assuming vpn = ppn
-                    ipt[i]->valid = false;
+                    ipt[i].valid = false;
                 }
             }
             processTable->Remove(AddSP->getID()); 
@@ -448,7 +448,7 @@ void Exit_Syscall(int status)
                     // DEBUG('z', "pageTable page %d valid set to %s\n", i, currentThread->space->getPageTableValidBit(i));
                     memMap->Clear(i);
                     // assuming vpn = ppn
-                    ipt[i]->valid = false;
+                    ipt[i].valid = false;
                 }
             }
 
@@ -475,7 +475,7 @@ void Exit_Syscall(int status)
                 if(memMap->Test(i))
                     memMap->Clear(i);
                     // assuming vpn = ppn
-                    ipt[i]->valid = false;
+                    ipt[i].valid = false;
             }
             //stop Nachos
             processTable->Remove(AddSP->getID()); 
@@ -491,7 +491,7 @@ void Exit_Syscall(int status)
                     //DEBUG('z', "clearing page %d for thread %s\n", i, currentThread->getName());
                     memMap->Clear(i);
                     // assuming vpn = ppn
-                    ipt[i]->valid = false;
+                    ipt[i].valid = false;
                 }
             }
             AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
