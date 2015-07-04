@@ -171,6 +171,9 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 					numPages, size);
 // first, set up the translation 
     int ppn = 0;
+    
+
+    
     pageTable = new TranslationEntry[numPages];
 
     for (i = 0; i < numPages; i++) {
@@ -198,7 +201,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
             PageSize, noffH.code.inFileAddr + i*PageSize);
     }
-
+    
 
     currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
 
@@ -328,6 +331,6 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
-    machine->pageTable = pageTable;
+    // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 }

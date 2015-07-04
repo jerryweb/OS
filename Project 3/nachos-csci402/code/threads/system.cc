@@ -98,7 +98,7 @@ Initialize(int argc, char **argv)
 
     //used for finding unused memory pages
     memMap = new BitMap(NumPhysPages);
-    
+
     // inverted page table
     ipt = new TranslationEntryIPT[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++)
@@ -107,6 +107,9 @@ Initialize(int argc, char **argv)
         ipt[i]->physicalPage = i;
         ipt[i]->valid = false;
     }
+
+    //Used for the TLB Memory management
+    currentTLB = 0;
 
 #endif
 #ifdef FILESYS_NEEDED
