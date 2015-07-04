@@ -15,6 +15,7 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
+#include "../userprog/translateipt.h"
 #include "../userprog/table.h"
 #include "../userprog/addrspace.h"
 #include <stdio.h>
@@ -36,7 +37,7 @@ extern Table* CVTable;
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes		
 extern BitMap* memMap;
-extern TranslationEntryIPT ipt[NumPhysPages];
+extern TranslationEntryIPT** ipt;
 
 int currentTLB;
 

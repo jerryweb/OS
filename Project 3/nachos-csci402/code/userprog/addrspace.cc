@@ -295,7 +295,8 @@ void AddrSpace::PageFault(){
     unsigned int PTIndex = machine->ReadRegister(39)/PageSize;
     //works like a circular queue
     currentTLB = (currentTLB++) % TLBSize;
-
+    printf("Copying page table data from index %d to the TLB index currentTLB = %d\n", PTIndex, currentTLB);
+    
     machine->tlb[currentTLB].virtualPage = pageTable[PTIndex].virtualPage;
     machine->tlb[currentTLB].physicalPage = pageTable[PTIndex].physicalPage;
     machine->tlb[currentTLB].valid = pageTable[PTIndex].valid;

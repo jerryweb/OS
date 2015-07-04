@@ -1074,6 +1074,7 @@ void ExceptionHandler(ExceptionType which) {
     else if(which == PageFaultException)
     {
         DEBUG('a', "Page fault.\n");
+        printf("Page Fault exception called!\n");
         currentThread->space->PageFault();
     }
     else
