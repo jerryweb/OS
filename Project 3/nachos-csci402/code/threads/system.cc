@@ -103,9 +103,8 @@ Initialize(int argc, char **argv)
     ipt = new TranslationEntryIPT*[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++)
     {
-        ipt[i] = new TranslationEntryIPT;
-        ipt[i]->physicalPage = i;
-        ipt[i]->valid = false;
+        ipt[i].physicalPage = i;
+        ipt[i].valid = false;
     }
 
     //Used for the TLB Memory management

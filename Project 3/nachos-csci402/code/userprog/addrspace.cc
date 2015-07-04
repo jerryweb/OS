@@ -24,7 +24,8 @@
 
 extern "C" { int bzero(char *, int); };
 BitMap *memMap;
-Table* ipt;
+TranslationEntryIPT* ipt;
+int currentTLB;
 
 
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
@@ -188,7 +189,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     					// a separate page, we could set its 
     					// pages to be read-only
         ipt[ppn].virtualPage = i;
-        ipt[ppn].space = &this;
+        ipt[ppn].space = this;
         ipt[ppn].processID = id;
         ipt[ppn].valid = TRUE;
     	ipt[ppn].use = FALSE;
@@ -274,7 +275,7 @@ AddrSpace::setNewPageTable(){
         tempTable[i].readOnly = FALSE;
         
         ipt[ppn].virtualPage = i;
-        ipt[ppn].space = &this;
+        ipt[ppn].space = this;
         ipt[ppn].processID = id;
         ipt[ppn].valid = TRUE;
     	ipt[ppn].use = FALSE;

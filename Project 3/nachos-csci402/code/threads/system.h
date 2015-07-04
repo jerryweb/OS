@@ -18,6 +18,7 @@
 #include "../userprog/translateipt.h"
 #include "../userprog/table.h"
 #include "../userprog/addrspace.h"
+#include "../userprog/translateipt.h"
 #include <stdio.h>
 
 // Initialization and cleanup routines
@@ -37,9 +38,10 @@ extern Table* CVTable;
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes		
 extern BitMap* memMap;
-extern TranslationEntryIPT** ipt;
 
-int currentTLB;
+extern TranslationEntryIPT* ipt;
+
+extern int currentTLB;
 
 #ifdef USER_PROGRAM
 #include "machine.h"
