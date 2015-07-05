@@ -324,8 +324,7 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
-void exec_thread(int n)
-{
+void exec_thread(int n){
     /* Initialize the register by using currentThread->space. */
     currentThread->space->InitRegisters();
     currentThread->space->RestoreState();
@@ -1074,7 +1073,7 @@ void ExceptionHandler(ExceptionType which) {
     else if(which == PageFaultException)
     {
         DEBUG('a', "Page fault.\n");
-        printf("Page Fault exception called!\n");
+        // printf("Page Fault exception called!\n");
         currentThread->space->PageFault();
     }
     else

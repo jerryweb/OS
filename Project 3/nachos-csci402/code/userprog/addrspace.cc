@@ -295,21 +295,22 @@ void AddrSpace::PageFault(){
     //page table index
     unsigned int PTIndex = machine->ReadRegister(39)/PageSize;
     //works like a circular queue
-    //currentTLB = (currentTLB++) % TLBSize;
+    //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
     if(currentTLB >= TLBSize)
         currentTLB = 0;
     else
         currentTLB++;
-    
+    /*
     printf("TLBSize  =%d\n", TLBSize);
     printf("Copying page table data from index %d to the TLB index currentTLB = %d\n", PTIndex, currentTLB);
-    
-    machine->tlb[currentTLB].virtualPage = pageTable[PTIndex].virtualPage;
-    machine->tlb[currentTLB].physicalPage = pageTable[PTIndex].physicalPage;
-    machine->tlb[currentTLB].valid = pageTable[PTIndex].valid;
-    machine->tlb[currentTLB].use = pageTable[PTIndex].use;
-    machine->tlb[currentTLB].dirty = pageTable[PTIndex].dirty; 
-    machine->tlb[currentTLB].readOnly = pageTable[PTIndex].readOnly;
+    */
+    //Changed pageTable to ipt, not sure if this is accurate 
+    machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
+    machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
+    machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
+    machine->tlb[currentTLB].use = ipt[PTIndex].use;
+    machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
+    machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
 
     (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
 }
@@ -352,15 +353,16 @@ void AddrSpace::SaveState()
 // 	On a context switch, restore the machine state so that
 //	this address space can run.
 //
-//      For now, tell the machine where to find the page table.
+//  This will also invalitdate the TLB
 //----------------------------------------------------------------------
 
 void AddrSpace::RestoreState() 
 {
+    printf("RestoreState has been called\n");
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     //incalidate the TLB
-    for(int i = 0; i <TLBSize; i++){
+    for(int i = 0; i <TLBSize; i++)
         machine->tlb[i].valid = false;
-    }
+    
 }
