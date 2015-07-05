@@ -36,8 +36,7 @@ extern Timer *timer;					// the hardware alarm clock
 extern Table* lockTable;				// Tables for the CVs and Locks
 extern Table* CVTable;	
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
-										// for the processes		
-extern BitMap* memMap;
+										// for the processes
 
 extern TranslationEntryIPT* ipt;
 
