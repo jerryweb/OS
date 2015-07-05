@@ -23,7 +23,6 @@
 #include "../threads/synch.h"
 
 extern "C" { int bzero(char *, int); };
-BitMap *memMap;
 TranslationEntryIPT* ipt;
 int currentTLB;
 
@@ -178,7 +177,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     pageTable = new TranslationEntry[numPages];
 
     for (i = 0; i < numPages; i++) {
-    	ppn = memMap->Find();
+        ppn = getFreePage();
         
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
     	pageTable[i].physicalPage = ppn; //ppn not i
@@ -256,7 +255,7 @@ AddrSpace::setNewPageTable(){
     for (unsigned int i = 0; i < previousNumPages; i++) {
         
         tempTable[i].virtualPage = pageTable[i].virtualPage;   
-        tempTable[i].physicalPage = pageTable[i].physicalPage; //ppn not i
+        tempTable[i].physicalPage = pageTable[i].physicalPage;
         tempTable[i].valid = pageTable[i].valid;
         tempTable[i].use = pageTable[i].use;
         tempTable[i].dirty = pageTable[i].dirty;
@@ -265,10 +264,10 @@ AddrSpace::setNewPageTable(){
 
     for (unsigned int i = previousNumPages; i < numPages; ++i)
     {
-        ppn = memMap->Find();
+        ppn = getFreePage();
         
         tempTable[i].virtualPage = i;   
-        tempTable[i].physicalPage = ppn; //ppn not i
+        tempTable[i].physicalPage = ppn;
         tempTable[i].valid = TRUE;
         tempTable[i].use = FALSE;
         tempTable[i].dirty = FALSE;
@@ -378,6 +377,19 @@ int AddrSpace::getPPN(int vpn)
     {
         TranslationEntryIPT t = ipt[i];
         if (t.valid && t.processID == id && t.virtualPage == vpn)
+        {
+            return t.physicalPage;
+        }
+    }
+    return -1;
+}
+
+int AddrSpace::getFreePage()
+{
+    for (int i = 0; i < NumPhysPages; i++)
+    {
+        TranslationEntryIPT t = ipt[i];
+        if (! t.valid)
         {
             return t.physicalPage;
         }

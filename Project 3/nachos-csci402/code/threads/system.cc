@@ -96,9 +96,6 @@ Initialize(int argc, char **argv)
     CVTable = new Table(maxNumCV);
     processTable =  new Table(maxNumProc);
 
-    //used for finding unused memory pages
-    memMap = new BitMap(NumPhysPages);
-
     // inverted page table
     ipt = new TranslationEntryIPT[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++)
