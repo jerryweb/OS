@@ -376,7 +376,7 @@ int AddrSpace::getPPN(int vpn)
     for (int i = 0; i < NumPhysPages; i++)
     {
         TranslationEntryIPT t = ipt[i];
-        if (t.valid && t.processID == id && t.virtualPage == vpn && t.valid)
+        if (t.valid && t.processID == id && t.virtualPage == vpn)
         {
             return t.physicalPage;
         }
