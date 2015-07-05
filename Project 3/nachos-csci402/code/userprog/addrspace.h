@@ -44,6 +44,7 @@ class AddrSpace {
     void setNewPageTable();
     bool getPageTableValidBit(int i);
     int getPPN(int vpn);
+    int getFreePage();
 
  private:
     int id;                         //ID of the address space (used for processes)
