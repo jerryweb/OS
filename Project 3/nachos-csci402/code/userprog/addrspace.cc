@@ -293,7 +293,7 @@ AddrSpace::setNewPageTable(){
 void AddrSpace::PageFault(){
     IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
     //page table index
-    unsigned int PTIndex = machine->ReadRegister(39)/PageSize;
+    unsigned int PTIndex = getPPN(machine->ReadRegister(39)/PageSize); // will return -1 if not found
     //works like a circular queue
     //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
     if(currentTLB >= TLBSize)
@@ -361,7 +361,7 @@ void AddrSpace::RestoreState()
     printf("RestoreState has been called\n");
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
-    //incalidate the TLB
+    //invalidate the TLB
     for(int i = 0; i <TLBSize; i++)
         machine->tlb[i].valid = false;
     
