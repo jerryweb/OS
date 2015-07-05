@@ -293,7 +293,7 @@ AddrSpace::setNewPageTable(){
 void AddrSpace::PageFault(){
     IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
     //page table index
-    unsigned int PTIndex = getPPN(machine->ReadRegister(39)/PageSize); // will return -1 if not found
+    int PTIndex = getPPN((int)machine->ReadRegister(39)/PageSize); // will return -1 if not found
     //works like a circular queue
     //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
     if(currentTLB >= TLBSize)
@@ -305,12 +305,15 @@ void AddrSpace::PageFault(){
     printf("Copying page table data from index %d to the TLB index currentTLB = %d\n", PTIndex, currentTLB);
     */
     //Changed pageTable to ipt, not sure if this is accurate 
-    machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
-    machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
-    machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
-    machine->tlb[currentTLB].use = ipt[PTIndex].use;
-    machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
-    machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
+    if (PTIndex != -1)
+    {
+        machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
+        machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
+        machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
+        machine->tlb[currentTLB].use = ipt[PTIndex].use;
+        machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
+        machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
+    }
 
     (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
 }
@@ -363,6 +366,7 @@ void AddrSpace::RestoreState()
     machine->pageTableSize = numPages;
     //invalidate the TLB
     for(int i = 0; i <TLBSize; i++){
+
         machine->tlb[i].valid = false;
     }
     
