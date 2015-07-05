@@ -366,3 +366,16 @@ void AddrSpace::RestoreState()
         machine->tlb[i].valid = false;
     
 }
+
+int AddrSpace::getPPN(int vpn)
+{
+    for (int i = 0; i < NumPhysPages; i++)
+    {
+        TranslationEntryIPT t = ipt[i];
+        if (t.valid && t.processID == id && t.virtualPage == vpn)
+        {
+            return t.physicalPage;
+        }
+    }
+    return -1;
+}

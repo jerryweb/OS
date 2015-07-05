@@ -43,6 +43,7 @@ class AddrSpace {
     void PageFault();           //handles page fault exceptions
     void setNewPageTable();
     bool getPageTableValidBit(int i);
+    int getPPN(int vpn);
 
  private:
     int id;                         //ID of the address space (used for processes)
