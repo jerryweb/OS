@@ -68,7 +68,7 @@ Project 3 -3 parts
 				* have numPhysPages entries 
 			Still project 2 assumptions
 			Add IPT population code to where pagetable is set 
-				* whereever you do a memMap->Find //index to IPT
+				* whereever you do a memMap->Find //idnex to IPT
 					- AddrSpace constructor
 					- Fork Syscall
 					- Exit 
