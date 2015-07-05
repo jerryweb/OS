@@ -362,8 +362,9 @@ void AddrSpace::RestoreState()
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     //invalidate the TLB
-    for(int i = 0; i <TLBSize; i++)
+    for(int i = 0; i <TLBSize; i++){
         machine->tlb[i].valid = false;
+    }
     
 }
 
@@ -372,7 +373,7 @@ int AddrSpace::getPPN(int vpn)
     for (int i = 0; i < NumPhysPages; i++)
     {
         TranslationEntryIPT t = ipt[i];
-        if (t.valid && t.processID == id && t.virtualPage == vpn)
+        if (t.valid && t.processID == id && t.virtualPage == vpn && t.valid)
         {
             return t.physicalPage;
         }
