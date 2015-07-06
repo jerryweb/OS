@@ -107,6 +107,7 @@ Initialize(int argc, char **argv)
 
     //Used for the TLB Memory management
     currentTLB = 0;
+    evictionPolicy = 1;
 
 #endif
 #ifdef FILESYS_NEEDED

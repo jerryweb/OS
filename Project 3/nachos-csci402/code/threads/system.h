@@ -42,6 +42,8 @@ extern BitMap* memMap;
 extern TranslationEntryIPT* ipt;
 
 extern int currentTLB;
+extern int evictionPolicy;				// Used to determine which memory eviction policy to use 
+										// 0 will use the FIFO policy, and 1 will use the Random policy
 
 #ifdef USER_PROGRAM
 #include "machine.h"

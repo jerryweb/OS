@@ -144,6 +144,7 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
     unsigned int i, size;
     int maxNumThreads = 128;
     id = processTable->Put(this);           //adds a process to the process table
+    FIFOEvictionQueue = new List();
 
     //Keep track of all of the threads that belong to the process
     threadTable = new Table(maxNumThreads);
@@ -258,25 +259,40 @@ AddrSpace::setNewPageTable(){
 //----------------------------------------------------------------------------
 // The following two functions are the different eviction policies used to replace
 // pages in memory. The 2 policies are Random and FIFO.
+// Random Eviction will remove a random page from the IPT seeded by the runtime of the 
+// process. FIFO Eviction will evict the page that has been in the IPT the longest.
 //----------------------------------------------------------------------------
+int HandleMemoryFull(){
+   //Random Eviction
+    if(evictionPolicy == 1){             //default set in system.cc
+        srand(time(NULL));
+        int pageIndex = rand() % NumPhysPages - 1;
+        ipt[pageIndex].valid = false;
+        printf("Randomly evicted page %d from the IPT\n", pageIndex);
+    }
+    
+    //FIFO Eviction
+    else{
+        int pageIndex = (int*)FIFOEviction->Remove();
+        ipt[pageIndex].valid = false;
+        printf("Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
+    } 
 
-void RandomEviction(){
-    srand(time(NULL));
-    int randNum = rand() % NumPhysPages - 1;
-}
-
-void FIFOEviction(){
-
-}
+    return pageIndex;
+} 
 
 int HandleIPTMiss(int vpn)
 {
     int ppn = getFreePage();
     
     // if ppn = -1, kick a page
-    if(ppn == -1){
-        RandomEviction();
-    }
+    if(ppn == -1)
+        ppn = HandleMemoryFull();
+    
+    // if not -1, then add the ppn the the FIFO queue
+    // else
+    //     FIFOEvictionQueue->Append((void*)ppn);
+    
     //  if dirty is true, move to swap
 
     // if vpn is not stack
@@ -297,6 +313,10 @@ int HandleIPTMiss(int vpn)
     ipt[ppn].use = FALSE;
     ipt[ppn].dirty = FALSE;
     ipt[ppn].readOnly = FALSE;
+
+    // add ppn to the FIFO queue
+    FIFOEvictionQueue->Append((void*)ppn);
+
     
     /* copy from executable code
     
