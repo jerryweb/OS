@@ -171,9 +171,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 					numPages, size);
 // first, set up the translation 
     int ppn = 0;
-    
 
-    
     pageTable = new TranslationEntry[numPages];
 
     for (i = 0; i < numPages; i++) {
@@ -206,8 +204,6 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     
 
     currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
-
-    
 
     //machine->mainMemory[ppn * PageSize];
 // zero out the entire address space, to zero the unitialized data segment 
@@ -326,7 +322,20 @@ void AddrSpace::PageFault(){
     else
         currentTLB++;
 
-    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
+    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
+
+    int ppn = 1; 
+    if(getFreePage() != (-1))
+        ppn = getFreePage();
+    else
+        printf("no free physical page; ppn will remain 1\n");
+
+    /*Step 3 goes here*/
+
+    if (ppn == 1){
+        //pageTable[1].virtualPage may not be the correct vpn that is passed in
+        ppn = HandleIPTMiss(pageTable[1].virtualPage);
+    }
 }
 
 void
@@ -375,16 +384,17 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
     //DEBUG('z', "RestoreState has been called\n");
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     //invalidate the TLB
-    currentTLB = 0;
     for(int i = 0; i <TLBSize; i++)
     {
         DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
         machine->tlb[i].valid = false;
     }
+    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
 }
 
 int AddrSpace::getPPN(int vpn)
