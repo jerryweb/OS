@@ -146,6 +146,9 @@ SwapHeader (NoffHeader *noffH)
 //----------------------------------------------------------------------
 
 AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
+    
+    srand(time(NULL));
+    
     exec = executable;
     NoffHeader noffH;
     int i;
@@ -191,7 +194,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     for (i = 0; i < (int)numPages; i++)
     {
-        DEBUG('z',"AddrSpace: setting page %d invalid\n", i);
+        DEBUG('z', "AddrSpace: setting page %d invalid\n", i);
         
     	pageTable[i].valid = FALSE;
         if (i < execSize)
@@ -293,7 +296,7 @@ int AddrSpace::HandleMemoryFull(){
         }
 
         // ipt[pageIndex].valid = false;
-        DEBUG('z', "Randomly evicted page %d from the IPT\n", pageIndex);
+        DEBUG('z', "HandleMemoryFull: Randomly evicted page %d from the IPT\n", pageIndex);
     }
     
     //FIFO Eviction
@@ -312,23 +315,22 @@ int AddrSpace::HandleMemoryFull(){
             }
             (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
         }
-        DEBUG('z', "Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
+
         // ipt[pageIndex].valid = false;
-        
+        DEBUG('z', "HandleMemoryFull: Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
     } 
 
     //If dirty is true, move to swap
     if(ipt[pageIndex].dirty){
-        DEBUG('z', "accessing swapfile\n");
+        DEBUG('z', "HandleMemoryFull: Accessing swapfile\n");
         //write to swapfile
         int sf = swapFileMap->Find();
         if(sf != -1){
-            DEBUG('z', "Writing page %d of ipt to the swapfile.\n", pageIndex);
-
-            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize * sf);
+            DEBUG('z', "HandleMemoryFull: Writing page %d of ipt to swapfile pos %d.\n", pageIndex, sf);
+            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize*sf);
         }
         else
-            printf("swapfile full!!\n");
+            printf("HandleMemoryFull: swapfile full!!\n");
     }
     
     ipt[pageIndex].valid = false;
@@ -400,7 +402,7 @@ void AddrSpace::PageFault(){
     }
     
     DEBUG('z', "PageFault: copying ppn %d to tlb %d\n", PTIndex, currentTLB);
-
+    
 
     machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
     machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
