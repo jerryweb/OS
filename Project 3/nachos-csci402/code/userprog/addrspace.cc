@@ -300,16 +300,6 @@ void AddrSpace::PageFault(){
     //page table index
     int PTIndex = getPPN((int)machine->ReadRegister(39)/PageSize); // will return -1 if not found
     DEBUG('z', "PageFault: reg = %d, vpn = %d, ppn = %d\n", (int)machine->ReadRegister(39), (int)machine->ReadRegister(39)/PageSize, PTIndex);
-    //works like a circular queue
-    //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
-    if(currentTLB >= TLBSize)
-        currentTLB = 0;
-    else
-        currentTLB++;
-    /*
-    printf("TLBSize  =%d\n", TLBSize);
-    printf("Copying page table data from index %d to the TLB index currentTLB = %d\n", PTIndex, currentTLB);
-    */
     //Changed pageTable to ipt, not sure if this is accurate 
     if (PTIndex != -1)
     {
@@ -323,6 +313,13 @@ void AddrSpace::PageFault(){
         machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
     }
 
+    //works like a circular queue
+    //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
+    if(currentTLB >= TLBSize - 1)
+        currentTLB = 0;
+    else
+        currentTLB++;
+    
     (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
 }
 

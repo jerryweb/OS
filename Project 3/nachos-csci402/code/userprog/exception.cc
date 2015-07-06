@@ -269,12 +269,12 @@ void kernel_function(int vaddr)
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
-
+    
     int stackPage = currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8;
     currentThread->setStackLocation(stackPage);
     DEBUG('z', "Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), stackPage*PageSize, stackPage, stackPage + 7);
 
-    machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
+    machine->WriteRegister(StackReg, stackPage*PageSize);
 
     DEBUG('z', "Fork: Thread %s: Running\n", currentThread->getName());
     
