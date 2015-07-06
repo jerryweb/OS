@@ -399,10 +399,10 @@ void Exit_Syscall(int status)
     AddSP->threadTable->lockAcquire();
     
     int threadStackLoc = AddSP->getNumPages() - ((AddSP->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8);
+    printf("The contents of register 4 is %d\n", machine->ReadRegister(4));
 
     if(processTable->getCount() != 1){
         //use the known vpn indicies to find the corresponding ppn to clear and set the valid bit false
-
         // Reclaim all memory associated with the Address AddSP if this is the last 
         // thread in the process
         if(AddSP->threadTable->getCount() == 1){

@@ -35,6 +35,7 @@ TranslationEntryIPT* ipt;
 BitMap* swapFileMap;
 int currentTLB;
 int evictionPolicy;
+OpenFile* swapFile;
 
 
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
@@ -152,7 +153,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     int maxNumThreads = 128;
     id = processTable->Put(this);           //adds a process to the process table
     FIFOEvictionQueue = new List();
-
+    srand(time(NULL));
     //Keep track of all of the threads that belong to the process
     threadTable = new Table(maxNumThreads);
     currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
@@ -178,7 +179,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     size = numPages * PageSize;     //page size is 128 bytes
 
-    ASSERT(numPages <= NumPhysPages);	// check we're not trying
+    //ASSERT(numPages <= NumPhysPages);	// check we're not trying
                                         // to run anything too big --
                                         // at least until we have
                                         // virtual memory
@@ -190,7 +191,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     for (i = 0; i < (int)numPages; i++)
     {
-        printf("AddrSpace: setting page %d invalid\n", i);
+        DEBUG('z',"AddrSpace: setting page %d invalid\n", i);
         
     	pageTable[i].valid = FALSE;
         if (i < execSize)
@@ -273,12 +274,13 @@ int AddrSpace::HandleMemoryFull(){
 
    //Random Eviction
     if(evictionPolicy == 1){             //default set in system.cc
-        srand(time(NULL));
-        pageIndex = rand() % (NumPhysPages - 1);
+        
+        pageIndex = rand() % NumPhysPages;
 
         if (ipt[pageIndex].processID == id){
             IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
-
+            DEBUG('p', "My page was selected, %d\n", pageIndex);
+            
             for(int i = 0;i < TLBSize; i++){
                 if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
                     if(machine->tlb[i].valid){
@@ -290,7 +292,7 @@ int AddrSpace::HandleMemoryFull(){
             (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
         }
 
-        ipt[pageIndex].valid = false;
+        // ipt[pageIndex].valid = false;
         DEBUG('z', "Randomly evicted page %d from the IPT\n", pageIndex);
     }
     
@@ -310,22 +312,26 @@ int AddrSpace::HandleMemoryFull(){
             }
             (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
         }
-        ipt[pageIndex].valid = false;
         DEBUG('z', "Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
+        // ipt[pageIndex].valid = false;
+        
     } 
 
     //If dirty is true, move to swap
     if(ipt[pageIndex].dirty){
         DEBUG('z', "accessing swapfile\n");
         //write to swapfile
-        int sf = swapFileMap.find();
+        int sf = swapFileMap->Find();
         if(sf != -1){
             DEBUG('z', "Writing page %d of ipt to the swapfile.\n", pageIndex);
-            swapFile->Write(ipt[pageIndex], PageSize);
+
+            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize * sf);
         }
         else
             printf("swapfile full!!\n");
     }
+    
+    ipt[pageIndex].valid = false;
 
     return pageIndex;
 } 
@@ -394,11 +400,7 @@ void AddrSpace::PageFault(){
     }
     
     DEBUG('z', "PageFault: copying ppn %d to tlb %d\n", PTIndex, currentTLB);
-    
-    if(machine->TLB[currentTLB].valid){
-        //copy dirty bit to IPT
-        ipt[PTIndex].dirty = machine->TLB[currentTLB].dirty;
-    }
+
 
     machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
     machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
