@@ -319,5 +319,11 @@ Thread::RestoreUserState()
 {
     for (int i = 0; i < NumTotalRegs; i++)
 	machine->WriteRegister(i, userRegisters[i]);
+    //invalidate the TLB
+    /*for(int i = 0; i <TLBSize; i++)
+    {
+        DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
+        machine->tlb[i].valid = false;
+    }*/
 }
 #endif

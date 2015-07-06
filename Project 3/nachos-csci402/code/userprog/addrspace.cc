@@ -299,13 +299,11 @@ void AddrSpace::PageFault(){
     IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
     //page table index
     int PTIndex = getPPN((int)machine->ReadRegister(39)/PageSize); // will return -1 if not found
+    //PTIndex = machine->ReadRegister(39)/PageSize;
     DEBUG('z', "PageFault: reg = %d, vpn = %d, ppn = %d\n", (int)machine->ReadRegister(39), (int)machine->ReadRegister(39)/PageSize, PTIndex);
     //works like a circular queue
     //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
-    if(currentTLB >= TLBSize)
-        currentTLB = 0;
-    else
-        currentTLB++;
+
     /*
     printf("TLBSize  =%d\n", TLBSize);
     printf("Copying page table data from index %d to the TLB index currentTLB = %d\n", PTIndex, currentTLB);
@@ -322,6 +320,11 @@ void AddrSpace::PageFault(){
         machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
         machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
     }
+
+    if(currentTLB >= TLBSize - 1)
+        currentTLB = 0;
+    else
+        currentTLB++;
 
     (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
 }
@@ -357,7 +360,10 @@ AddrSpace::InitRegisters()
 //----------------------------------------------------------------------
 
 void AddrSpace::SaveState() 
-{}
+{
+
+    
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
@@ -373,12 +379,12 @@ void AddrSpace::RestoreState()
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     //invalidate the TLB
+    currentTLB = 0;
     for(int i = 0; i <TLBSize; i++)
     {
         DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
         machine->tlb[i].valid = false;
     }
-    
 }
 
 int AddrSpace::getPPN(int vpn)
