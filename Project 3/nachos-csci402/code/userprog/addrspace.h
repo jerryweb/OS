@@ -22,7 +22,7 @@
 #define MaxOpenFiles 256
 #define MaxChildSpaces 256
 
-class TranslationEntry;
+class TranslationEntryExec;
 
 class AddrSpace {
   public:
@@ -39,7 +39,8 @@ class AddrSpace {
     int getID() { return id; }
     Table fileTable;			// Table of openfiles
     Table* threadTable;
-    TranslationEntry* getPageTable() { return pageTable; }
+    TranslationEntryExec* getPageTable() { return pageTable; }
+    int HandleIPTMiss(int vpn);
     void PageFault();           //handles page fault exceptions
     void setNewPageTable();
     int getPPN(int vpn);
@@ -47,7 +48,7 @@ class AddrSpace {
 
  private:
     int id;                         //ID of the address space (used for processes)
-    TranslationEntry *pageTable;	// Assume linear page table translation
+    TranslationEntryExec *pageTable;	// Assume linear page table translation
 					// for now!
     // int codeSize;
     unsigned int numPages;		// Number of pages in the virtual 

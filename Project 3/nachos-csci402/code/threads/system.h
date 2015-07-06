@@ -19,6 +19,7 @@
 #include "../userprog/table.h"
 #include "../userprog/addrspace.h"
 #include "../userprog/translateipt.h"
+#include "../userprog/translateexec.h"
 #include <stdio.h>
 
 // Initialization and cleanup routines
