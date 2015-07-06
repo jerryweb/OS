@@ -53,6 +53,8 @@ struct KernelCondition
 //table for processes
 Table* processTable;
 
+BitMap* memMap;
+
 void DestroyLock_Syscall(int id);
 void DestroyCondition_Syscall(int id);
 

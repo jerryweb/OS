@@ -32,7 +32,9 @@ int getPPN(int vpn);
 
 extern "C" { int bzero(char *, int); };
 TranslationEntryIPT* ipt;
+BitMap* swapFileMap;
 int currentTLB;
+int evictionPolicy;
 
 
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
