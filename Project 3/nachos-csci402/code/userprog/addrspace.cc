@@ -138,10 +138,11 @@ SwapHeader (NoffHeader *noffH)
 //      constructed set to false.
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
-    executable = executable_;
+AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
+    exec = executable;
     NoffHeader noffH;
-    unsigned int i, size;
+    int i;
+    unsigned int size;
     int maxNumThreads = 128;
     id = processTable->Put(this);           //adds a process to the process table
 
@@ -153,7 +154,7 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
     fileTable.Put(0);
     fileTable.Put(0);
 
-    executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    exec->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
@@ -177,27 +178,21 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
-    // first, set up the translation 
-    int ppn = 0;
     
     pageTable = new TranslationEntryExec[numPages];
 
-    for (i = 0; i < numPages; i++)
+    for (i = 0; i < (int)numPages; i++)
     {
         printf("AddrSpace: setting page %d invalid\n", i);
         
     	pageTable[i].valid = FALSE;
-    	pageTable[i].byteOffset = noffH.code.inFileAddr + i*PageSize;
-        if (i < execSize) pageTable[i].inExec = EXEC;
+        if (i < execSize)
+        {
+            pageTable[i].inExec = EXEC;
+            pageTable[i].byteOffset = noffH.code.inFileAddr + i*PageSize;
+        }
         else pageTable[i].inExec = NONE;
     }
-
-    //machine->mainMemory[ppn * PageSize];
-// zero out the entire address space, to zero the unitialized data segment 
-// and the stack segment
-    //need to delete this once we start using exec and the constructor gets called
-    //more than once
-    //bzero(machine->mainMemory, size);
 }   
 
 //----------------------------------------------------------------------
@@ -268,12 +263,16 @@ int AddrSpace::HandleIPTMiss(int vpn)
     // if ppn = -1, kick a page
     //  if dirty is true, move to swap
     
+    DEBUG('z', "HandleIPTMiss: setting page %d valid\n", vpn);
+    
     pageTable[vpn].virtualPage = vpn;   
     pageTable[vpn].physicalPage = ppn;
     pageTable[vpn].valid = TRUE;
     pageTable[vpn].use = FALSE;
     pageTable[vpn].dirty = FALSE;
     pageTable[vpn].readOnly = FALSE;
+    
+    DEBUG('z', "HandleIPTMiss: setting physical page %d valid\n", ppn);
     
     ipt[ppn].virtualPage = vpn;
     ipt[ppn].physicalPage = ppn;
@@ -286,10 +285,14 @@ int AddrSpace::HandleIPTMiss(int vpn)
     
     if (vpn < execSize)
     {
-        executable->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
+        DEBUG('z', "HandleIPTMiss: copying code from executable at offset %d\n", pageTable[vpn].byteOffset);
         
-        pageTable[vpn].inExec = EXEC; // should already be set
+        exec->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
+        
+        pageTable[vpn].inExec = EXEC; // should already be set, but just in case
     }
+    
+    return ppn;
 }
 //Copy page table info to the tlb
 void AddrSpace::PageFault(){
@@ -300,21 +303,19 @@ void AddrSpace::PageFault(){
     DEBUG('z', "PageFault: reg = %d, vpn = %d, ppn = %d\n", (int)machine->ReadRegister(39), (int)machine->ReadRegister(39)/PageSize, PTIndex);
 
     //Changed pageTable to ipt, not sure if this is accurate 
-    if (PTIndex != -1)
+    if (PTIndex == -1)
     {
-        DEBUG('z', "PageFault: copying ppn %d to tlb %d\n", PTIndex, currentTLB);
-        
-        machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
-        machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
-        machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
-        machine->tlb[currentTLB].use = ipt[PTIndex].use;
-        machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
-        machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
+        PTIndex = HandleIPTMiss((int)machine->ReadRegister(39)/PageSize);
     }
-    else
-    {
-        HandleIPTMiss((int)machine->ReadRegister(39)/PageSize);
-    }
+    
+    DEBUG('z', "PageFault: copying ppn %d to tlb %d\n", PTIndex, currentTLB);
+    
+    machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
+    machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
+    machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
+    machine->tlb[currentTLB].use = ipt[PTIndex].use;
+    machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
+    machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
     
     if(currentTLB >= TLBSize - 1)
         currentTLB = 0;

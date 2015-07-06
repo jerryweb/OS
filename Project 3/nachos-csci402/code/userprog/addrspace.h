@@ -54,7 +54,7 @@ class AddrSpace {
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
     // int stackPage;  //stack page location of the threads
-    OpenFile* executable;
+    OpenFile* exec;
     int execSize;
     
 };
