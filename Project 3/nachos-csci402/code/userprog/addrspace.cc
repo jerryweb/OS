@@ -406,6 +406,10 @@ void AddrSpace::PageFault(){
     machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
     machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
     machine->tlb[currentTLB].use = ipt[PTIndex].use;
+    // if(machine->tlb[currentTLB].valid){
+    //     //copy dirty bit to IPT
+    //     ipt[PTIndex].dirty = machine->tlb[currentTLB].dirty;
+    // }
     machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
     machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
     
@@ -474,6 +478,10 @@ void AddrSpace::RestoreState()
     for(int i = 0; i <TLBSize; i++)
     {
         DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
+        if(machine->tlb[i].valid){
+            //copy dirty bit to IPT
+            ipt[machine->tlb[i].physicalPage].dirty = machine->tlb[i].dirty;
+        }
         machine->tlb[i].valid = false;
     }
     (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
