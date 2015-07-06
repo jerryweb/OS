@@ -270,7 +270,7 @@ int HandleMemoryFull(){
    //Random Eviction
     if(evictionPolicy == 1){             //default set in system.cc
         srand(time(NULL));
-        int pageIndex = rand() % NumPhysPages - 1;
+        int pageIndex = rand() % (NumPhysPages - 1);
         ipt[pageIndex].valid = false;
         printf("Randomly evicted page %d from the IPT\n", pageIndex);
     }
@@ -281,6 +281,15 @@ int HandleMemoryFull(){
         ipt[pageIndex].valid = false;
         printf("Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
     } 
+    if(ipt[pageIndex].dirty){
+        //write to swapfile
+        //int sf = swapFileMap.find();
+        //if(sf != -1)
+        // ****code****
+        //
+        //else
+        //printf("swapfile full!!\n");
+    }
 
     return pageIndex;
 } 

@@ -96,7 +96,18 @@ Initialize(int argc, char **argv)
     CVTable = new Table(maxNumCV);
     processTable =  new Table(maxNumProc);
     memMap = new BitMap(NumPhysPages);
+    swapFileMap = new BitMap(5000);
+    
+    // Swap File
+    /*ADD CODE HERE*/
+    /* *swapFile = fileSystem->Open("swapfile.cc");
+    if (swapFile == NULL) {
+        printf("Unable to open swapFile\n");
+        return;
+    }
 
+
+    */
     // inverted page table
     ipt = new TranslationEntryIPT[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++)
