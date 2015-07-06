@@ -41,7 +41,7 @@ StartProcess(char *filename)
 
     // space->threadTable->Put(currentThread);  //moved to address space constructor
 
-    delete executable;			// close file
+    //delete executable;			// close file
 
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
