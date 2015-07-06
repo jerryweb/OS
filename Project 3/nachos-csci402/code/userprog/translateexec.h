@@ -8,7 +8,7 @@
 #include "utility.h"
 #include "../machine/translate.h"
 
-enum PageLoc {NONE, EXEC, SWAP};
+enum PageLoc {NEITHER, EXEC, SWAP};
 
 class TranslationEntryExec : public TranslationEntry {
   public:

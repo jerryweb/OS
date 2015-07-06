@@ -196,7 +196,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
             pageTable[i].inExec = EXEC;
             pageTable[i].byteOffset = noffH.code.inFileAddr + i*PageSize;
         }
-        else pageTable[i].inExec = NONE;
+        else pageTable[i].inExec = NEITHER;
     }
 }   
 
@@ -252,7 +252,7 @@ AddrSpace::setNewPageTable(){
         DEBUG('z', "setNewPageTable: setting page %d invalid\n", ppn);
         
         tempTable[i].valid = FALSE;
-        pageTable[i].inExec = NONE;
+        pageTable[i].inExec = NEITHER;
     }
 
     delete pageTable; 
