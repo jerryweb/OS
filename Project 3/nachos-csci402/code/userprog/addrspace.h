@@ -54,6 +54,7 @@ class AddrSpace {
 					// address space
     // int stackPage;  //stack page location of the threads
     OpenFile* executable;
+    int execSize;
     
 };
 

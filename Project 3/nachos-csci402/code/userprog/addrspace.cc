@@ -143,6 +143,7 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
 
     //Keep track of all of the threads that belong to the process
     threadTable = new Table(maxNumThreads);
+    currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
 
     // Don't allocate the input or output to disk files
     fileTable.Put(0);
@@ -156,66 +157,34 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
 
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
     DEBUG('a', "Initializing address space... size %d\n", size);
-
+    
+    execSize = divRoundUp(size, PageSize);
+    
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
                         // we need to increase the size
 						// to leave room for the stack
 
-    size = numPages * PageSize; //page size is 128 bytes
+    size = numPages * PageSize;     //page size is 128 bytes
 
-    ASSERT(numPages <= NumPhysPages);		// check we're not trying
-						// to run anything too big --
-						// at least until we have
-						// virtual memory
+    ASSERT(numPages <= NumPhysPages);	// check we're not trying
+                                        // to run anything too big --
+                                        // at least until we have
+                                        // virtual memory
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
-// first, set up the translation 
-    int ppn = 0;
     
-
+    int ppn = 0;
     
     pageTable = new TranslationEntry[numPages];
 
-    for (i = 0; i < numPages; i++) {
-        ppn = getFreePage();
+    for (i = 0; i < numPages; i++)
+    {
         
-        printf("AddrSpace: setting physical page %d valid\n", ppn);
+        printf("AddrSpace: setting page %d invalid\n", i);
         
-        pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-    	pageTable[i].physicalPage = ppn; //ppn not i
     	pageTable[i].valid = FALSE;
-    	pageTable[i].use = FALSE;
-    	pageTable[i].dirty = FALSE;
-    	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
-    					// a separate page, we could set its 
-    					// pages to be read-only
-        ipt[ppn].virtualPage = i;
-        ipt[ppn].space = this;
-        ipt[ppn].processID = id;
-        ipt[ppn].valid = TRUE;
-    	ipt[ppn].use = FALSE;
-    	ipt[ppn].dirty = FALSE;
-    	ipt[ppn].readOnly = FALSE;
-                        
-        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
-            noffH.code.virtualAddr, noffH.code.size);
-
-        executable->ReadAt(&(machine->mainMemory[ppn * PageSize]),
-            PageSize, noffH.code.inFileAddr + i*PageSize);
     }
-    
-
-    currentThread->setThreadTableLocation(threadTable->Put(currentThread));        //adds the thread to the thread table
-
-    
-
-    //machine->mainMemory[ppn * PageSize];
-// zero out the entire address space, to zero the unitialized data segment 
-// and the stack segment
-    //need to delete this once we start using exec and the constructor gets called
-    //more than once
-    //bzero(machine->mainMemory, size);
 
 }   
 
@@ -229,6 +198,7 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
 AddrSpace::~AddrSpace()
 {
     delete pageTable;
+    delete threadTable;
 }
 
 //----------------------------------------------------------------------
@@ -251,7 +221,8 @@ AddrSpace::setNewPageTable(){
 
     int ppn = 0;
     //copy over old Page Table data
-    for (unsigned int i = 0; i < previousNumPages; i++) {
+    for (unsigned int i = 0; i < previousNumPages; i++)
+    {
         
         DEBUG('z', "setNewPageTable: copying page %i\n", i);
         
@@ -265,24 +236,9 @@ AddrSpace::setNewPageTable(){
 
     for (unsigned int i = previousNumPages; i < numPages; ++i)
     {
-        ppn = getFreePage();
+        DEBUG('z', "setNewPageTable: setting page %d invalid\n", ppn);
         
-        DEBUG('z', "setNewPageTable: setting physical page %d valid\n", ppn);
-        
-        tempTable[i].virtualPage = i;   
-        tempTable[i].physicalPage = ppn;
         tempTable[i].valid = FALSE;
-        tempTable[i].use = FALSE;
-        tempTable[i].dirty = FALSE;
-        tempTable[i].readOnly = FALSE;
-        
-        ipt[ppn].virtualPage = i;
-        ipt[ppn].space = this;
-        ipt[ppn].processID = id;
-        ipt[ppn].valid = TRUE;
-    	ipt[ppn].use = FALSE;
-    	ipt[ppn].dirty = FALSE;
-    	ipt[ppn].readOnly = FALSE;
     }
 
     delete pageTable; 
@@ -291,14 +247,39 @@ AddrSpace::setNewPageTable(){
     RestoreState();
 }
 
-void HandleIPTMiss(int vpn)
+int HandleIPTMiss(int vpn)
 {
-    // allocate one memory page table
-    // copy from executable if needed
-    // update page table
-    //  set valid bit to true
-    //  update physicalPage
-    // populate IPT from page table
+    int ppn = getFreePage();
+    
+    // if ppn = -1, kick a page
+    //  if dirty is true, move to swap
+    
+    // if vpn is not stack
+    //  copy from executable
+    
+    pageTable[vpn].virtualPage = vpn;   
+    pageTable[vpn].physicalPage = ppn;
+    pageTable[vpn].valid = TRUE;
+    pageTable[vpn].use = FALSE;
+    pageTable[vpn].dirty = FALSE;
+    pageTable[vpn].readOnly = FALSE;
+    
+    ipt[ppn].virtualPage = vpn;
+    ipt[ppn].physicalPage = ppn;
+    ipt[ppn].space = this;
+    ipt[ppn].processID = id;
+    ipt[ppn].valid = TRUE;
+    ipt[ppn].use = FALSE;
+    ipt[ppn].dirty = FALSE;
+    ipt[ppn].readOnly = FALSE;
+    
+    /* copy from executable code
+    
+    DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
+
+    executable->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, noffH.code.inFileAddr + i*PageSize);
+    
+    */
 }
 //Copy page table info to the tlb
 void AddrSpace::PageFault(){
