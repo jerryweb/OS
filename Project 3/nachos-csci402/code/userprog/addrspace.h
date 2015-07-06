@@ -44,6 +44,9 @@ class AddrSpace {
     void setNewPageTable();
     int getPPN(int vpn);
     int getFreePage();
+    void RandomEviction();
+    void FIFOEviction();
+
 
  private:
     int id;                         //ID of the address space (used for processes)

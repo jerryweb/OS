@@ -21,6 +21,10 @@
 #include "noff.h"
 #include "table.h"
 #include "../threads/synch.h"
+#include <stdio.h>      /* printf, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+
 
 extern "C" { int bzero(char *, int); };
 TranslationEntryIPT* ipt;
@@ -251,14 +255,30 @@ AddrSpace::setNewPageTable(){
 
     RestoreState();
 }
+//----------------------------------------------------------------------------
+// The following two functions are the different eviction policies used to replace
+// pages in memory. The 2 policies are Random and FIFO.
+//----------------------------------------------------------------------------
+
+void RandomEviction(){
+    srand(time(NULL));
+    int randNum = rand() % NumPhysPages - 1;
+}
+
+void FIFOEviction(){
+
+}
 
 int HandleIPTMiss(int vpn)
 {
     int ppn = getFreePage();
     
     // if ppn = -1, kick a page
+    if(ppn == -1){
+        RandomEviction();
+    }
     //  if dirty is true, move to swap
-    
+
     // if vpn is not stack
     //  copy from executable
     
