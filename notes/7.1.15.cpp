@@ -98,7 +98,7 @@ Project 3 -3 parts
 			//any place you were previously doing a find(), comment this out
 
 			Can now get an IPT miss
-				Solution: move the preloading code & IPT populationcode from step 2 => into P.F.E. handling code
+				Solution: move the preloading code & IPT population code from step 2 => into P.F.E. handling code
 
 			AddrSpace constructor
 				for(i = 0 to numPhysPages){

@@ -19,8 +19,20 @@ void ThreadBfunc(){
 	Exit(0);
 }
 
+void ThreadCfunc(){
+	Printf("Fork Test Function for thread C\n", 32, 0,0);
+	Exit(0);
+}
+
+void ThreadDfunc(){
+	Printf("Fork Test Function for thread D\n", 32, 0,0);
+	Exit(0);
+}
+
 int main(){
-    Fork((void*)0, "Fail", 4);
+    /*Fork((void*)0, "Fail", 4);*/
     Fork(ThreadAfunc, "Thread A", 8);
     Fork(ThreadBfunc, "Thread B", 8);
+    Fork(ThreadCfunc, "Thread C", 8);
+    Fork(ThreadDfunc, "Thread D", 8);
 }

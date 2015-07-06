@@ -177,14 +177,13 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
-    
+    // first, set up the translation 
     int ppn = 0;
     
     pageTable = new TranslationEntryExec[numPages];
 
     for (i = 0; i < numPages; i++)
     {
-        
         printf("AddrSpace: setting page %d invalid\n", i);
         
     	pageTable[i].valid = FALSE;
@@ -193,6 +192,12 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
         else pageTable[i].inExec = NONE;
     }
 
+    //machine->mainMemory[ppn * PageSize];
+// zero out the entire address space, to zero the unitialized data segment 
+// and the stack segment
+    //need to delete this once we start using exec and the constructor gets called
+    //more than once
+    //bzero(machine->mainMemory, size);
 }   
 
 //----------------------------------------------------------------------
@@ -310,15 +315,16 @@ void AddrSpace::PageFault(){
     {
         HandleIPTMiss((int)machine->ReadRegister(39)/PageSize);
     }
-
-    //works like a circular queue
-    //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
+    
     if(currentTLB >= TLBSize - 1)
         currentTLB = 0;
     else
         currentTLB++;
+    //works like a circular queue
+    //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
 
-    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
+
+    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
 }
 
 void
@@ -367,16 +373,17 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
     //DEBUG('z', "RestoreState has been called\n");
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     //invalidate the TLB
-    currentTLB = 0;
     for(int i = 0; i <TLBSize; i++)
     {
         DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
         machine->tlb[i].valid = false;
     }
+    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
 }
 
 int AddrSpace::getPPN(int vpn)
