@@ -106,6 +106,8 @@ class Thread {
     void setThreadTableLocation(int loc) { threadTableLocation = loc; }
     int getThreadID() { return threadID; }
     void setThreadID(int id) { threadID = id; }
+    int getStackLocation() { return stackStartLocation; }
+    void setStackLocation(int stackPage) { stackStartLocation = stackPage; }
     
   private:
     // some of the private data for this class is listed above

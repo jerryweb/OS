@@ -117,7 +117,7 @@ void Create_Syscall(unsigned int vaddr, int len) {
     if (!buf) return;
 
     if( copyin(vaddr,len,buf) == -1 ) {
-	DEBUG('z', "Thread %s: Bad pointer passed to Create\n", currentThread->getName());
+	DEBUG('z', "Create: Thread %s: Bad pointer\n", currentThread->getName());
 	delete buf;
 	return;
     }
@@ -140,12 +140,12 @@ int Open_Syscall(unsigned int vaddr, int len) {
     int id;				// The openfile id
 
     if (!buf) {
-	DEBUG('z', "Thread %s: Can't allocate kernel buffer in Open\n", currentThread->getName());
+	DEBUG('z', "Open: Thread %s: Can't allocate kernel buffer\n", currentThread->getName());
 	return -1;
     }
 
     if( copyin(vaddr,len,buf) == -1 ) {
-	DEBUG('z', "Thread %s: Bad pointer passed to Open\n", currentThread->getName());
+	DEBUG('z', "Open: Thread %s: Bad pointer\n", currentThread->getName());
 	delete[] buf;
 	return -1;
     }
@@ -178,11 +178,11 @@ void Write_Syscall(unsigned int vaddr, int len, int id) {
     if ( id == ConsoleInput) return;
     
     if ( !(buf = new char[len]) ) {
-	DEBUG('z', "Thread %s: Error allocating kernel buffer for write!\n", currentThread->getName());
+	DEBUG('z', "Write: Thread %s: Error allocating kernel buffer\n", currentThread->getName());
 	return;
     } else {
         if ( copyin(vaddr,len,buf) == -1 ) {
-	    DEBUG('z', "Thread %s: Bad pointer passed to to write: data not written\n", currentThread->getName());
+	    DEBUG('z', "Write: Thread %s: Bad pointer, data not written\n", currentThread->getName());
 	    delete[] buf;
 	    return;
 	}
@@ -197,7 +197,7 @@ void Write_Syscall(unsigned int vaddr, int len, int id) {
 	if ( (f = (OpenFile *) currentThread->space->fileTable.Get(id)) ) {
 	    f->Write(buf, len);
 	} else {
-	    DEBUG('z', "Thread %s: Bad OpenFileId passed to Write\n", currentThread->getName());
+	    DEBUG('z', "Write: Thread %s: Bad OpenFileId\n", currentThread->getName());
 	    len = -1;
 	}
     }
@@ -217,7 +217,7 @@ int Read_Syscall(unsigned int vaddr, int len, int id) {
     if ( id == ConsoleOutput) return -1;
     
     if ( !(buf = new char[len]) ) {
-	DEBUG('z', "Thread %s: Error allocating kernel buffer in Read\n", currentThread->getName());
+	DEBUG('z', "Read: Thread %s: Error allocating kernel buffer\n", currentThread->getName());
 	return -1;
     }
 
@@ -226,7 +226,7 @@ int Read_Syscall(unsigned int vaddr, int len, int id) {
       scanf( buf);
 
       if ( copyout(vaddr, len, buf) == -1 ) {
-	DEBUG('z', "Thread %s: Bad pointer passed to Read: data not copied\n", currentThread->getName());
+	DEBUG('z', "Read: Thread %s: Bad pointer, data not copied\n", currentThread->getName());
       }
     } else {
 	if ( (f = (OpenFile *) currentThread->space->fileTable.Get(id)) ) {
@@ -234,11 +234,11 @@ int Read_Syscall(unsigned int vaddr, int len, int id) {
 	    if ( len > 0 ) {
 	        //Read something from the file. Put into user's address space
   	        if ( copyout(vaddr, len, buf) == -1 ) {
-		    DEBUG('z', "Thread %s: Bad pointer passed to Read: data not copied\n", currentThread->getName());
+		    DEBUG('z', "Read: Thread %s: Bad pointer, data not copied\n", currentThread->getName());
 		}
 	    }
 	} else {
-	    DEBUG('z', "Thread %s: Bad OpenFileId passed to Read\n", currentThread->getName());
+	    DEBUG('z', "Read: Thread %s: Bad OpenFileId\n", currentThread->getName());
 	    len = -1;
 	}
     }
@@ -254,7 +254,7 @@ void Close_Syscall(int fd) {
     if ( f ) {
       delete f;
     } else {
-      DEBUG('z', "Thread %s: Tried to close an unopen file\n", currentThread->getName());
+      DEBUG('z', "Close: Thread %s: Tried to close an unopen file\n", currentThread->getName());
     }
 }
 
@@ -263,18 +263,20 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
-    DEBUG('z', "Thread %s: Entering kernel function\n", currentThread->getName());
+    DEBUG('z', "Fork: Thread %s: Entering kernel function\n", currentThread->getName());
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
     machine->WriteRegister(NextPCReg, addr + 4);
     currentThread->space->RestoreState();
 
-    DEBUG('z', "stack pointer for thread %s: %d\n", currentThread->getName(), (currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8) * PageSize);
+    int stackPage = currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8;
+    currentThread->setStackLocation(stackPage);
+    DEBUG('z', "Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), stackPage*PageSize, stackPage, stackPage + 7);
 
     machine->WriteRegister(StackReg, (currentThread->space->getNumPages()- 8)  * PageSize);
 
-    DEBUG('z', "Thread %s: Running\n", currentThread->getName());
+    DEBUG('z', "Fork: Thread %s: Running\n", currentThread->getName());
     
     // Run the new program.
     machine->Run();
@@ -286,7 +288,7 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
 {
     if ((void*)vaddr1 == NULL)
     {
-        DEBUG('z', "Thread %s: Invalid function pointer\n", currentThread->getName());
+        DEBUG('z', "Fork: Thread %s: Invalid function pointer\n", currentThread->getName());
         return;
     }
     
@@ -294,13 +296,13 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     
     if (! buf)
     {
-        DEBUG('z', "Thread %s: Can't allocate kernel buffer in Fork\n", currentThread->getName());
+        DEBUG('z', "Fork: Thread %s: Can't allocate kernel buffer\n", currentThread->getName());
         return;
     }
 
     if( copyin(vaddr2, len, buf) == -1 )
     {
-        DEBUG('z', "Thread %s: Bad pointer %d passed to Fork\n", currentThread->getName(), vaddr2);
+        DEBUG('z', "Fork: Thread %s: Bad pointer %d\n", currentThread->getName(), vaddr2);
         delete[] buf;
         return;
     }
@@ -309,17 +311,17 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
     
-    DEBUG('z', "Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
+    DEBUG('z', "Fork: Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
 
     //reallocate the page table
 
     t->space->setNewPageTable();
     // update thread table
     t->setThreadTableLocation(t->space->threadTable->Put(t));
-    DEBUG('z', "Thread %s belongs to process %d\n", t->getName(), t->space->getID());
+    DEBUG('z', "Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
     // DEBUG('z', "Thread table location: %d\n", t->getThreadTableLocation());
 
-    DEBUG('z', "thread table size %d\n", t->space->threadTable->getCount());
+    DEBUG('z', "Fork: Thread table size %d\n", t->space->threadTable->getCount());
 
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
@@ -340,13 +342,13 @@ int Exec_Syscall(unsigned int vaddr, int len)
 
     if (! buf)
     {
-        DEBUG('z', "Thread %s: Can't allocate kernel buffer in Exec\n", currentThread->getName());
+        DEBUG('z', "Exec: Thread %s: Can't allocate kernel buffer\n", currentThread->getName());
         return -1;
     }
 
     if( copyin(vaddr, len, buf) == -1 )
     {
-        DEBUG('z', "Thread %s: Bad pointer %d passed to Exec\n", currentThread->getName(), vaddr);
+        DEBUG('z', "Exec: Thread %s: Bad pointer %d\n", currentThread->getName(), vaddr);
         delete[] buf;
         return -1;
     }
@@ -356,7 +358,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
     OpenFile* fileHandle = fileSystem->Open(buf);
 
     if (fileHandle == NULL) {
-        DEBUG('z', "Unable to open file %s\n", buf);
+        DEBUG('z', "Exec: Unable to open file %s\n", buf);
         return -1;
     }
 
@@ -370,7 +372,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
     
     int id = p->getID();
     p->threadTable->lockAcquire();
-    DEBUG('z', "thread count for process %d: %d\n", p->getID(), p->threadTable->getCount());
+    DEBUG('z', "Exec: Thread count for process %d: %d\n", p->getID(), p->threadTable->getCount());
     p->threadTable->lockRelease();
 
     return id;
@@ -379,7 +381,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
 void Yield_Syscall()
 // Yields the current thread.
 {
-    DEBUG('z', "Thread %s: Yielding current thread.\n", currentThread->getName());
+    DEBUG('z', "Yield: Thread %s: Yielding current thread.\n", currentThread->getName());
     currentThread->Yield();
 }
 
@@ -407,7 +409,7 @@ void Exit_Syscall(int status)
             for(int i = 0; i < lockTable->getCount(); i++){
                  KL = (KernelLock*) lockTable->Get(i);
                 if(AddSP == KL->owner){
-                    DEBUG('z', "Thread %s: DestroyLock called by exit\n", currentThread->getName());
+                    DEBUG('z', "Exit: Thread %s: Calling DestroyLock\n", currentThread->getName());
                     DestroyLock_Syscall(i);
                     lockTable->lockAcquire();
                 }
@@ -419,7 +421,7 @@ void Exit_Syscall(int status)
             for(int i = 0; i < CVTable->getCount(); i++){
                  KC = (KernelCondition*) CVTable->Get(i);
                 if(AddSP == KC->owner){
-                    DEBUG('z', "Thread %s: DestroyCondition called by exit\n", currentThread->getName());
+                    DEBUG('z', "Exit: Thread %s: Calling DestroyCondition\n", currentThread->getName());
                     DestroyCondition_Syscall(i);
                     CVTable->lockAcquire();
                 }
@@ -433,6 +435,7 @@ void Exit_Syscall(int status)
                 {
                     int ppn = t.physicalPage;
                     ipt[ppn].valid = false;
+                    DEBUG('z', "Exit: setting physical page %d invalid\n", ppn);
                 }
             }
             processTable->Remove(AddSP->getID()); 
@@ -449,12 +452,13 @@ void Exit_Syscall(int status)
                 {
                     int ppn = t.physicalPage;
                     ipt[ppn].valid = false;
+                    DEBUG('z', "Exit: setting physical page %d invalid\n", ppn);
                 }
             }
 
         }
         AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
-        DEBUG('z', "calling current thread finish for thread %s\n", currentThread->getName());
+        DEBUG('z', "Exit: Thread %s: Finishing\n", currentThread->getName());
         currentThread->Finish();
     }
 
@@ -466,7 +470,7 @@ void Exit_Syscall(int status)
             for(int i = 0; i < lockTable->getCount(); i++){
                  KL = (KernelLock*) lockTable->Get(i);
                 if(AddSP == KL->owner){
-                    DEBUG('z', "DestroyLock called by exit\n");
+                    DEBUG('z', "Exit: Thread %s: Calling DestroyLock\n", currentThread->getName());
                     DestroyLock_Syscall(i);
                 }
             }
@@ -478,11 +482,12 @@ void Exit_Syscall(int status)
                 {
                     int ppn = t.physicalPage;
                     ipt[ppn].valid = false;
+                    DEBUG('z', "Exit: setting physical page %d invalid\n", ppn);
                 }
             }
             //stop Nachos
             processTable->Remove(AddSP->getID()); 
-            DEBUG('z', "Thread %s: Finishing last process, ending Nachos\n", currentThread->getName());
+            DEBUG('z', "Exit: Thread %s: Finishing last process, ending Nachos\n", currentThread->getName());
             interrupt->Halt();            
         }
 
@@ -496,10 +501,11 @@ void Exit_Syscall(int status)
                 {
                     int ppn = t.physicalPage;
                     ipt[ppn].valid = false;
+                    DEBUG('z', "Exit: setting physical page %d invalid\n", ppn);
                 }
             }
             AddSP->threadTable->Remove(currentThread->getThreadTableLocation());
-            DEBUG('z', "Thread %s: Finishing\n", currentThread->getName());
+            DEBUG('z', "Exit: Thread %s: Finishing\n", currentThread->getName());
             currentThread->Finish();
         }
     }

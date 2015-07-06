@@ -179,6 +179,8 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
     for (i = 0; i < numPages; i++) {
         ppn = getFreePage();
         
+        printf("AddrSpace: setting physical page %d valid\n", ppn);
+        
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
     	pageTable[i].physicalPage = ppn; //ppn not i
     	pageTable[i].valid = TRUE;
@@ -254,6 +256,8 @@ AddrSpace::setNewPageTable(){
     //copy over old Page Table data
     for (unsigned int i = 0; i < previousNumPages; i++) {
         
+        DEBUG('z', "setNewPageTable: copying page %i\n", i);
+        
         tempTable[i].virtualPage = pageTable[i].virtualPage;   
         tempTable[i].physicalPage = pageTable[i].physicalPage;
         tempTable[i].valid = pageTable[i].valid;
@@ -265,6 +269,8 @@ AddrSpace::setNewPageTable(){
     for (unsigned int i = previousNumPages; i < numPages; ++i)
     {
         ppn = getFreePage();
+        
+        DEBUG('z', "setNewPageTable: setting physical page %d valid\n", ppn);
         
         tempTable[i].virtualPage = i;   
         tempTable[i].physicalPage = ppn;
@@ -293,6 +299,7 @@ void AddrSpace::PageFault(){
     IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
     //page table index
     int PTIndex = getPPN((int)machine->ReadRegister(39)/PageSize); // will return -1 if not found
+    DEBUG('z', "PageFault: reg = %d, vpn = %d, ppn = %d\n", (int)machine->ReadRegister(39), (int)machine->ReadRegister(39)/PageSize, PTIndex);
     //works like a circular queue
     //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
     if(currentTLB >= TLBSize)
@@ -306,6 +313,8 @@ void AddrSpace::PageFault(){
     //Changed pageTable to ipt, not sure if this is accurate 
     if (PTIndex != -1)
     {
+        DEBUG('z', "PageFault: copying ppn %d to tlb %d\n", PTIndex, currentTLB);
+        
         machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
         machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
         machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
@@ -360,12 +369,13 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
-    printf("RestoreState has been called\n");
+    //DEBUG('z', "RestoreState has been called\n");
     // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     //invalidate the TLB
-    for(int i = 0; i <TLBSize; i++){
-
+    for(int i = 0; i <TLBSize; i++)
+    {
+        DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
         machine->tlb[i].valid = false;
     }
     
@@ -376,6 +386,7 @@ int AddrSpace::getPPN(int vpn)
     for (int i = 0; i < NumPhysPages; i++)
     {
         TranslationEntryIPT t = ipt[i];
+        //printf("i = %d, valid = %d, processID = %d, id = %d, virtualPage = %d, vpn = %d, physicalPage = %d\n", i, (int)t.valid, t.processID, id, t.virtualPage, vpn, t.physicalPage);
         if (t.valid && t.processID == id && t.virtualPage == vpn)
         {
             return t.physicalPage;
