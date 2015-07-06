@@ -15,10 +15,12 @@
 
 #include "copyright.h"
 #include "../filesys/filesys.h"
+//#include "../threads/list.h"
 #include "table.h"
+#include "../threads/synch.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
-
+//#define MaxThreadCount 128          //need to implement this
 #define MaxOpenFiles 256
 #define MaxChildSpaces 256
 
@@ -58,8 +60,7 @@ class AddrSpace {
     // int stackPage;  //stack page location of the threads
     OpenFile* exec;
     int execSize;
-
-    List* FIFOEvictionQueue;
+    List *FIFOEvictionQueue;
     
 };
 

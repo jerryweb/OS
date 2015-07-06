@@ -19,8 +19,8 @@
 #include "../threads/system.h"
 #include "addrspace.h"
 #include "noff.h"
-#include "table.h"
-#include "../threads/synch.h"
+// #include "table.h"
+// #include "../threads/synch.h"
 #include <stdio.h>      /* printf, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
@@ -266,22 +266,25 @@ AddrSpace::setNewPageTable(){
 // Random Eviction will remove a random page from the IPT seeded by the runtime of the 
 // process. FIFO Eviction will evict the page that has been in the IPT the longest.
 //----------------------------------------------------------------------------
-int HandleMemoryFull(){
+int AddrSpace::HandleMemoryFull(){
+    int pageIndex = 0;
    //Random Eviction
     if(evictionPolicy == 1){             //default set in system.cc
         srand(time(NULL));
-        int pageIndex = rand() % (NumPhysPages - 1);
+        pageIndex = rand() % (NumPhysPages - 1);
         ipt[pageIndex].valid = false;
         printf("Randomly evicted page %d from the IPT\n", pageIndex);
     }
     
     //FIFO Eviction
     else{
-        int pageIndex = (int*)FIFOEviction->Remove();
+        pageIndex = (int) FIFOEvictionQueue->Remove();
         ipt[pageIndex].valid = false;
         printf("Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
     } 
+
     if(ipt[pageIndex].dirty){
+        printf("accessing swapfile\n");
         //write to swapfile
         //int sf = swapFileMap.find();
         //if(sf != -1)
