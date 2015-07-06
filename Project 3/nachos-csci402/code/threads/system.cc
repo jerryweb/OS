@@ -100,7 +100,7 @@ Initialize(int argc, char **argv)
     
     // Swap File
     /*ADD CODE HERE*/
-    *swapFile = fileSystem->Open("swapfile.cc");
+    swapFile = fileSystem->Open("../threads/swapfile");
     if (swapFile == NULL) {
         printf("Unable to open swapFile\n");
         return;

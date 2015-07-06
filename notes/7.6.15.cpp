@@ -47,6 +47,7 @@ CVs: 	waitingCV
 	S
 
 //----------------------------------------------------------------------------------------
+//put client side code in exception
 NetWorking:
 	Remote Procedure Calls (RPCs);
 	 Based on the idea of calling a function
