@@ -95,6 +95,7 @@ Initialize(int argc, char **argv)
     lockTable = new Table(maxNumLocks);
     CVTable = new Table(maxNumCV);
     processTable =  new Table(maxNumProc);
+    memMap = new BitMap(NumPhysPages);
 
     // inverted page table
     ipt = new TranslationEntryIPT[NumPhysPages];

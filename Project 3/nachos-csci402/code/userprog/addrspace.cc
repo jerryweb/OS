@@ -173,14 +173,13 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
-// first, set up the translation 
+    // first, set up the translation 
     int ppn = 0;
 
     pageTable = new TranslationEntry[numPages];
 
     for (i = 0; i < numPages; i++)
     {
-        
         printf("AddrSpace: setting page %d invalid\n", i);
         
     	pageTable[i].valid = FALSE;
@@ -192,8 +191,6 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
     //need to delete this once we start using exec and the constructor gets called
     //more than once
     //bzero(machine->mainMemory, size);
-
-
 }   
 
 //----------------------------------------------------------------------
@@ -313,28 +310,16 @@ void AddrSpace::PageFault(){
     {
         HandleIPTMiss((int)machine->ReadRegister(39)/PageSize);
     }
-
-    //works like a circular queue
-    //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
+    
     if(currentTLB >= TLBSize - 1)
         currentTLB = 0;
     else
         currentTLB++;
+    //works like a circular queue
+    //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
+
 
     (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
-
-    int ppn = 1; 
-    if(getFreePage() != (-1))
-        ppn = getFreePage();
-    else
-        printf("no free physical page; ppn will remain 1\n");
-
-    /*Step 3 goes here*/
-
-    if (ppn == 1){
-        //pageTable[1].virtualPage may not be the correct vpn that is passed in
-        ppn = HandleIPTMiss(pageTable[1].virtualPage);
-    }
 }
 
 void

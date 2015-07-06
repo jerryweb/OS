@@ -37,6 +37,7 @@ extern Table* lockTable;				// Tables for the CVs and Locks
 extern Table* CVTable;	
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes
+extern BitMap* memMap;
 
 extern TranslationEntryIPT* ipt;
 
