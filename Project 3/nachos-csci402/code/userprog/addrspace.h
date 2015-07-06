@@ -26,7 +26,7 @@ class TranslationEntry;
 
 class AddrSpace {
   public:
-    AddrSpace(OpenFile *executable);	// Create an address space,
+    AddrSpace(OpenFile *executable_);	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
@@ -42,7 +42,6 @@ class AddrSpace {
     TranslationEntry* getPageTable() { return pageTable; }
     void PageFault();           //handles page fault exceptions
     void setNewPageTable();
-    bool getPageTableValidBit(int i);
     int getPPN(int vpn);
     int getFreePage();
 
@@ -54,6 +53,7 @@ class AddrSpace {
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
     // int stackPage;  //stack page location of the threads
+    OpenFile* executable;
     
 };
 

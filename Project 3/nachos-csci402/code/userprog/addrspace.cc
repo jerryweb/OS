@@ -134,7 +134,8 @@ SwapHeader (NoffHeader *noffH)
 //      constructed set to false.
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
+AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
+    executable = executable_;
     NoffHeader noffH;
     unsigned int i, size;
     int maxNumThreads = 128;
@@ -183,7 +184,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
     	pageTable[i].physicalPage = ppn; //ppn not i
-    	pageTable[i].valid = TRUE;
+    	pageTable[i].valid = FALSE;
     	pageTable[i].use = FALSE;
     	pageTable[i].dirty = FALSE;
     	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
@@ -230,10 +231,6 @@ AddrSpace::~AddrSpace()
     delete pageTable;
 }
 
-bool AddrSpace::getPageTableValidBit(int i){
-    return pageTable[i].valid;
-}
-
 //----------------------------------------------------------------------
 // AddrSpace::InitRegisters
 // 	Set the initial values for the user-level register set.
@@ -274,7 +271,7 @@ AddrSpace::setNewPageTable(){
         
         tempTable[i].virtualPage = i;   
         tempTable[i].physicalPage = ppn;
-        tempTable[i].valid = TRUE;
+        tempTable[i].valid = FALSE;
         tempTable[i].use = FALSE;
         tempTable[i].dirty = FALSE;
         tempTable[i].readOnly = FALSE;
@@ -294,6 +291,15 @@ AddrSpace::setNewPageTable(){
     RestoreState();
 }
 
+void HandleIPTMiss(int vpn)
+{
+    // allocate one memory page table
+    // copy from executable if needed
+    // update page table
+    //  set valid bit to true
+    //  update physicalPage
+    // populate IPT from page table
+}
 //Copy page table info to the tlb
 void AddrSpace::PageFault(){
     IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
@@ -313,6 +319,10 @@ void AddrSpace::PageFault(){
         machine->tlb[currentTLB].use = ipt[PTIndex].use;
         machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
         machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
+    }
+    else
+    {
+        HandleIPTMiss((int)machine->ReadRegister(39)/PageSize);
     }
 
     //works like a circular queue
