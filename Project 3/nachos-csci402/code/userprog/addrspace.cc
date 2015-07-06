@@ -26,6 +26,10 @@
 #include <time.h>       /* time */
 
 
+// forward declarations
+int getFreePage();
+int getPPN(int vpn);
+
 extern "C" { int bzero(char *, int); };
 TranslationEntryIPT* ipt;
 int currentTLB;
@@ -180,14 +184,17 @@ AddrSpace::AddrSpace(OpenFile *executable_) : fileTable(MaxOpenFiles) {
 					numPages, size);
     // first, set up the translation 
     int ppn = 0;
-
-    pageTable = new TranslationEntry[numPages];
+    
+    pageTable = new TranslationEntryExec[numPages];
 
     for (i = 0; i < numPages; i++)
     {
         printf("AddrSpace: setting page %d invalid\n", i);
         
     	pageTable[i].valid = FALSE;
+    	pageTable[i].byteOffset = noffH.code.inFileAddr + i*PageSize;
+        if (i < execSize) pageTable[i].inExec = EXEC;
+        else pageTable[i].inExec = NONE;
     }
 
     //machine->mainMemory[ppn * PageSize];
@@ -227,13 +234,12 @@ AddrSpace::setNewPageTable(){
     //unsigned int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
     unsigned int previousNumPages = numPages;
     numPages += divRoundUp(UserStackSize,PageSize); //decrement on exit
-    TranslationEntry *tempTable = new TranslationEntry[numPages];
+    TranslationEntryExec *tempTable = new TranslationEntryExec[numPages];
 
     int ppn = 0;
     //copy over old Page Table data
     for (unsigned int i = 0; i < previousNumPages; i++)
     {
-        
         DEBUG('z', "setNewPageTable: copying page %i\n", i);
         
         tempTable[i].virtualPage = pageTable[i].virtualPage;   
@@ -241,7 +247,9 @@ AddrSpace::setNewPageTable(){
         tempTable[i].valid = pageTable[i].valid;
         tempTable[i].use = pageTable[i].use;
         tempTable[i].dirty = pageTable[i].dirty;
-        tempTable[i].readOnly = pageTable[i].readOnly;  
+        tempTable[i].readOnly = pageTable[i].readOnly;
+        tempTable[i].inExec = pageTable[i].inExec;
+        tempTable[i].byteOffset = pageTable[i].byteOffset;
     }
 
     for (unsigned int i = previousNumPages; i < numPages; ++i)
@@ -249,6 +257,7 @@ AddrSpace::setNewPageTable(){
         DEBUG('z', "setNewPageTable: setting page %d invalid\n", ppn);
         
         tempTable[i].valid = FALSE;
+        pageTable[i].inExec = NONE;
     }
 
     delete pageTable; 
@@ -281,7 +290,7 @@ int HandleMemoryFull(){
     return pageIndex;
 } 
 
-int HandleIPTMiss(int vpn)
+int AddrSpace::HandleIPTMiss(int vpn)
 {
     int ppn = getFreePage();
     
@@ -298,6 +307,7 @@ int HandleIPTMiss(int vpn)
     // if vpn is not stack
     //  copy from executable
     
+
     pageTable[vpn].virtualPage = vpn;   
     pageTable[vpn].physicalPage = ppn;
     pageTable[vpn].valid = TRUE;
@@ -318,13 +328,12 @@ int HandleIPTMiss(int vpn)
     FIFOEvictionQueue->Append((void*)ppn);
 
     
-    /* copy from executable code
-    
-    DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
-
-    executable->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, noffH.code.inFileAddr + i*PageSize);
-    
-    */
+    if (vpn < execSize)
+    {
+        executable->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
+        
+        pageTable[vpn].inExec = EXEC; // should already be set
+    }
 }
 //Copy page table info to the tlb
 void AddrSpace::PageFault(){
