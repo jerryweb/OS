@@ -100,14 +100,12 @@ Initialize(int argc, char **argv)
     
     // Swap File
     /*ADD CODE HERE*/
-    /* *swapFile = fileSystem->Open("swapfile.cc");
+    *swapFile = fileSystem->Open("swapfile.cc");
     if (swapFile == NULL) {
         printf("Unable to open swapFile\n");
         return;
     }
 
-
-    */
     // inverted page table
     ipt = new TranslationEntryIPT[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++)

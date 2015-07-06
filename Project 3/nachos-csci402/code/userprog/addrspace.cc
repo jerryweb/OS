@@ -270,30 +270,61 @@ AddrSpace::setNewPageTable(){
 //----------------------------------------------------------------------------
 int AddrSpace::HandleMemoryFull(){
     int pageIndex = 0;
+
    //Random Eviction
     if(evictionPolicy == 1){             //default set in system.cc
         srand(time(NULL));
         pageIndex = rand() % (NumPhysPages - 1);
+
+        if (ipt[pageIndex].processID == id){
+            IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+
+            for(int i = 0;i < TLBSize; i++){
+                if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
+                    if(machine->tlb[i].valid){
+                        ipt[pageIndex].dirty = machine->tlb[i].dirty;
+                        break;
+                    }
+                }
+            }
+            (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
+        }
+
         ipt[pageIndex].valid = false;
-        printf("Randomly evicted page %d from the IPT\n", pageIndex);
+        DEBUG('z', "Randomly evicted page %d from the IPT\n", pageIndex);
     }
     
     //FIFO Eviction
     else{
         pageIndex = (int) FIFOEvictionQueue->Remove();
+        if (ipt[pageIndex].processID == id){
+            IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+
+            for(int i = 0;i < TLBSize; i++){
+                if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
+                    if(machine->tlb[i].valid){
+                        ipt[pageIndex].dirty = machine->tlb[i].dirty;
+                        break;
+                    }
+                }
+            }
+            (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
+        }
         ipt[pageIndex].valid = false;
-        printf("Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
+        DEBUG('z', "Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
     } 
 
+    //If dirty is true, move to swap
     if(ipt[pageIndex].dirty){
-        printf("accessing swapfile\n");
+        DEBUG('z', "accessing swapfile\n");
         //write to swapfile
-        //int sf = swapFileMap.find();
-        //if(sf != -1)
-        // ****code****
-        //
-        //else
-        //printf("swapfile full!!\n");
+        int sf = swapFileMap.find();
+        if(sf != -1){
+            DEBUG('z', "Writing page %d of ipt to the swapfile.\n", pageIndex);
+            swapFile->Write(ipt[pageIndex], PageSize);
+        }
+        else
+            printf("swapfile full!!\n");
     }
 
     return pageIndex;
@@ -308,10 +339,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
         ppn = HandleMemoryFull();
     
     // if not -1, then add the ppn the the FIFO queue
-    // else
-    //     FIFOEvictionQueue->Append((void*)ppn);
     
-    //  if dirty is true, move to swap
 
     // if vpn is not stack
     //  copy from executable
@@ -367,6 +395,11 @@ void AddrSpace::PageFault(){
     
     DEBUG('z', "PageFault: copying ppn %d to tlb %d\n", PTIndex, currentTLB);
     
+    if(machine->TLB[currentTLB].valid){
+        //copy dirty bit to IPT
+        ipt[PTIndex].dirty = machine->TLB[currentTLB].dirty;
+    }
+
     machine->tlb[currentTLB].virtualPage = ipt[PTIndex].virtualPage;
     machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
     machine->tlb[currentTLB].valid = ipt[PTIndex].valid;

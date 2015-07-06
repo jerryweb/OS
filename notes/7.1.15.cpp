@@ -234,7 +234,7 @@ Project 3 -3 parts
 			 	disable interrupts
 			 	if(machine->TLB[currentTLB].valid){
 			 		//copy dirty bit to IPT
-			 		machine->TLB[currentTLB]->_______=IPT[ppn]._______;
+			 		machine->TLB[currentTLB]->_______ = IPT[ppn]._______;
 			 	}
 
 			 	currentTLB = _____
