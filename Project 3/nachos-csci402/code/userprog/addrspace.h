@@ -45,6 +45,8 @@ class AddrSpace {
     void setNewPageTable();
     int getPPN(int vpn);
     int getFreePage();
+    int HandleMemoryFull();     // Handles eviction of pages in the IPT
+
 
  private:
     int id;                         //ID of the address space (used for processes)
@@ -56,6 +58,8 @@ class AddrSpace {
     // int stackPage;  //stack page location of the threads
     OpenFile* exec;
     int execSize;
+
+    List* FIFOEvictionQueue;
     
 };
 
