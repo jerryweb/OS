@@ -277,48 +277,32 @@ int AddrSpace::HandleMemoryFull(){
 
    //Random Eviction
     if(evictionPolicy == 1){             //default set in system.cc
-        
         pageIndex = rand() % NumPhysPages;
-
-        if (ipt[pageIndex].processID == id){
-            IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
-            DEBUG('p', "My page was selected, %d\n", pageIndex);
-            
-            for(int i = 0;i < TLBSize; i++){
-                if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
-                    if(machine->tlb[i].valid){
-                        ipt[pageIndex].dirty = machine->tlb[i].dirty;
-                        break;
-                    }
-                }
-            }
-            (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
-        }
-
-        // ipt[pageIndex].valid = false;
         DEBUG('z', "HandleMemoryFull: Randomly evicted page %d from the IPT\n", pageIndex);
     }
     
     //FIFO Eviction
     else{
         pageIndex = (int) FIFOEvictionQueue->Remove();
-        if (ipt[pageIndex].processID == id){
-            IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
-
-            for(int i = 0;i < TLBSize; i++){
-                if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
-                    if(machine->tlb[i].valid){
-                        ipt[pageIndex].dirty = machine->tlb[i].dirty;
-                        break;
-                    }
-                }
-            }
-            (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
-        }
-
-        // ipt[pageIndex].valid = false;
         DEBUG('z', "HandleMemoryFull: Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
     } 
+
+    if (ipt[pageIndex].processID == id){
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+        DEBUG('p', "My page was selected, %d\n", pageIndex);
+        //look for ipt.vpn in the tlb
+        //if a match, check to see if it's valid
+        //if valid, propagate and set the tlb invalid
+        for(int i = 0;i < TLBSize; i++){
+            if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
+                if(machine->tlb[i].valid){
+                    ipt[pageIndex].dirty = machine->tlb[i].dirty;
+                    break;
+                }
+            }
+        }
+        (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
+    }
 
     //If dirty is true, move to swap
     if(ipt[pageIndex].dirty){
@@ -326,13 +310,13 @@ int AddrSpace::HandleMemoryFull(){
         //write to swapfile
         int sf = swapFileMap->Find();
         if(sf != -1){
-            DEBUG('z', "HandleMemoryFull: Writing page %d of ipt to swapfile pos %d.\n", pageIndex, sf);
-            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize*sf);
+            DEBUG('p', "HandleMemoryFull: Writing page %d of ipt to swapfile pos %d.\n", pageIndex, sf);
+            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize * sf);
         }
         else
             printf("HandleMemoryFull: swapfile full!!\n");
     }
-    
+
     ipt[pageIndex].valid = false;
 
     return pageIndex;
@@ -395,7 +379,6 @@ void AddrSpace::PageFault(){
     //PTIndex = machine->ReadRegister(39)/PageSize;
     DEBUG('z', "PageFault: reg = %d, vpn = %d, ppn = %d\n", (int)machine->ReadRegister(39), (int)machine->ReadRegister(39)/PageSize, PTIndex);
 
-    //Changed pageTable to ipt, not sure if this is accurate 
     if (PTIndex == -1)
     {
         PTIndex = HandleIPTMiss((int)machine->ReadRegister(39)/PageSize);
@@ -408,10 +391,6 @@ void AddrSpace::PageFault(){
     machine->tlb[currentTLB].physicalPage = ipt[PTIndex].physicalPage;
     machine->tlb[currentTLB].valid = ipt[PTIndex].valid;
     machine->tlb[currentTLB].use = ipt[PTIndex].use;
-    // if(machine->tlb[currentTLB].valid){
-    //     //copy dirty bit to IPT
-    //     ipt[PTIndex].dirty = machine->tlb[currentTLB].dirty;
-    // }
     machine->tlb[currentTLB].dirty = ipt[PTIndex].dirty; 
     machine->tlb[currentTLB].readOnly = ipt[PTIndex].readOnly;
     
@@ -419,10 +398,9 @@ void AddrSpace::PageFault(){
         currentTLB = 0;
     else
         currentTLB++;
+
     //works like a circular queue
     //currentTLB = (currentTLB++) % TLBSize;            //doesn't work :(
-
-
     (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
 }
 
@@ -480,9 +458,13 @@ void AddrSpace::RestoreState()
     for(int i = 0; i <TLBSize; i++)
     {
         DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
-        if(machine->tlb[i].valid){
-            //copy dirty bit to IPT
-            ipt[machine->tlb[i].physicalPage].dirty = machine->tlb[i].dirty;
+
+        if(machine->tlb[i].virtualPage == ipt[machine->tlb[i].physicalPage].virtualPage){
+            if(machine->tlb[i].valid){
+                DEBUG('p', "ipt index on context switch is %d\n", machine->tlb[i].physicalPage);
+                ipt[machine->tlb[i].physicalPage].dirty = machine->tlb[i].dirty;
+                break;
+            }
         }
         machine->tlb[i].valid = false;
     }
