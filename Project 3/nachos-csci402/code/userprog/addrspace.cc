@@ -283,19 +283,21 @@ int AddrSpace::HandleMemoryFull(){
     
     //FIFO Eviction
     else{
-        pageIndex = (int) FIFOEvictionQueue->Remove();
+        pageIndex = (int) FIFOEvictionQueue->First();
+        FIFOEvictionQueue->Remove();
         DEBUG('z', "HandleMemoryFull: Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
     } 
+    //DEBUG('p', "ipt[pageIndex].processID = %d, my id is %d\n", ipt[pageIndex].processID, id);
 
     if (ipt[pageIndex].processID == id){
         IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
-        DEBUG('p', "My page was selected, %d\n", pageIndex);
         //look for ipt.vpn in the tlb
         //if a match, check to see if it's valid
         //if valid, propagate and set the tlb invalid
         for(int i = 0;i < TLBSize; i++){
             if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
                 if(machine->tlb[i].valid){
+                    DEBUG('p', "My page %d will propagate the dirty bit\n", pageIndex);
                     ipt[pageIndex].dirty = machine->tlb[i].dirty;
                     break;
                 }
@@ -311,13 +313,13 @@ int AddrSpace::HandleMemoryFull(){
         int sf = swapFileMap->Find();
         if(sf != -1){
             DEBUG('p', "HandleMemoryFull: Writing page %d of ipt to swapfile pos %d.\n", pageIndex, sf);
-            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize * sf);
+            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize*sf);
         }
         else
             printf("HandleMemoryFull: swapfile full!!\n");
     }
 
-    ipt[pageIndex].valid = false;
+    ipt[pageIndex].valid = TRUE;
 
     return pageIndex;
 } 
@@ -329,7 +331,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
     // if ppn = -1, kick a page
     if(ppn == -1)
         ppn = HandleMemoryFull();
-    
+
     // if not -1, then add the ppn the the FIFO queue
     
 
