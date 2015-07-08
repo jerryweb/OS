@@ -10,7 +10,6 @@ Part 3
  		 GetMV(______,______);
  		 DestroyMV
 
-
 Swap File Stuff
 Problem: Context switch on PRF /*page fault exception*/ with Random policy
 	Issue: Lock will not help!		// can get a context switch where a thread 

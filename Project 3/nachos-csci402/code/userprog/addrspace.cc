@@ -327,6 +327,8 @@ int AddrSpace::HandleMemoryFull(){
         if(AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].inSwapFile){
             DEBUG('p',  "Page from page table is already in the swapfile\n");
             swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
+            DEBUG('a', "Page written to same swap: vpn is %d, ppn is %d, byteOffset is %d, from swapfile\n", 
+                ipt[pageIndex].virtualPage, ipt[pageIndex].physicalPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
         }
 
         else{
@@ -338,6 +340,9 @@ int AddrSpace::HandleMemoryFull(){
                 AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset = PageSize*sf;
                 DEBUG('p', "HandleMemoryFull: Writing page %d of ipt to swapfile pos (byte offset) %d.\n",
                  pageIndex, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
+                DEBUG('a', "Page written to new swap pos: vpn is %d, ppn is %d, byteOffset is %d, from swapfile\n", 
+                 ipt[pageIndex].virtualPage, ipt[pageIndex].physicalPage, 
+                 AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
             }
             else
                 printf("HandleMemoryFull: swapfile full!!\n");
@@ -368,14 +373,17 @@ int AddrSpace::HandleIPTMiss(int vpn)
         exec->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
         
         pageTable[vpn].inExec = EXEC; // should already be set, but just in case
+        DEBUG('a', "Reading from executable file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
+
     }
 
     if(pageTable[vpn].inSwapFile){
         swapFile->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
-        DEBUG('p', "Reading from swap file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
+        DEBUG('a', "Reading from swap file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
     }
     //when you populate the ipt
     
+
     DEBUG('p', "HandleIPTMiss: setting virtual page %d valid\n", vpn);
     
     pageTable[vpn].virtualPage = vpn;   
@@ -395,6 +403,10 @@ int AddrSpace::HandleIPTMiss(int vpn)
     ipt[ppn].use = FALSE;
     ipt[ppn].dirty = FALSE;
     ipt[ppn].readOnly = FALSE;
+
+    DEBUG('a', "Page loaded to ipt: vpn is %d, ppn is %d, byteOffset is %d, from swapfile\n", 
+                ipt[ppn].virtualPage, ipt[ppn].physicalPage, pageTable[vpn].byteOffset);
+
 
     // add ppn to the FIFO queue
     FIFOEvictionQueue->Append((void*)ppn);

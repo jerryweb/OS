@@ -61,7 +61,7 @@ class AddrSpace {
     OpenFile* exec;
     int execSize;
     List *FIFOEvictionQueue;
-    
+    Lock* IPTLock;
 };
 
 #endif // ADDRSPACE_H
