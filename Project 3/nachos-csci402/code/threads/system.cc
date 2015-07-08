@@ -99,13 +99,18 @@ Initialize(int argc, char **argv)
     swapFileMap = new BitMap(5000);
     
     // Swap File
-    /*ADD CODE HERE*/
     swapFile = fileSystem->Open("../threads/swapfile");
     if (swapFile == NULL) {
         printf("Unable to open swapFile\n");
         return;
     }
-
+/*
+    debugFile = fileSystem->Open("../userprog/test_output_file");
+    if (debugFile == NULL) {
+        printf("Unable to open test_output_file\n");
+        return;
+    }
+*/
     // inverted page table
     ipt = new TranslationEntryIPT[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++)
