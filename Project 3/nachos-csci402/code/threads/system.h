@@ -20,7 +20,6 @@
 #include "../userprog/addrspace.h"
 #include "../userprog/translateipt.h"
 #include "../userprog/translateexec.h"
-// #include "../userprog/newpagetable.h"
 #include <stdio.h>
 
 // Initialization and cleanup routines
