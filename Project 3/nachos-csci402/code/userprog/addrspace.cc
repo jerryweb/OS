@@ -173,7 +173,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
 
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size ;
     DEBUG('a', "Initializing address space... size %d\n", size);
-    
+    //size of the code
     execSize = divRoundUp(size, PageSize);
     
     numPages = divRoundUp(size, PageSize) + divRoundUp(UserStackSize,PageSize);
@@ -197,6 +197,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         DEBUG('z', "AddrSpace: setting page %d invalid\n", i);
         
     	pageTable[i].valid = FALSE;
+        pageTable[i].inSwapFile = FALSE;
         if (i < execSize)
         {
             pageTable[i].inExec = EXEC;
@@ -251,6 +252,7 @@ AddrSpace::setNewPageTable(){
         tempTable[i].readOnly = pageTable[i].readOnly;
         tempTable[i].inExec = pageTable[i].inExec;
         tempTable[i].byteOffset = pageTable[i].byteOffset;
+        tempTable[i].inSwapFile = pageTable[i].inSwapFile;
     }
 
     for (unsigned int i = previousNumPages; i < numPages; ++i)
@@ -259,6 +261,7 @@ AddrSpace::setNewPageTable(){
         
         tempTable[i].valid = FALSE;
         pageTable[i].inExec = NEITHER;
+        pageTable[i].inSwapFile = FALSE;
     }
 
     delete pageTable; 
@@ -290,36 +293,47 @@ int AddrSpace::HandleMemoryFull(){
     //DEBUG('p', "ipt[pageIndex].processID = %d, my id is %d\n", ipt[pageIndex].processID, id);
 
     if (ipt[pageIndex].processID == id){
-        IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
         //look for ipt.vpn in the tlb
         //if a match, check to see if it's valid
         //if valid, propagate and set the tlb invalid
         for(int i = 0;i < TLBSize; i++){
             if(machine->tlb[i].virtualPage == ipt[pageIndex].virtualPage){
                 if(machine->tlb[i].valid){
-                    DEBUG('p', "My page %d will propagate the dirty bit\n", pageIndex);
+                    DEBUG('z', "My page %d will propagate the dirty bit\n", pageIndex);
                     ipt[pageIndex].dirty = machine->tlb[i].dirty;
+                    machine->tlb[i].valid = FALSE;
                     break;
                 }
             }
         }
-        (void) interrupt->SetLevel(oldLevel);  //reenable interrupts  
     }
 
+    AddrSpace* AddrSPtemp =  (AddrSpace*)processTable->Get(ipt[pageIndex].processID);
     //If dirty is true, move to swap
     if(ipt[pageIndex].dirty){
         DEBUG('z', "HandleMemoryFull: Accessing swapfile\n");
         //write to swapfile
-        int sf = swapFileMap->Find();
-        if(sf != -1){
-            DEBUG('p', "HandleMemoryFull: Writing page %d of ipt to swapfile pos %d.\n", pageIndex, sf);
-            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize*sf);
+        if(AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].inSwapFile){
+            DEBUG('p',  "Page from page table is already in the swapfile\n");
+            swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
         }
-        else
-            printf("HandleMemoryFull: swapfile full!!\n");
+
+        else{
+            int sf = swapFileMap->Find();
+            if(sf != -1){
+                
+                swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, PageSize*sf);
+                AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].inSwapFile = TRUE;
+                AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset = PageSize*sf;
+                DEBUG('p', "HandleMemoryFull: Writing page %d of ipt to swapfile pos (byte offset) %d.\n",
+                 pageIndex, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
+            }
+            else
+                printf("HandleMemoryFull: swapfile full!!\n");
+        }
     }
 
-    ipt[pageIndex].valid = TRUE;
+    //ipt[pageIndex].valid = FALSE;
 
     return pageIndex;
 } 
@@ -334,11 +348,27 @@ int AddrSpace::HandleIPTMiss(int vpn)
 
     // if not -1, then add the ppn the the FIFO queue
     
+    // AddrSpace* AddrSpa =  (AddrSpace*)processTable->Get(ipt[ppn].processID);
 
     // if vpn is not stack
     //  copy from executable
+    if (!pageTable[vpn].valid &&(vpn < execSize))
+    {
+        DEBUG('z', "HandleIPTMiss: copying code from executable at offset %d\n", pageTable[vpn].byteOffset);
+        
+        exec->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
+        
+        pageTable[vpn].inExec = EXEC; // should already be set, but just in case
+    }
+
+    if(pageTable[vpn].inSwapFile == TRUE){
+        swapFile->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
+                DEBUG('p', "Reading from swap file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
+
+    }
+    //when you populate the ipt
     
-    DEBUG('z', "HandleIPTMiss: setting page %d valid\n", vpn);
+    DEBUG('p', "HandleIPTMiss: setting virtual page %d valid\n", vpn);
     
     pageTable[vpn].virtualPage = vpn;   
     pageTable[vpn].physicalPage = ppn;
@@ -347,7 +377,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
     pageTable[vpn].dirty = FALSE;
     pageTable[vpn].readOnly = FALSE;
     
-    DEBUG('z', "HandleIPTMiss: setting physical page %d valid\n", ppn);
+    DEBUG('p', "HandleIPTMiss: setting physical page %d valid\n", ppn);
     
     ipt[ppn].virtualPage = vpn;
     ipt[ppn].physicalPage = ppn;
@@ -360,16 +390,9 @@ int AddrSpace::HandleIPTMiss(int vpn)
 
     // add ppn to the FIFO queue
     FIFOEvictionQueue->Append((void*)ppn);
+    //look through the page table and if it is in the swap file then read it back in
 
-    
-    if (vpn < execSize)
-    {
-        DEBUG('z', "HandleIPTMiss: copying code from executable at offset %d\n", pageTable[vpn].byteOffset);
-        
-        exec->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
-        
-        pageTable[vpn].inExec = EXEC; // should already be set, but just in case
-    }
+
     
     return ppn;
 }
@@ -436,11 +459,7 @@ AddrSpace::InitRegisters()
 //	For now, nothing!
 //----------------------------------------------------------------------
 
-void AddrSpace::SaveState() 
-{
-
-    
-}
+void AddrSpace::SaveState() {}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState

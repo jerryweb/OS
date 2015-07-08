@@ -1,19 +1,17 @@
-// translateexec.h 
-//	TranslationEntry modified for virtual memory stuff, I think?
+// newPageTable.h 
+//	TranslationEntry modified for the new page table to hold swap file info
 
-#ifndef TRANSLATEEXEC_H
-#define TRANSLATEEXEC_H
+#ifndef NEWPAGETABLE_H
+#define NEWPAGETABLE_H
 
 #include "copyright.h"
 #include "utility.h"
 #include "../machine/translate.h"
 
-enum PageLoc {NEITHER, EXEC, SWAP};
-
-class TranslationEntryExec : public TranslationEntry {
+class newPageTable : public TranslationEntry {
   public:
-    PageLoc inExec;     // Location of the page (enum int)
-    int byteOffset;     // ???
+    AddrSpace* space;
+    int processID;
     int virtualPage;  	// The page number in virtual memory.
     int physicalPage;  	// The page number in real memory (relative to the
 			//  start of "mainMemory"
@@ -25,7 +23,7 @@ class TranslationEntryExec : public TranslationEntry {
 			// page is referenced or modified.
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
-    //int swapFilePositionl   // page offset location in the swap file
+    int swapFilePositionl   // page offset location in the swap file
     bool inSwapFile;    // Whether it is written to the swap file
 };
 
