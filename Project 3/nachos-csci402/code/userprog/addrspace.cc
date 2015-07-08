@@ -311,7 +311,7 @@ int AddrSpace::HandleMemoryFull(){
     AddrSpace* AddrSPtemp =  (AddrSpace*)processTable->Get(ipt[pageIndex].processID);
     //If dirty is true, move to swap
     if(ipt[pageIndex].dirty){
-        DEBUG('z', "HandleMemoryFull: Accessing swapfile\n");
+        DEBUG('p', "HandleMemoryFull: Accessing swapfile\n");
         //write to swapfile
         if(AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].inSwapFile){
             DEBUG('p',  "Page from page table is already in the swapfile\n");
@@ -348,11 +348,9 @@ int AddrSpace::HandleIPTMiss(int vpn)
 
     // if not -1, then add the ppn the the FIFO queue
     
-    // AddrSpace* AddrSpa =  (AddrSpace*)processTable->Get(ipt[ppn].processID);
-
     // if vpn is not stack
     //  copy from executable
-    if (!pageTable[vpn].valid &&(vpn < execSize))
+    if (!pageTable[vpn].valid && (vpn < execSize))
     {
         DEBUG('z', "HandleIPTMiss: copying code from executable at offset %d\n", pageTable[vpn].byteOffset);
         
@@ -361,10 +359,9 @@ int AddrSpace::HandleIPTMiss(int vpn)
         pageTable[vpn].inExec = EXEC; // should already be set, but just in case
     }
 
-    if(pageTable[vpn].inSwapFile == TRUE){
+    if(pageTable[vpn].inSwapFile){
         swapFile->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
-                DEBUG('p', "Reading from swap file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
-
+        DEBUG('p', "Reading from swap file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
     }
     //when you populate the ipt
     
