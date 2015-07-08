@@ -52,8 +52,7 @@ class AddrSpace {
 
  private:
     int id;                         //ID of the address space (used for processes)
-    TranslationEntryExec *pageTable;	// Assume linear page table translation
-					// for now!
+    TranslationEntryExec *pageTable;
     // int codeSize;
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
