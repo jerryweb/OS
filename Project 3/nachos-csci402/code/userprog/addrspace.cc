@@ -32,11 +32,11 @@ int getPPN(int vpn);
 
 extern "C" { int bzero(char *, int); };
 TranslationEntryIPT* ipt;
+Lock* iptLock;
 BitMap* swapFileMap;
 int currentTLB;
 int evictionPolicy;
 OpenFile* swapFile;
-
 
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
     table = new void *[size];
@@ -278,20 +278,31 @@ AddrSpace::setNewPageTable(){
 int AddrSpace::HandleMemoryFull(){
     int pageIndex = 0;
 
+    iptLock->Acquire();
+    
    //Random Eviction
     if(evictionPolicy == 1){             //default set in system.cc
-        pageIndex = rand() % NumPhysPages;
+        do
+        {
+            pageIndex = rand() % NumPhysPages;
+        } while (ipt[pageIndex].use);
+        ipt[pageIndex].use = true;
         DEBUG('z', "HandleMemoryFull: Randomly evicted page %d from the IPT\n", pageIndex);
     }
     
     //FIFO Eviction
     else{
-        pageIndex = (int) FIFOEvictionQueue->First();
-        FIFOEvictionQueue->Remove();
+        do
+        {
+            pageIndex = (int) FIFOEvictionQueue->Remove();
+        } while (ipt[pageIndex].use);
+        ipt[pageIndex].use = true;
         DEBUG('z', "HandleMemoryFull: Evicted page %d stored in the FIFO from the IPT\n", pageIndex);
     } 
     //DEBUG('p', "ipt[pageIndex].processID = %d, my id is %d\n", ipt[pageIndex].processID, id);
 
+    iptLock->Release();
+    
     if (ipt[pageIndex].processID == id){
         //look for ipt.vpn in the tlb
         //if a match, check to see if it's valid

@@ -43,6 +43,7 @@ extern BitMap* swapFileMap;
 extern OpenFile* swapFile;
 
 extern TranslationEntryIPT* ipt;
+extern Lock* iptLock;
 
 extern int currentTLB;
 extern int evictionPolicy;				// Used to determine which memory eviction policy to use 

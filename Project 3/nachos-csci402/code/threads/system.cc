@@ -113,6 +113,7 @@ Initialize(int argc, char **argv)
         ipt[i].physicalPage = i;
         ipt[i].valid = false;
     }
+    iptLock = new Lock("iptLock");
 
     //Used for the TLB Memory management
     currentTLB = 0;
