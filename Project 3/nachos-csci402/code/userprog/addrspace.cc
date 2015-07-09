@@ -339,7 +339,7 @@ int AddrSpace::HandleMemoryFull(){
             
             DEBUG('a', "Page written to same swap: vpn is %d, ppn is %d, byteOffset is %d, from swapfile\n", 
                 ipt[pageIndex].virtualPage, ipt[pageIndex].physicalPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
-            cout << "Page written to same swap: vpn is: " << ipt[pageIndex].virtualPage << ", ppn is: "  << ipt[pageIndex].physicalPage << ", byteOffset is: " << AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset <<" from swapfile" << endl;
+            // cout << "Page written to same swap: vpn is: " << ipt[pageIndex].virtualPage << ", ppn is: "  << ipt[pageIndex].physicalPage << ", byteOffset is: " << AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset <<" from swapfile" << endl;
         }
 
         else{
@@ -355,7 +355,7 @@ int AddrSpace::HandleMemoryFull(){
                 DEBUG('a', "Page written to new swap pos: vpn is %d, ppn is %d, byteOffset is %d, from swapfile\n", 
                  ipt[pageIndex].virtualPage, ipt[pageIndex].physicalPage, 
                  AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
-                cout << "Page written to new swap: vpn is: " << ipt[pageIndex].virtualPage << ", ppn is: "  << ipt[pageIndex].physicalPage << ", byteOffset is: " << AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset <<" from swapfile" << endl;
+                // cout << "Page written to new swap: vpn is: " << ipt[pageIndex].virtualPage << ", ppn is: "  << ipt[pageIndex].physicalPage << ", byteOffset is: " << AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset <<" from swapfile" << endl;
 
             }
             else
@@ -366,14 +366,8 @@ int AddrSpace::HandleMemoryFull(){
     ipt[pageIndex].use = FALSE;
 
     return pageIndex;
-<<<<<<< HEAD
 } 
 
-//cout << nachos > test_output_file;
-
-=======
-}
->>>>>>> origin/master
 int AddrSpace::HandleIPTMiss(int vpn)
 {
     int ppn = getFreePage();
@@ -384,15 +378,16 @@ int AddrSpace::HandleIPTMiss(int vpn)
     
     // if vpn is not stack
     //  copy from executable
-    if (!pageTable[vpn].valid && vpn < execSize)
+    if (!pageTable[vpn].valid && (vpn < execSize))
     {
         DEBUG('z', "HandleIPTMiss: copying code from executable at offset %d\n", pageTable[vpn].byteOffset);
         
         exec->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
         
         pageTable[vpn].inExec = EXEC; // should already be set, but just in case
-        DEBUG('a', "Reading from executable file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
-        cout << "Reading from executable file: ppn is: " << ppn << " and byteOffset is: "  << pageTable[vpn].byteOffset << endl;
+        DEBUG('a', "Reading from executable file, ppn is %d and byteOffset is %d... execSize is: %d valid is: %d\n", 
+            ppn, pageTable[vpn].byteOffset, execSize, (int)pageTable[vpn].valid);
+        // cout << "Reading from executable file: ppn is: " << ppn << " and byteOffset is: "  << pageTable[vpn].byteOffset << endl;
 
     }
 
@@ -400,7 +395,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
     if(pageTable[vpn].inSwapFile){
         swapFile->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
         DEBUG('a', "Reading from swap file, ppn is %d and byteOffset is %d\n", ppn, pageTable[vpn].byteOffset);
-        cout << "Reading from swap file: ppn is: " << ppn << " and byteOffset is: "  << pageTable[vpn].byteOffset << endl;
+        // cout << "Reading from swap file: ppn is: " << ppn << " and byteOffset is: "  << pageTable[vpn].byteOffset << endl;
     }
     //when you populate the ipt
     
@@ -429,7 +424,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
 
     DEBUG('a', "Page loaded to ipt: vpn is %d, ppn is %d, byteOffset is %d\n", 
                 ipt[ppn].virtualPage, ipt[ppn].physicalPage, pageTable[vpn].byteOffset);
-    cout << "Page loaded to iptp: vpn is: " << ipt[ppn].virtualPage << ", ppn is: "  << ipt[ppn].physicalPage << ", byteOffset is: " << pageTable[vpn].byteOffset << endl;
+    // cout << "Page loaded to ipt: vpn is: " << ipt[ppn].virtualPage << ", ppn is: "  << ipt[ppn].physicalPage << ", byteOffset is: " << pageTable[vpn].byteOffset << endl;
 
 
     // add ppn to the FIFO queue
