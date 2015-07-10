@@ -73,6 +73,8 @@ extern void InspectTest();
 extern void MTest();
 extern void AirportSim();
 extern void MainMenu();
+
+void RunServer();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -219,4 +221,8 @@ main(int argc, char **argv)
 				// "main" thread is finished, preventing
 				// it from returning.
     return(0);			// Not reached...
+}
+
+void RunServer(){
+
 }

@@ -32,6 +32,10 @@
 
 using namespace std;
 
+//state for server locks 
+enum {FREE, BUSY} LockState;
+
+
 //table for locks
 Table* lockTable;
 struct KernelLock
@@ -39,6 +43,24 @@ struct KernelLock
   Lock* lock;
   AddrSpace* owner;
   bool isToBeDeleted;
+};
+
+Table* serverLockTable;
+struct ServerLock
+{
+    Lock* lock;
+    LockState serverLockState;  //state of server lock
+    int machineID;
+    int mailboxNum;
+    list* waitQueue; //for reply messages 
+};
+
+Table* serverCVTable;
+struct ServerCV
+{
+    list* CVwaitQueue;
+    int lockUsed;               //index to the lock in the serverLock table
+    //cannot use lock pointers  
 };
 
 //table for condition variables
@@ -680,7 +702,7 @@ void Broadcast_Syscall(int id, int lockID)
 // Broadcasts on the kernel condition with the given ID, using the kernel
 //  lock with the given ID. If the current process does not have access
 //  to the condition or the lock or either does not exist, will print
-//  an error without broadcasting.
+    //  an error without broadcasting.
 {
     CVTable->lockAcquire();
     
