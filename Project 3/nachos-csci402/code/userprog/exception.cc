@@ -1098,7 +1098,7 @@ void ExceptionHandler(ExceptionType which) {
     }
     else
     {
-      DEBUG('z', "Thread %s: Unexpected user mode exception - which:%d  type:%d\n", currentThread->getName(), which, type);
+      printf("Thread %s: Unexpected user mode exception - which:%d  type:%d\n", currentThread->getName(), which, type);
       interrupt->Halt();
     }
 }

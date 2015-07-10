@@ -12,7 +12,7 @@ enum PageLoc {NEITHER, EXEC, SWAP};
 
 class TranslationEntryExec : public TranslationEntry {
   public:
-    PageLoc inExec;     // Location of the page (enum int)
+    PageLoc location;     // Location of the page (enum int)
     int byteOffset;     // ???
     int virtualPage;  	// The page number in virtual memory.
     int physicalPage;  	// The page number in real memory (relative to the
@@ -26,7 +26,6 @@ class TranslationEntryExec : public TranslationEntry {
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
     //int swapFilePositionl   // page offset location in the swap file
-    bool inSwapFile;    // Whether it is written to the swap file
 };
 
 #endif
