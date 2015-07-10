@@ -33,7 +33,7 @@
 using namespace std;
 
 //state for server locks 
-enum {FREE, BUSY} LockState;
+enum LockState {FREE, BUSY};
 
 
 //table for locks
@@ -52,13 +52,13 @@ struct ServerLock
     LockState serverLockState;  //state of server lock
     int machineID;
     int mailboxNum;
-    list* waitQueue; //for reply messages 
+    List* waitQueue; //for reply messages 
 };
 
 Table* serverCVTable;
 struct ServerCV
 {
-    list* CVwaitQueue;
+    List* CVwaitQueue;
     int lockUsed;               //index to the lock in the serverLock table
     //cannot use lock pointers  
 };
