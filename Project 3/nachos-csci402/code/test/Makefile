@@ -32,7 +32,7 @@ INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
 
-all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest airportSimSim matmult2
+all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest airportSimSim matmultFork matmultExec
 	
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -57,11 +57,17 @@ matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	../bin/coff2noff matmult.coff matmult
     
-matmult2.o: matmult2.c
-	$(CC) $(CFLAGS) -c matmult2.c
-matmult2: matmult2.o start.o
-	$(LD) $(LDFLAGS) start.o matmult2.o -o matmult2.coff
-	../bin/coff2noff matmult2.coff matmult2
+matmultFork.o: matmultFork.c
+	$(CC) $(CFLAGS) -c matmultFork.c
+matmultFork: matmultFork.o start.o
+	$(LD) $(LDFLAGS) start.o matmultFork.o -o matmultFork.coff
+	../bin/coff2noff matmultFork.coff matmultFork
+    
+matmultExec.o: matmultExec.c
+	$(CC) $(CFLAGS) -c matmultExec.c
+matmultExec: matmultExec.o start.o
+	$(LD) $(LDFLAGS) start.o matmultExec.o -o matmultExec.coff
+	../bin/coff2noff matmultExec.coff matmultExec
 
 testfiles.o: testfiles.c
 	$(CC) $(CFLAGS) -c testfiles.c
@@ -137,5 +143,5 @@ airportSimSim: airportSimSim.o start.o
 
 clean:
 	rm -f *.o *.coff
-	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest matmult2
+	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest matmultFork matmultExec
 	rm *~

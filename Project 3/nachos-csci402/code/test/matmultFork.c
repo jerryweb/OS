@@ -1,5 +1,5 @@
-/* matmult2
-	run 2 matmults
+/* matmultFork
+	fork 2 matmults
 */
 
 #include "syscall.h"
@@ -57,8 +57,6 @@ matmult2(int n)
 
 int main()
 {
-    Fork(matmult1, "", 0);
-    Fork(matmult2, "", 0);
-	/*Exec("../test/matmult", 15);
-    Exec("../test/matmult", 15);*/
+    Fork(matmult1, "1", 1);
+    Fork(matmult2, "2", 1);
 }

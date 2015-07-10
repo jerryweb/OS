@@ -205,6 +205,7 @@ AddrSpace::AddrSpace(OpenFile *executable) : fileTable(MaxOpenFiles) {
         }
         else pageTable[i].location = NEITHER;
     }
+    pageTableLock = new Lock("pageTableLock");
 }   
 
 //----------------------------------------------------------------------
@@ -339,6 +340,7 @@ int AddrSpace::HandleMemoryFull()
     {
         DEBUG('z', "HandleMemoryFull: Accessing swapfile\n");
         //write to swapfile
+        printf("process = %p, pageIndex = %d, processID = %d\n", AddrSPtemp, pageIndex, ipt[pageIndex].processID);
         if(AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].location == SWAP)
         {
             DEBUG('z', "  HandleMemoryFull: Page from page table is already in the swapfile\n");
@@ -383,6 +385,8 @@ int AddrSpace::HandleIPTMiss(int vpn)
     if(ppn == -1)
         ppn = HandleMemoryFull();
     
+    pageTableLock->Acquire();
+    
     // if vpn is not stack
     //  copy from executable
     if (pageTable[vpn].location == EXEC)
@@ -410,6 +414,8 @@ int AddrSpace::HandleIPTMiss(int vpn)
     pageTable[vpn].use = FALSE;
     pageTable[vpn].dirty = FALSE;
     pageTable[vpn].readOnly = FALSE;
+    
+    pageTableLock->Release();
     
     iptLock->Acquire();
     
@@ -514,9 +520,8 @@ void AddrSpace::SaveState() {}
 
 void AddrSpace::RestoreState() 
 {
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
     //DEBUG('z', "RestoreState has been called\n");
-    // machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     //invalidate the TLB
     for(int i = 0; i <TLBSize; i++)
@@ -531,32 +536,38 @@ void AddrSpace::RestoreState()
         }
         machine->tlb[i].valid = false;
     }
-    (void) interrupt->SetLevel(oldLevel);  //reenable interrupts     
+    (void) interrupt->SetLevel(oldLevel);  
 }
 
 int AddrSpace::getPPN(int vpn)
 {
+    iptLock->Acquire();
     for (int i = 0; i < NumPhysPages; i++)
     {
         TranslationEntryIPT t = ipt[i];
         //DEBUG('z', "i = %d, valid = %d, processID = %d, id = %d, virtualPage = %d, vpn = %d, physicalPage = %d\n", i, (int)t.valid, t.processID, id, t.virtualPage, vpn, t.physicalPage);
         if (t.valid && t.processID == id && t.virtualPage == vpn)
         {
+            iptLock->Release();
             return t.physicalPage;
         }
     }
+    iptLock->Release();
     return -1;
 }
 
 int AddrSpace::getFreePage()
 {
+    iptLock->Acquire();
     for (int i = 0; i < NumPhysPages; i++)
     {
         TranslationEntryIPT t = ipt[i];
         if (! t.valid)
         {
+            iptLock->Release();
             return t.physicalPage;
         }
     }
+    iptLock->Release();
     return -1;
 }

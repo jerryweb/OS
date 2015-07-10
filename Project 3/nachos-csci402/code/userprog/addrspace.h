@@ -42,6 +42,7 @@ class AddrSpace {
     Table fileTable;			// Table of openfiles
     Table* threadTable;
     TranslationEntryExec* getPageTable() { return pageTable; }
+    Lock* pageTableLock;
     int HandleIPTMiss(int vpn);
     void PageFault();           //handles page fault exceptions
     void setNewPageTable();
