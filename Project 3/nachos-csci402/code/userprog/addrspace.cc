@@ -336,11 +336,10 @@ int AddrSpace::HandleMemoryFull()
     AddrSpace* AddrSPtemp =  (AddrSpace*)processTable->Get(ipt[pageIndex].processID);
     //If dirty is true, move to swap
     
-    if(ipt[pageIndex].dirty)
+    if(AddrSPtemp && ipt[pageIndex].dirty)
     {
         DEBUG('z', "HandleMemoryFull: Accessing swapfile\n");
         //write to swapfile
-        printf("process = %p, pageIndex = %d, processID = %d\n", AddrSPtemp, pageIndex, ipt[pageIndex].processID);
         if(AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].location == SWAP)
         {
             DEBUG('z', "  HandleMemoryFull: Page from page table is already in the swapfile\n");

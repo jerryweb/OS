@@ -454,7 +454,7 @@ void Exit_Syscall(int status)
 
             for(unsigned int i = 0; i < AddSP->getNumPages(); i++)
             {
-                TranslationEntry t = AddSP->getPageTable()[i];
+                TranslationEntryExec t = AddSP->getPageTable()[i];
                 if (t.valid)
                 {
                     int ppn = t.physicalPage;
@@ -462,8 +462,7 @@ void Exit_Syscall(int status)
                     DEBUG('z', "Exit: setting physical page %d invalid\n", ppn);
                 }
             }
-            processTable->Remove(AddSP->getID()); 
-            //delete KL;    
+            processTable->Remove(AddSP->getID());
         }
 
         else{
@@ -471,7 +470,7 @@ void Exit_Syscall(int status)
             
             for(int i = threadStackLoc; i < (threadStackLoc + 8); i++)
             { 
-                TranslationEntry t = AddSP->getPageTable()[i];
+                TranslationEntryExec t = AddSP->getPageTable()[i];
                 if (t.valid)
                 {
                     int ppn = t.physicalPage;
@@ -501,7 +500,7 @@ void Exit_Syscall(int status)
 
             for(unsigned int i = 0; i < AddSP->getNumPages(); i++)
             {
-                TranslationEntry t = AddSP->getPageTable()[i];
+                TranslationEntryExec t = AddSP->getPageTable()[i];
                 if (t.valid)
                 {
                     int ppn = t.physicalPage;
@@ -520,7 +519,7 @@ void Exit_Syscall(int status)
             
             for(int i = threadStackLoc; i < (threadStackLoc + 8); i++)
             {
-                TranslationEntry t = AddSP->getPageTable()[i];
+                TranslationEntryExec t = AddSP->getPageTable()[i];
                 if (t.valid)
                 {
                     int ppn = t.physicalPage;
