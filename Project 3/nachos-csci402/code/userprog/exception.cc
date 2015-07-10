@@ -946,18 +946,7 @@ int GetID_Syscall()
 void SetID_Syscall(int id){
     currentThread->setThreadID(id);
 }
-/*
-void PageFault()
-{
-    DEBUG('z', "Starting page fault handler\n");
-    //page table index 
-    int PTIndex = machine->ReadRegister(39)/PageSize;
-    for(int i = 0; i < ;i++){
-            currentThread->space->pageTable.
 
-    }
-
-}*/
 
 void ExceptionHandler(ExceptionType which) {
     int type = machine->ReadRegister(2); // Which syscall?
@@ -1074,7 +1063,25 @@ void ExceptionHandler(ExceptionType which) {
             case SC_SetID:
                 DEBUG('a', "SetID syscall.\n");
                 SetID_Syscall(machine->ReadRegister(4));
+                break;
+                /*
+            case SC_CreateMonitorVariable:
+                DEBUG('a', "CreateMonitorVariable syscall.\n");
+                rv = CreateMonitorVariable_Syscall(machine->ReadRegister(4));
+                break;
+            case SC_DestroyMonitorVariable:
+                DEBUG('a', "DestroyMonitorVariable syscall.\n");
+                DestroyMonitorVariable_Syscall(machine->ReadRegister(4));
+                break;
+            case SC_SetMonitorVariable:
+                DEBUG('a', "SetMonitorVariable syscall.\n");
+                SetMonitorVariable_Syscall(machine->ReadRegister(4));
+                break;
+            case SC_GetMonitorVariable:
+                DEBUG('a', "GetMonitorVariable syscall.\n");
+                rv = GetMonitorVariable_Syscall(machine->ReadRegister(4));
                 break;        
+                */
         }
         // Put in the return value and increment the PC
         machine->WriteRegister(2,rv);

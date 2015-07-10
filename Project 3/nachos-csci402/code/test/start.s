@@ -224,8 +224,40 @@ SetID:
 	addiu $2,$0,SC_SetID
 	syscall
 	j	$31
-	.end SetID	
+	.end SetID
 
+	.globl CreateMonitorVariable
+	.ent CreateMonitorVariable
+CreateMonitorVariable:
+	addiu $2,$0,SC_CreateMonitorVariable
+	syscall
+	j	$31
+	.end CreateMonitorVariable	
+
+	.globl DestroyMonitorVariable
+	.ent DestroyMonitorVariable
+DestroyMonitorVariable:
+	addiu $2,$0,SC_DestroyMonitorVariable
+	syscall
+	j	$31
+	.end DestroyMonitorVariable
+
+	.globl GetMonitorVariable
+	.ent GetMonitorVariable
+GetMonitorVariable:
+	addiu $2,$0,SC_GetMonitorVariable
+	syscall
+	j	$31
+	.end GetMonitorVariable
+
+	.globl SetMonitorVariable
+	.ent SetMonitorVariable
+SetMonitorVariable:
+	addiu $2,$0,SC_SetMonitorVariable
+	syscall
+	j	$31
+	.end SetMonitorVariable
+	
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

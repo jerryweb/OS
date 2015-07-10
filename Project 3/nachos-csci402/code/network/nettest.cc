@@ -35,7 +35,7 @@ MailTest(int farAddr)
 {
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *data = "Hello there!";
+    char *data = "Hey... yeah I'm sending you something so pay attention...";
     char *ack = "Got it!";
     char buffer[MaxMailSize];
 

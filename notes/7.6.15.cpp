@@ -96,7 +96,7 @@ Project 3 Part 3
 	 	/****For Project 3****/
 	 	1. 
 	 	2.
-	 	3. some of the validation cn be done on the client side
+	 	3. some of the validation can be done on the client side
 	 		Create a request message & send to server
 	 		Wait for reply
 	 	5.

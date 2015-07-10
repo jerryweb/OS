@@ -18,29 +18,33 @@
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
-#define SC_Halt		          0
-#define SC_Exit		          1
-#define SC_Exec		          2
-#define SC_Join		          3
-#define SC_Create	          4
-#define SC_Open		          5
-#define SC_Read		          6
-#define SC_Write	          7
-#define SC_Close	          8
-#define SC_Fork		          9
-#define SC_Yield	         10
-#define SC_Acquire 	         11
-#define SC_Release	         12
-#define	SC_Wait		         13
-#define SC_Signal	         14
-#define SC_Broadcast         15
-#define SC_CreateLock        16
-#define SC_DestroyLock       17
-#define SC_CreateCondition   18
-#define SC_DestroyCondition  19
-#define SC_Printf            20
-#define SC_GetID             21
-#define	SC_SetID			 22
+#define SC_Halt		         	   0
+#define SC_Exit		         	   1
+#define SC_Exec		         	   2
+#define SC_Join		         	   3
+#define SC_Create	         	   4
+#define SC_Open		         	   5
+#define SC_Read		         	   6
+#define SC_Write	         	   7
+#define SC_Close	         	   8
+#define SC_Fork		         	   9
+#define SC_Yield	         	  10
+#define SC_Acquire 	         	  11
+#define SC_Release	         	  12
+#define	SC_Wait		         	  13
+#define SC_Signal	         	  14
+#define SC_Broadcast         	  15
+#define SC_CreateLock        	  16
+#define SC_DestroyLock       	  17
+#define SC_CreateCondition   	  18
+#define SC_DestroyCondition  	  19
+#define SC_Printf            	  20
+#define SC_GetID             	  21
+#define	SC_SetID			 	  22
+#define SC_CreateMonitorVariable  23
+#define SC_DestroyMonitorVariable 24
+#define SC_SetMonitorVariable     25
+#define SC_GetMonitorVariable 	  26 
 #define MAXFILENAME 256
 
 #ifndef IN_ASM
@@ -193,6 +197,20 @@ int GetID();
 /*Sets the ID of the current thread.
  */
 void SetID(int id);
+
+/*function used to create monitor variables
+*/
+int CreateMonitorVariable(char* name, int length, int MVArraySize);
+
+/*function used to destroy monitor variables
+*/
+void DestroyMonitorVariable(int MVArrayIndex);
+
+int GetMonitorVariable(int indexPosition);
+
+void SetMonitorVariable(/*a,*/int indexPosition, int size);
+
+
 
 #endif /* IN_ASM */
 

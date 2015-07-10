@@ -52,8 +52,9 @@
 
 #include "utility.h"
 #include "system.h"
+#include <sstream>
 
-
+using namespace std;
 // External functions used by this file
 
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);

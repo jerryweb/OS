@@ -521,7 +521,6 @@ void AddrSpace::RestoreState()
             if(machine->tlb[i].valid){
                 DEBUG('p', "ipt index on context switch is %d\n", machine->tlb[i].physicalPage);
                 ipt[machine->tlb[i].physicalPage].dirty = machine->tlb[i].dirty;
-                break;
             }
         }
         machine->tlb[i].valid = false;

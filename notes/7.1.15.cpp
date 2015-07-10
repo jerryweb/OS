@@ -246,5 +246,5 @@ for networking you can use:
 on X11, you can use xterm& 
 nachos -m 0 -o 1 //the -m is the machine id 0 and it will send and listen for machine 1 
 You need to type://These are on the 2 seperate shells 
-	nachos -m 0 -o1
-	nachos -m 1 -o0
+	nachos -m 0 -o 1
+	nachos -m 1 -o 0
