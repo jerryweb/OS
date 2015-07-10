@@ -44,6 +44,10 @@
 #include "machine.h"
 #endif
 
+#ifdef NETWORK
+#include "../network/post.h"
+#endif
+
 class AddrSpace;
 
 // CPU register state to be saved on context switch.  
@@ -136,6 +140,10 @@ class Thread {
     void RestoreUserState();		// restore user-level register state
 
     AddrSpace *space;			// User code this thread is running.
+#endif
+
+#ifdef NETWORK
+    MailBox* mailbox;           // Thread's mailbox for incoming messages
 #endif
 };
 

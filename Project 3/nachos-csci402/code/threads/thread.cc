@@ -21,7 +21,6 @@
 #include "synch.h"
 #include "system.h"
 
-
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
 					// stack overflows
@@ -35,6 +34,7 @@ class AddrSpace;
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
+//make sure each thread has it's own mailbox
 
 Thread::Thread(char* threadName)
 {
@@ -44,6 +44,10 @@ Thread::Thread(char* threadName)
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
+#endif
+    
+#ifdef NETWORK
+    mailBox = new MailBox();
 #endif
 }
 //----------------------------------------------------------------------

@@ -210,7 +210,11 @@ int GetMonitorVariable(int indexPosition);
 
 void SetMonitorVariable(/*a,*/int indexPosition, int size);
 
+/*
+int  CreateServerLock();
 
+int CreateSercer
+*/
 
 #endif /* IN_ASM */
 
