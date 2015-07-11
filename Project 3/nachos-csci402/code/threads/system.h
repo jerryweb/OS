@@ -41,7 +41,7 @@ extern Table* processTable;				// Table for keeping tracking of all of the addre
 extern BitMap* memMap;
 extern BitMap* swapFileMap;
 extern OpenFile* swapFile;
-//extern OpenFile* debugFile;				//	USed for debugging
+extern Lock* swapLock;
 
 extern TranslationEntryIPT* ipt;
 extern Lock* iptLock;

@@ -97,6 +97,7 @@ Initialize(int argc, char **argv)
     processTable =  new Table(maxNumProc);
     memMap = new BitMap(NumPhysPages);
     swapFileMap = new BitMap(5000);
+    swapLock = new Lock("swapLock");
     
     // Swap File
     swapFile = fileSystem->Open("../threads/swapfile");
