@@ -280,7 +280,7 @@ AddrSpace::setNewPageTable(){
 
 int AddrSpace::HandleMemoryFull()
 {    
-    printf("  ENTERING HandleMemoryFull.\n");
+    DEBUG('x', "%s  ENTERING HandleMemoryFull.\n", currentThread->getName());
 
     int pageIndex = 0;
 
@@ -292,10 +292,10 @@ int AddrSpace::HandleMemoryFull()
         do
         {
             pageIndex = rand() % NumPhysPages;
-            printf("  HandleMemoryFull: Trying to evict page %d, use = %d\n", pageIndex, (int)ipt[pageIndex].use);
+            DEBUG('x', "%s  HandleMemoryFull: Trying to evict page %d, use = %d\n", currentThread->getName(), pageIndex, (int)ipt[pageIndex].use);
         } while (ipt[pageIndex].use);
         ipt[pageIndex].use = true;
-        printf("  HandleMemoryFull: Randomly evicted page %d from the IPT\n", pageIndex);
+        DEBUG('x', "%s  HandleMemoryFull: Randomly evicted page %d from the IPT\n", currentThread->getName(), pageIndex);
     }
     
     //FIFO Eviction
@@ -304,17 +304,17 @@ int AddrSpace::HandleMemoryFull()
         do
         {
             pageIndex = (int) FIFOEvictionQueue->Remove();
-            printf("  HandleMemoryFull: Trying to evict page %d, use = %d\n", pageIndex, (int)ipt[pageIndex].use);
+            DEBUG('x', "%s  HandleMemoryFull: Trying to evict page %d, use = %d\n", currentThread->getName(), pageIndex, (int)ipt[pageIndex].use);
         } while (ipt[pageIndex].use);
         ipt[pageIndex].use = true;
-        printf("  HandleMemoryFull: Evicted page %d stored in the FIFO queue from the IPT\n", pageIndex);
+        DEBUG('x', "%s  HandleMemoryFull: Evicted page %d stored in the FIFO queue from the IPT\n", currentThread->getName(), pageIndex);
     }
     
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     
     if (ipt[pageIndex].processID == id)
     {
-        printf("  HandleMemoryFull: Evicted page %d belongs to this process. vpn = %d\n", pageIndex, ipt[pageIndex].virtualPage);
+        DEBUG('x', "%s  HandleMemoryFull: Evicted page %d belongs to this process. vpn = %d\n", currentThread->getName(), pageIndex, ipt[pageIndex].virtualPage);
         
         //look for ipt.vpn in the tlb
         //if a match, check to see if it's valid
@@ -325,7 +325,7 @@ int AddrSpace::HandleMemoryFull()
             {
                 if(machine->tlb[i].valid)
                 {
-                    printf("  HandleMemoryFull: Propagating dirty bit of page %d to ipt page %d\n", ipt[pageIndex].virtualPage, machine->tlb[i].physicalPage);
+                    DEBUG('x', "%s  HandleMemoryFull: Propagating dirty bit of page %d to ipt page %d\n", currentThread->getName(), ipt[pageIndex].virtualPage, machine->tlb[i].physicalPage);
                     ipt[machine->tlb[i].physicalPage].dirty = machine->tlb[i].dirty;
                     machine->tlb[i].valid = FALSE;
                     break;
@@ -341,17 +341,17 @@ int AddrSpace::HandleMemoryFull()
     
     if(AddrSPtemp && ipt[pageIndex].dirty)
     {
-        printf("  HandleMemoryFull: Accessing swapfile\n");
+        DEBUG('x', "%s  HandleMemoryFull: Accessing swapfile\n", currentThread->getName());
         //write to swapfile
         if(AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].location == SWAP)
         {
-            printf("  HandleMemoryFull: Page from page table is already in the swapfile\n");
+            DEBUG('x', "%s  HandleMemoryFull: Page from page table is already in the swapfile\n", currentThread->getName());
             
             swapLock->Acquire();
 
             swapFile->WriteAt(&(machine->mainMemory[pageIndex * PageSize]), PageSize, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
             
-            printf("  HandleMemoryFull: Page written to same swap. vpn = %d, ppn = %d, byteOffset = %d\n", AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].virtualPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].physicalPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
+            DEBUG('x', "%s  HandleMemoryFull: Page written to same swap. vpn = %d, ppn = %d, byteOffset = %d\n", currentThread->getName(), AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].virtualPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].physicalPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
             
             swapLock->Release();
         }
@@ -368,11 +368,11 @@ int AddrSpace::HandleMemoryFull()
                 AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].location = SWAP;
                 AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset = PageSize*sf;
                
-                printf("  HandleMemoryFull: Page written to new swap pos. vpn = %d, ppn = %d, byteOffset = %d\n", AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].virtualPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].physicalPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
+                DEBUG('x', "%s  HandleMemoryFull: Page written to new swap pos. vpn = %d, ppn = %d, byteOffset = %d\n", currentThread->getName(), AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].virtualPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].physicalPage, AddrSPtemp->pageTable[ipt[pageIndex].virtualPage].byteOffset);
 
             }
             else
-                printf("  HandleMemoryFull: swapfile full!!\n");
+                DEBUG('x', "%s  HandleMemoryFull: swapfile full!!\n", currentThread->getName());
             
             swapLock->Release();
         }
@@ -382,7 +382,7 @@ int AddrSpace::HandleMemoryFull()
     
     iptLock->Release();
 
-    printf("  EXITING HandleMemoryFull. new ppn = %d\n", pageIndex);
+    DEBUG('x', "%s  EXITING HandleMemoryFull. new ppn = %d\n", currentThread->getName(), pageIndex);
     
     return pageIndex;
 }
@@ -394,7 +394,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
     
     iptLock->Release();
     
-    printf("%s ENTERING HandleIPTMiss. vpn = %d, ppn = %d\n", currentThread->getName(), vpn, ppn);
+    DEBUG('x', "%s ENTERING HandleIPTMiss. vpn = %d, ppn = %d\n", currentThread->getName(), vpn, ppn);
     
     // if ppn = -1, kick a page
     if(ppn == -1)
@@ -406,7 +406,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
     //  copy from executable
     if (pageTable[vpn].location == EXEC)
     {
-        printf("%s HandleIPTMiss: Reading from executable file. vpn = %d, ppn = %d, byteOffset = %d\n", currentThread->getName(), vpn, ppn, pageTable[vpn].byteOffset);
+        DEBUG('x', "%s HandleIPTMiss: Reading from executable file. vpn = %d, ppn = %d, byteOffset = %d\n", currentThread->getName(), vpn, ppn, pageTable[vpn].byteOffset);
         
         exec->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
         
@@ -418,7 +418,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
     {
         swapLock->Acquire();
         
-        printf("%s HandleIPTMiss: Reading from swap file. vpn = %d, ppn = %d, byteOffset is %d\n", currentThread->getName(), vpn, ppn, pageTable[vpn].byteOffset);
+        DEBUG('x', "%s HandleIPTMiss: Reading from swap file. vpn = %d, ppn = %d, byteOffset is %d\n", currentThread->getName(), vpn, ppn, pageTable[vpn].byteOffset);
         
         swapFile->ReadAt(&(machine->mainMemory[ppn * PageSize]), PageSize, pageTable[vpn].byteOffset);
         
@@ -427,7 +427,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
     
     if (pageTable[vpn].location == NEITHER)
     {
-        printf("%s HandleIPTMiss: Not in exec or swap. vpn = %d, ppn = %d, byteOffset is %d\n", currentThread->getName(), vpn, ppn, pageTable[vpn].byteOffset);
+        DEBUG('x', "%s HandleIPTMiss: Not in exec or swap. vpn = %d, ppn = %d, byteOffset is %d\n", currentThread->getName(), vpn, ppn, pageTable[vpn].byteOffset);
     }
     
     pageTable[vpn].virtualPage = vpn;   
@@ -455,7 +455,7 @@ int AddrSpace::HandleIPTMiss(int vpn)
 
     iptLock->Release();
     
-    printf("%s EXITING HandleIPTMiss. vpn = %d, ppn = %d\n", currentThread->getName(), vpn, ppn);
+    DEBUG('x', "%s EXITING HandleIPTMiss. vpn = %d, ppn = %d\n", currentThread->getName(), vpn, ppn);
     
     return ppn;
 }
