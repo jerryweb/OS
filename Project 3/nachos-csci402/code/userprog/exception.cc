@@ -77,6 +77,9 @@ Table* processTable;
 
 BitMap* memMap;
 
+Lock* forkLock;
+Lock* execLock;
+
 void DestroyLock_Syscall(int id);
 void DestroyCondition_Syscall(int id);
 
@@ -287,7 +290,9 @@ void Close_Syscall(int fd) {
 void kernel_function(int vaddr)
 // Sets up registers and stack space for a new thread.
 {
-    DEBUG('z', "Fork: Thread %s: Entering kernel function\n", currentThread->getName());
+    forkLock->Acquire();
+    
+    printf("Fork: Thread %s: Entering kernel function\n", currentThread->getName());
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
@@ -300,8 +305,9 @@ void kernel_function(int vaddr)
 
     machine->WriteRegister(StackReg, stackPage*PageSize);
 
-    DEBUG('z', "Fork: Thread %s: Running\n", currentThread->getName());
+    printf("Fork: Thread %s: Running\n", currentThread->getName());
     
+    forkLock->Release();
     // Run the new program.
     machine->Run();
 }
@@ -310,6 +316,8 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
 // Creates and runs a new thread in the current process. If there
 //  is an error, will return without forking the new thread.
 {
+    forkLock->Acquire();
+    
     if ((void*)vaddr1 == NULL)
     {
         DEBUG('z', "Fork: Thread %s: Invalid function pointer\n", currentThread->getName());
@@ -335,18 +343,20 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
     
-    DEBUG('z', "Fork: Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
+    printf("Fork: Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
 
     //reallocate the page table
-
+    
     t->space->setNewPageTable();
     // update thread table
     t->setThreadTableLocation(t->space->threadTable->Put(t));
-    DEBUG('z', "Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
+    printf("Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
     // DEBUG('z', "Thread table location: %d\n", t->getThreadTableLocation());
 
-    DEBUG('z', "Fork: Thread table size %d\n", t->space->threadTable->getCount());
+    printf("Fork: Thread table size %d\n", t->space->threadTable->getCount());
 
+    forkLock->Release();
+    
     t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
 }
 
@@ -362,6 +372,8 @@ int Exec_Syscall(unsigned int vaddr, int len)
 //  the id of the process in the global processTable. Returns
 //  -1 if the file name given is invalid.
 {
+    execLock->Acquire();
+    
     char *buf = new char[len+1];	// Kernel buffer: filename
 
     if (! buf)
@@ -399,6 +411,8 @@ int Exec_Syscall(unsigned int vaddr, int len)
     DEBUG('z', "Exec: Thread count for process %d: %d\n", p->getID(), p->threadTable->getCount());
     p->threadTable->lockRelease();
 
+    execLock->Release();
+    
     return id;
 }
 

@@ -99,6 +99,9 @@ Initialize(int argc, char **argv)
     swapFileMap = new BitMap(5000);
     swapLock = new Lock("swapLock");
     
+    forkLock = new Lock("forkLock");
+    execLock = new Lock("execLock");
+    
     // Swap File
     swapFile = fileSystem->Open("../threads/swapfile");
     if (swapFile == NULL) {

@@ -46,6 +46,9 @@ extern Lock* swapLock;
 extern TranslationEntryIPT* ipt;
 extern Lock* iptLock;
 
+extern Lock* forkLock;
+extern Lock* execLock;
+
 extern int currentTLB;
 extern int evictionPolicy;				// Used to determine which memory eviction policy to use 
 										// 0 will use the FIFO policy, and 1 will use the Random policy
