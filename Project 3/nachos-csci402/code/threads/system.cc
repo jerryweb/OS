@@ -131,6 +131,8 @@ Initialize(int argc, char **argv)
 #ifdef NETWORK
     double rely = 1;		// network reliability
     int netname = 0;		// UNIX socket name
+    currentBoxCountPointer = 0;
+    boxCountIndexLock = new Lock("boxCountIndexLock");
 #endif
     
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {

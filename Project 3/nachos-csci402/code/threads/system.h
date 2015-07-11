@@ -69,6 +69,8 @@ extern SynchDisk   *synchDisk;
 #ifdef NETWORK
 #include "post.h"
 extern PostOffice* postOffice;
+extern int currentBoxCountPointer;
+extern Lock* boxCountIndexLock;
 #endif
 
 #endif // SYSTEM_H

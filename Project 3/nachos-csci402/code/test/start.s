@@ -226,6 +226,14 @@ SetID:
 	j	$31
 	.end SetID
 
+	.globl GetMyBoxNumber
+	.ent GetMyBoxNumber
+GetMyBoxNumber:
+	addiu $2,$0,SC_GetMyBoxNumber
+	syscall
+	j	$31
+	.end GetMyBoxNumber
+
 	.globl CreateMonitorVariable
 	.ent CreateMonitorVariable
 CreateMonitorVariable:

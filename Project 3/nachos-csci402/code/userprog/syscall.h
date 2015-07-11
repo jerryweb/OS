@@ -41,10 +41,12 @@
 #define SC_Printf            	  20
 #define SC_GetID             	  21
 #define	SC_SetID			 	  22
-#define SC_CreateMonitorVariable  23
-#define SC_DestroyMonitorVariable 24
-#define SC_SetMonitorVariable     25
-#define SC_GetMonitorVariable 	  26 
+#define SC_GetMyBoxNumber	  	  23  
+#define SC_CreateMonitorVariable  24
+#define SC_DestroyMonitorVariable 25
+#define SC_SetMonitorVariable     26
+#define SC_GetMonitorVariable 	  27 
+ 
 #define MAXFILENAME 256
 
 #ifndef IN_ASM
@@ -198,6 +200,9 @@ int GetID();
  */
 void SetID(int id);
 
+/*returns the index of the last added thread box number*/
+int GetMyBoxNumber();
+
 /*function used to create monitor variables
 */
 int CreateMonitorVariable(char* name, int length, int MVArraySize);
@@ -210,11 +215,7 @@ int GetMonitorVariable(int indexPosition);
 
 void SetMonitorVariable(/*a,*/int indexPosition, int size);
 
-/*
-int  CreateServerLock();
 
-int CreateSercer
-*/
 
 #endif /* IN_ASM */
 

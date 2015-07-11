@@ -20,6 +20,7 @@
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
+#include "../network/post.h"
 
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
@@ -34,7 +35,11 @@ class AddrSpace;
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
-//make sure each thread has it's own mailbox
+// make sure each thread has it's own mailbox
+// create a global variable that has the current mailbox index number in system.cc/h, 
+// create a lock that is used to access the global variable, set the thread's box number
+//and increment the index for the global variable
+// create a syscall GetMyBoxNumber for threads 
 
 Thread::Thread(char* threadName)
 {
@@ -45,11 +50,20 @@ Thread::Thread(char* threadName)
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
+    //mailBoxNumber = 0;
+//#ifdef NETWORK
+    boxCountIndexLock->Acquire();
+    if(currentBoxCountPointer == 10)
+        printf("Max number of mailboxes already reached! Will continue to increment.\n");
     
-#ifdef NETWORK
-    mailBox = new MailBox();
-#endif
+    mailBoxNumber = currentBoxCountPointer;
+    currentBoxCountPointer++;               //increment the current index for the boxes
+    printf("Thread %s mail box number is %d\n", name, mailBoxNumber);
+    
+    boxCountIndexLock->Release();
+//#endif
 }
+
 //----------------------------------------------------------------------
 // Thread::~Thread
 // 	De-allocate a thread.
@@ -323,11 +337,5 @@ Thread::RestoreUserState()
 {
     for (int i = 0; i < NumTotalRegs; i++)
 	machine->WriteRegister(i, userRegisters[i]);
-    //invalidate the TLB
-    /*for(int i = 0; i <TLBSize; i++)
-    {
-        DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
-        machine->tlb[i].valid = false;
-    }*/
 }
 #endif

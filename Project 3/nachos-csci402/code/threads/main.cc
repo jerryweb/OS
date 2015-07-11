@@ -73,7 +73,8 @@ extern void InspectTest();
 extern void MTest();
 extern void AirportSim();
 extern void MainMenu();
-
+	int currentBoxCountPointer;
+	Lock* boxCountIndexLock;
 void RunServer();
 //----------------------------------------------------------------------
 // main
@@ -94,6 +95,7 @@ main(int argc, char **argv)
 {
     int argCount;			// the number of arguments 
 					// for a particular command
+
 	
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
@@ -222,6 +224,8 @@ main(int argc, char **argv)
 				// it from returning.
     return(0);			// Not reached...
 }
+
+//put the client code in test because it's a user prog
 
 void RunServer(){
 

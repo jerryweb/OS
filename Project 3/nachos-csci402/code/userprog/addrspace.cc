@@ -526,7 +526,7 @@ void AddrSpace::RestoreState()
     for(int i = 0; i <TLBSize; i++)
     {
         //DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
-
+        printf("tlb vpn %d, ipt vpn \n", machine->tlb[i].virtualPage);//, ipt[machine->tlb[i].physicalPage].virtualPage);
         if(machine->tlb[i].virtualPage == ipt[machine->tlb[i].physicalPage].virtualPage){
             if(machine->tlb[i].valid){
                 DEBUG('p', "ipt index on context switch is %d\n", machine->tlb[i].physicalPage);

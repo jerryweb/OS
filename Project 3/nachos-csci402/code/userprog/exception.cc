@@ -386,8 +386,10 @@ int Exec_Syscall(unsigned int vaddr, int len)
         return -1;
     }
 
-    
+    int boxNum = 0;
+
     AddrSpace* p = new AddrSpace(fileHandle);
+
     Thread* t = new Thread("Kernel thread");
 
     t->space = p;
@@ -959,8 +961,7 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     }
 }
 
-int GetID_Syscall()
-{
+int GetID_Syscall(){
     return currentThread->getThreadID();
 }
 
@@ -968,6 +969,9 @@ void SetID_Syscall(int id){
     currentThread->setThreadID(id);
 }
 
+int GetMyBoxNumber_Syscall(){
+    return currentThread->getMailBoxNum();
+}
 
 void ExceptionHandler(ExceptionType which) {
     int type = machine->ReadRegister(2); // Which syscall?
@@ -1085,6 +1089,10 @@ void ExceptionHandler(ExceptionType which) {
                 DEBUG('a', "SetID syscall.\n");
                 SetID_Syscall(machine->ReadRegister(4));
                 break;
+            case SC_GetMyBoxNumber:
+                DEBUG('a', "GetMyBoxNumber syscall.\n");
+                rv = GetMyBoxNumber_Syscall();
+                break; 
                 /*
             case SC_CreateMonitorVariable:
                 DEBUG('a', "CreateMonitorVariable syscall.\n");
@@ -1103,6 +1111,7 @@ void ExceptionHandler(ExceptionType which) {
                 rv = GetMonitorVariable_Syscall(machine->ReadRegister(4));
                 break;        
                 */
+
         }
         // Put in the return value and increment the PC
         machine->WriteRegister(2,rv);

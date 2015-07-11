@@ -44,10 +44,6 @@
 #include "machine.h"
 #endif
 
-#ifdef NETWORK
-#include "../network/post.h"
-#endif
-
 class AddrSpace;
 
 // CPU register state to be saved on context switch.  
@@ -112,6 +108,7 @@ class Thread {
     void setThreadID(int id) { threadID = id; }
     int getStackLocation() { return stackStartLocation; }
     void setStackLocation(int stackPage) { stackStartLocation = stackPage; }
+    int getMailBoxNum(){ return mailBoxNumber; }
     
   private:
     // some of the private data for this class is listed above
@@ -127,6 +124,8 @@ class Thread {
     					// Allocate a stack for thread.
 					// Used internally by Fork()
     int threadID;
+    int mailBoxNumber;           // Thread's mailbox for incoming messages
+
 
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
@@ -141,10 +140,10 @@ class Thread {
 
     AddrSpace *space;			// User code this thread is running.
 #endif
-
+/*
 #ifdef NETWORK
-    MailBox* mailbox;           // Thread's mailbox for incoming messages
-#endif
+    int mailBoxNumber;           // Thread's mailbox for incoming messages
+#endif*/
 };
 
 // Magical machine-dependent routines, defined in switch.s
