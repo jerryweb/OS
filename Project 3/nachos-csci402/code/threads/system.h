@@ -49,12 +49,14 @@ extern Lock* iptLock;
 extern int currentTLB;
 extern int evictionPolicy;				// Used to determine which memory eviction policy to use 
 										// 0 will use the FIFO policy, and 1 will use the Random policy
+extern int currentBoxCountPointer;
+extern Lock* boxCountIndexLock;
 
-#ifdef USER_PROGRAM
+//#ifdef USER_PROGRAM
 #include "machine.h"
 extern Machine* machine;	// user program memory and registers
 
-#endif
+//#endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
 #include "../filesys/filesys.h"
@@ -69,8 +71,6 @@ extern SynchDisk   *synchDisk;
 #ifdef NETWORK
 #include "post.h"
 extern PostOffice* postOffice;
-extern int currentBoxCountPointer;
-extern Lock* boxCountIndexLock;
 #endif
 
 #endif // SYSTEM_H

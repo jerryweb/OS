@@ -535,53 +535,71 @@ void Exit_Syscall(int status)
 
 }
 
-void Acquire_Syscall(int id)
+//void Acquire_Syscall(int id)
+void Acquire_Syscall(int lock)
 // Acquire the kernel lock with the given ID. If the current process
 //  does not have access to the lock or the lock does not exist,
 //  will print an error without acquiring.
 {
     lockTable->lockAcquire();
-    
-    KernelLock* kLock = (KernelLock*) lockTable->Get(id);
-    if (kLock == NULL || kLock->owner == NULL)
+
+    ServerLock* sLock =  (ServerLock*) lockTable->GetID(lock);
+    if (sLock == NULL)
     {   // Check if lock has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to acquire invalid KernelLock, ID %d\n", currentThread->getName(), id);
+        DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
         lockTable->lockRelease();
         return;
     }
-    if (currentThread->space != kLock->owner)
-    {   // Check if current process has access to lock.
-        DEBUG('z', "Thread %s: Trying to acquire other process's Lock, ID %d\n", currentThread->getName(), id);
-        lockTable->lockRelease();
-        return;
+
+    if(sLock->LockState == FREE){
+        sLock->LockState = BUSY;
+        /*TODO: Send reply code goes here*/
     }
-    if (kLock->lock == NULL)
-    {   // Make sure lock is valid. Should never reach here.
-        DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), id);
+    else 
+        //sLock->waitQueue->Append((Void*)replyMsg);
+
+    /*
+        KernelLock* kLock = (KernelLock*) lockTable->Get(id);
+        if (kLock == NULL || kLock->owner == NULL)
+        {   // Check if lock has been created (or not yet destroyed).
+            DEBUG('z', "Thread %s: Trying to acquire invalid KernelLock, ID %d\n", currentThread->getName(), id);
+            lockTable->lockRelease();
+            return;
+        }
+        if (currentThread->space != kLock->owner)
+        {   // Check if current process has access to lock.
+            DEBUG('z', "Thread %s: Trying to acquire other process's Lock, ID %d\n", currentThread->getName(), id);
+            lockTable->lockRelease();
+            return;
+        }
+        if (kLock->lock == NULL)
+        {   // Make sure lock is valid. Should never reach here.
+            DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), id);
+            lockTable->lockRelease();
+            return;
+        }
+        
+        DEBUG('z', "Thread %s: Acquiring Lock, ID %d\n", currentThread->getName(), id);
+        
         lockTable->lockRelease();
-        return;
-    }
-    
-    DEBUG('z', "Thread %s: Acquiring Lock, ID %d\n", currentThread->getName(), id);
-    
-    lockTable->lockRelease();
-    
-    kLock->lock->Acquire();
-    
-    lockTable->lockAcquire();
-    
-    DEBUG('z', "Thread %s: Acquired Lock, ID %d\n", currentThread->getName(), id);
-    
+        
+        kLock->lock->Acquire();
+        
+        lockTable->lockAcquire();
+        
+     DEBUG('z', "Thread %s: Acquired Lock, ID %d\n", currentThread->getName(), id);
+    */
     lockTable->lockRelease();
 }
 
-void Release_Syscall(int id)
+//void Release_Syscall(int id)
+void Release_Syscall(int lock)
 // Release the kernel lock with the given ID. If the current process
 //  does not have access to the lock or the lock does not exist,
 //  will print an error without releasing.
 {
     lockTable->lockAcquire();
-    
+   /* 
     KernelLock* kLock = (KernelLock*) lockTable->Get(id);
     if (kLock == NULL || kLock->owner == NULL)
     {   // Check if lock has been created (or not yet destroyed).
@@ -605,19 +623,29 @@ void Release_Syscall(int id)
     DEBUG('z', "Thread %s: Releasing Lock, ID %d\n", currentThread->getName(), id);
     
     kLock->lock->Release();
-    
+    */
     lockTable->lockRelease();
 }
 
-void Wait_Syscall(int id, int lockID)
+//void Wait_Syscall(int id, int lockID)
+void Wait_Syscall(int lock, int CV)
 // Waits on the kernel condition with the given ID, using the kernel
 //  lock with the given ID. If the current process does not have access
 //  to the condition or the lock or either does not exist, will print
 //  an error without waiting.
 {
     CVTable->lockAcquire();
+
+    ServerCV* sCond = (ServerCV*) CVTable->GetID(CV);
+    if (sCond == NULL || sCond->owner == NULL)
+    {   // Check if condition has been created (or not yet destroyed).
+        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+        CVTable->lockRelease();
+        return;
+    }
+   /* CVTable->lockAcquire();
     
-    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+    KernelCondition* sCond = (KernelCondition*) CVTable->Get(id);
     if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
@@ -654,7 +682,7 @@ void Wait_Syscall(int id, int lockID)
     
     DEBUG('z', "Thread %s: Waited on Condition, ID %d\n", currentThread->getName(), id);
     
-    CVTable->lockRelease();
+    CVTable->lockRelease();*/
 }
 void Signal_Syscall(int id, int lockID)
 // Signals the kernel condition with the given ID, using the kernel

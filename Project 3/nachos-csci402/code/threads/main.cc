@@ -228,5 +228,7 @@ main(int argc, char **argv)
 //put the client code in test because it's a user prog
 
 void RunServer(){
-
+	while(true){
+		
+	}
 }

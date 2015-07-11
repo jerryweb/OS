@@ -553,7 +553,6 @@ void AddrSpace::RestoreState()
     {
 
         //DEBUG('z', "RestoreState: setting tlb page %d invalid\n", i);
-        printf("tlb vpn %d, ipt vpn \n", machine->tlb[i].virtualPage);//, ipt[machine->tlb[i].physicalPage].virtualPage);
 
         if(machine->tlb[i].virtualPage == ipt[machine->tlb[i].physicalPage].virtualPage){
             if(machine->tlb[i].valid){

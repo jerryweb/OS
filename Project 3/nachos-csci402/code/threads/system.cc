@@ -82,8 +82,8 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
-    
-    
+    currentBoxCountPointer = 0;
+    boxCountIndexLock = new Lock("boxCountIndexLock");
 
 /*TODO: add the Process tables here*/
 #ifdef USER_PROGRAM
@@ -132,8 +132,7 @@ Initialize(int argc, char **argv)
 #ifdef NETWORK
     double rely = 1;		// network reliability
     int netname = 0;		// UNIX socket name
-    currentBoxCountPointer = 0;
-    boxCountIndexLock = new Lock("boxCountIndexLock");
+
 #endif
     
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
