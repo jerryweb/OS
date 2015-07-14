@@ -75,7 +75,8 @@ extern void AirportSim();
 extern void MainMenu();
 	int currentBoxCountPointer;
 	Lock* boxCountIndexLock;
-void RunServer();
+
+//void RunServer();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -156,7 +157,6 @@ main(int argc, char **argv)
     {   // Runs the full airport simulation.
 		MainMenu();
 	}
-
 	
 // #endif
 
@@ -211,6 +211,10 @@ main(int argc, char **argv)
             MailTest(atoi(*(argv + 1)));
             argCount = 2;
         }
+
+        if (!strcmp(*argv,"-server")) {
+        	RunServer();
+        }
 #endif // NETWORK
     }
 
@@ -225,10 +229,51 @@ main(int argc, char **argv)
     return(0);			// Not reached...
 }
 
-//put the client code in test because it's a user prog
-
+/*put the client code in test because it's a user prog
 void RunServer(){
+
 	while(true){
 		
 	}
-}
+}*/
+	//server code goes in main
+	
+RunServer {
+	//TODO:build lock and CV table here
+	Table* severLockTable;
+	Table* severCVTable;
+
+	while (true) {
+		PacketHeader outPktHdr, inPktHdr;
+		MailHeader outMailHdr, inMailHdr;
+		char buffer[MaxMailSize];
+		stringstream ss;
+		ss << "";
+		int request = -1;
+
+		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+		ss << buffer;
+		ss >> request;
+
+		//create lock
+		if (request == 1) {
+			string lockName;
+			ss >> lockName;
+
+		} else if (request == 2) {
+
+		} else if (request == 3) {
+
+		} else if (request == 4) {
+
+		} else if (request == 5) {
+
+		} else if (request == 6) {
+
+		} else if (request == 7) {
+
+		} else if (request == 8) {
+
+		}
+
+	}
