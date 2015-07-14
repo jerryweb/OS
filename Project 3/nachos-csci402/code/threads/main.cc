@@ -75,7 +75,8 @@ extern void AirportSim();
 extern void MainMenu();
 	int currentBoxCountPointer;
 	Lock* boxCountIndexLock;
-void RunServer();
+
+//void RunServer();
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -156,7 +157,6 @@ main(int argc, char **argv)
     {   // Runs the full airport simulation.
 		MainMenu();
 	}
-
 	
 // #endif
 
@@ -211,6 +211,10 @@ main(int argc, char **argv)
             MailTest(atoi(*(argv + 1)));
             argCount = 2;
         }
+
+        if (!strcmp(*argv,"-server")) {
+        	RunServer();
+        }
 #endif // NETWORK
     }
 
@@ -225,10 +229,10 @@ main(int argc, char **argv)
     return(0);			// Not reached...
 }
 
-//put the client code in test because it's a user prog
-
+/*put the client code in test because it's a user prog
 void RunServer(){
+
 	while(true){
 		
 	}
-}
+}*/
