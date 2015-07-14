@@ -50,6 +50,20 @@ Thread::Thread(char* threadName)
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
+    // may be moved to the next function for independent box setting
+    /*boxCountIndexLock->Acquire();
+    if(currentBoxCountPointer == 10)
+        printf("Max number of mailboxes already reached! Will continue to increment.\n");
+    
+    mailBoxNumber = currentBoxCountPointer;
+    currentBoxCountPointer++;               //increment the current index for the boxes
+    printf("Thread %s mail box number is %d\n", name, mailBoxNumber);
+    
+    boxCountIndexLock->Release();*/
+}
+
+
+Thread::SetMailBoxNum(){
     boxCountIndexLock->Acquire();
     if(currentBoxCountPointer == 10)
         printf("Max number of mailboxes already reached! Will continue to increment.\n");
@@ -60,6 +74,8 @@ Thread::Thread(char* threadName)
     
     boxCountIndexLock->Release();
 }
+
+
 
 //----------------------------------------------------------------------
 // Thread::~Thread

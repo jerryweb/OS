@@ -52,7 +52,7 @@ struct ServerLock
     LockState serverLockState;  //state of server lock
     int machineID;
     int mailboxNum;
-    List* waitQueue; //for reply messages
+    List* waitQueue;            //for reply messages
     bool isToBeDeleted; 
 };
 
@@ -670,7 +670,7 @@ void Wait_Syscall(int lock, int CV)
     CVTable->lockAcquire();
 
     ServerCV* sCond = (ServerCV*) CVTable->GetID(CV);
-    if (sCond == NULL || sCond->owner == NULL)
+    if (sCond == NULL /*|| sCond->machineID == currentThread*/)
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
         CVTable->lockRelease();
@@ -1033,8 +1033,7 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
     }
 }
 
-int GetID_Syscall()
-{
+int GetID_Syscall(){
     return currentThread->getThreadID();
 }
 
@@ -1044,6 +1043,10 @@ void SetID_Syscall(int id){
 
 int GetMyBoxNumber_Syscall(){
     return currentThread->getMailBoxNum();
+}
+
+void SetMyBoxNumber_Syscall(){
+    currentThread->SetMailBoxNum();
 }
 
 void ExceptionHandler(ExceptionType which) {
@@ -1169,7 +1172,11 @@ void ExceptionHandler(ExceptionType which) {
             case SC_GetMyBoxNumber:
                 DEBUG('a', "GetMyBoxNumber syscall.\n");
                 rv = GetMyBoxNumber_Syscall();
-                break; 
+                break;
+            case SC_SetMailBoxNum:
+                DEBUG('a', "SetMailBoxNum syscall.\n");
+                SetMailBoxNum_Syscall();
+                break;  
                 /*
             case SC_CreateMonitorVariable:
                 DEBUG('a', "CreateMonitorVariable syscall.\n");

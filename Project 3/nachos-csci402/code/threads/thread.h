@@ -109,6 +109,7 @@ class Thread {
     int getStackLocation() { return stackStartLocation; }
     void setStackLocation(int stackPage) { stackStartLocation = stackPage; }
     int getMailBoxNum(){ return mailBoxNumber; }
+    void SetMailBoxNum();
     
   private:
     // some of the private data for this class is listed above

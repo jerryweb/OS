@@ -41,11 +41,12 @@
 #define SC_Printf            	  20
 #define SC_GetID             	  21
 #define	SC_SetID			 	  22
-#define SC_GetMyBoxNumber	  	  23  
-#define SC_CreateMonitorVariable  24
-#define SC_DestroyMonitorVariable 25
-#define SC_SetMonitorVariable     26
-#define SC_GetMonitorVariable 	  27 
+#define SC_GetMyBoxNumber	  	  23
+#define SC_SetMailBoxNum		  24  
+#define SC_CreateMonitorVariable  25
+#define SC_DestroyMonitorVariable 26
+#define SC_SetMonitorVariable     27
+#define SC_GetMonitorVariable 	  28 
  
 #define MAXFILENAME 256
 
