@@ -221,6 +221,8 @@ int main(int argc, char **argv) {
 	return (0);			// Not reached...
 }
 
+#ifdef NETWORK
+
 /*put the client code in test because it's a user prog
 //server code goes in main
 // request type:
@@ -232,8 +234,6 @@ int main(int argc, char **argv) {
 // 6  -> destory CV
 // 7  -> CV signal
 // 8  -> CV wait
-
-#ifdef NETWORK
 
 void RunServer() {
 	//TODO:build lock and CV table here
