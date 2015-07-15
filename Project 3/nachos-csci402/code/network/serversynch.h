@@ -8,8 +8,14 @@
 #include "post.h"
 
 enum lockState {
-	SL_FREE, SL_BUSY
+	FREE, BUSY
 };
+
+/*routine for sending proceed call
+//and ackonwledging
+int sendProceedMsg(int out) {
+
+}*/
 
 class serverLock {
 public:
@@ -17,7 +23,7 @@ public:
 	~serverLock();
 
 	void Acquire(int out);
-	void Release(int out);
+	void Release();
 
 	char* name;     //for debug
 	lockState state;

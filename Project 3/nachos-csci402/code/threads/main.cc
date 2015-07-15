@@ -229,15 +229,17 @@ main(int argc, char **argv)
     return(0);			// Not reached...
 }
 
-/*put the client code in test because it's a user prog
-void RunServer(){
-
-	while(true){
-		
-	}
-}*/
 	//server code goes in main
-	
+// request type:
+// 1  -> create lock
+// 2  -> destory lock
+// 3  -> lock acquire
+// 4  -> lock release
+// 5  -> create CV
+// 6  -> destory CV
+// 7  -> CV signal
+// 8  -> CV wait
+
 RunServer {
 	//TODO:build lock and CV table here
 	Table* severLockTable;
