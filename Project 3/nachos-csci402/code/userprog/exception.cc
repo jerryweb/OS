@@ -565,6 +565,8 @@ void Acquire_Syscall(int lock)
 //  does not have access to the lock or the lock does not exist,
 //  will print an error without acquiring.
 {  
+
+#ifdef NETWORK
     lockTable->lockAcquire();
 
     ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
@@ -651,6 +653,7 @@ void Acquire_Syscall(int lock)
      DEBUG('z', "Thread %s: Acquired Lock, ID %d\n", currentThread->getName(), id);
     */
     lockTable->lockRelease();
+#endif // NETWORK
 }
 
 //void Release_Syscall(int id)
@@ -659,6 +662,7 @@ void Release_Syscall(int lock)
 //  does not have access to the lock or the lock does not exist,
 //  will print an error without releasing.
 {
+#ifdef NETWORK    
     lockTable->lockAcquire();
 
     ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
@@ -753,6 +757,7 @@ void Release_Syscall(int lock)
         kLock->lock->Release();
     */
     lockTable->lockRelease();
+#endif // NETWORK
 }
 
 //void Wait_Syscall(int id, int lockID)
@@ -762,6 +767,7 @@ void Wait_Syscall(int lock, int CV)
 //  to the condition or the lock or either does not exist, will print
 //  an error without waiting.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
 
     ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
@@ -811,6 +817,7 @@ void Wait_Syscall(int lock, int CV)
         DEBUG('z', "Thread %s: Waited on Condition, ID %d\n", currentThread->getName(), id);
     */
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
 void Signal_Syscall(int id, int lockID)
@@ -819,6 +826,7 @@ void Signal_Syscall(int id, int lockID)
 //  to the condition or the lock or either does not exist, will print
 //  an error without signalling.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
     /*
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
@@ -853,6 +861,7 @@ void Signal_Syscall(int id, int lockID)
     kCond->condition->Signal(kLock->lock);
     */
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
 void Broadcast_Syscall(int id, int lockID)
@@ -861,6 +870,7 @@ void Broadcast_Syscall(int id, int lockID)
 //  to the condition or the lock or either does not exist, will print
     //  an error without broadcasting.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
     /*
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
@@ -895,6 +905,7 @@ void Broadcast_Syscall(int id, int lockID)
     kCond->condition->Broadcast(kLock->lock);
     */
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)
@@ -903,6 +914,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 //  it is placed in the kernel lock table and its index is returned.
 //  If there are any errors, -1 is returned.
 {
+#ifdef NETWORK
     lockTable->lockAcquire();
     
     char *buf = new char[len+1];	// Kernel buffer: name
@@ -952,6 +964,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     
     DEBUG('z', "Thread %s: Successfully created server Lock, ID %d\n", currentThread->getName(), id);
     
+#endif // NETWORK
     return 0;
 }
 
@@ -961,6 +974,8 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 //  it is placed in the kernel condition table and its index is returned.
 //  If there are any errors, -1 is returned.
 {
+    int id;
+#ifdef NETWORK
     CVTable->lockAcquire();
     
     char *buf = new char[len+1];	// Kernel buffer: name
@@ -994,10 +1009,11 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     */
     delete[] buf;
     
-    int id = CVTable->Put(sCV);
+    id = CVTable->Put(sCV);
     
     DEBUG('z', "Thread %s: Successfully created Condition, ID %d\n", currentThread->getName(), id);
     
+#endif // NETWORK
     return id;
 }
 
@@ -1007,6 +1023,7 @@ void DestroyLock_Syscall(int id)
 //  current process does not have access to the lock or the lock does not
 //  exist, will print an error without destroying or setting the flag. 
 {
+#ifdef NETWORK
     lockTable->lockAcquire();
     
     ServerLock* sLock = (ServerLock*) lockTable->Get(id);
@@ -1039,6 +1056,7 @@ void DestroyLock_Syscall(int id)
     }*/
     
     lockTable->lockRelease();
+#endif // NETWORK
 }
 void DestroyCondition_Syscall(int id)
 // Destroys the kernel condition with the given ID. If there are threads
@@ -1046,6 +1064,7 @@ void DestroyCondition_Syscall(int id)
 //  does not have access to the condition or the condition does not
 //  exist, will print an error without destroying or setting the flag.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
     
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
@@ -1078,6 +1097,7 @@ void DestroyCondition_Syscall(int id)
     }
     
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
