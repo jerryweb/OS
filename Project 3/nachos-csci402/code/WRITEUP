@@ -17,40 +17,87 @@ III. Design:
 
 IV. Implementation:
 	+ Files Modified
-        Part 1/2:
-            code/userprog/
-                addrspace.h/.cc
-                exception.cc
+        code/
+            Makefile.common
+        code/machine/
+            machine.h (reset NumPhysPages to 32)
+        code/network/
+            nettest.cc
+        code/test/
+            Makefile
+            forkTest.c
+            start.s
+        code/threads/
+            main.cc
+            swapfile
+            system.h/.cc
+            thread.h/.cc
+        code/userprog/
+            addrspace.h/.cc
+            exception.cc
+            progtest.cc
+            syscall.h
+            table.h
                 
 	+ Files added
-        Part 1/2:
-            code/userprog/
-                translateexec.h
-                translateipt.h
-                
+        code/network/
+            serversynch.h/cc
+        code/test/
+            matmultExec.c
+            matmultFork.c
+        code/userprog/
+            translateexec.h
+            translateipt.h
         
 	+ Data Structures added, and the file they were added to.
+        
+    
 	+ Data Structures modified, and the file they were added to.
-		-For example,
-			class Lock		-- in file threads.cc/threads.h
-			{
-				//. Modified fields.
-			}
-
+        
+    
 	+ Functions added and in which file.
+        
+    
 	+ Functions modified and in which file.
+        
+    
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
-- How to run the test cases, the commands, the arguments and so on.
+        nachos -x ../test/<testfile>
+            test files:
+                matmult
+                    basic matmult test
+                matmultFork
+                    forks two matmult threads
+                matmultExec
+                    execs two processes which run 'matmult'
+                sort
+                    basic sort test
+            non-standard optional arguments:
+                -d <flag>
+                    'x' for vm debug statements
+                    'z' for syscall debug statements
+                    'p' for page initialization debug statements
+                -P <FIFO/RAND>
+                    chooses the given eviction policy. defaults to FIFO if not present or not valid.
+        [NETWORK]
 	+ Test Output
-- Describe the testing output. You don't have to dump all the output info. Just make sure your description can exactly reflect your output.
+        register 4 prints out at the end of every thread:
+            <thread name>   The contents of register 4 is <number>
+                0 for main thread
+                7220 for every matmult thread
+                1023 for every sort thread
+        [NETWORK]
 
 VI. Discussion:
-	+ Experiment expectation.  (What you hope will happen.)
-	+ Experiment result.  (What actually happens.)
+	+ Experiment expectation
+        every matmult returns 7220, every sort returns 1023.
+        [NETWORK]
+	+ Experiment result
+        works as intended.
+        [NETWORK]
 	+ Explanation
-		- Explain your experiment result.
 
 VIII. Miscellaneous:
 - Whatever else you want the grader know about your development.  You can create your own subsections headings here.
