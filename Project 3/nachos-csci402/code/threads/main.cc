@@ -240,7 +240,8 @@ void RunServer() {
 	Table* serverLockTable = new Table(2048);
 	Table* serverCVTable = new Table(2048);
 
-	while (true) {
+	while (true)
+    {
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
@@ -258,10 +259,10 @@ void RunServer() {
         switch (request)
         {
             case 1:
-		createLock(arg1, serverLockTable, inPktHdr.from);
+                createLock(arg1, serverLockTable, inPktHdr.from);
                 break;
             case 2:
-		destroyLock(arg1, serverLockTable, inPktHdr.from);
+                destroyLock(arg1, serverLockTable, inPktHdr.from);
                 break;
             case 3:
                 break;
@@ -275,11 +276,11 @@ void RunServer() {
                 break;
             case 8:
                 break;
-	    default:
-		printf("invalid request type\n");
+            default:
+                printf("invalid request type\n");
         }
 	}
-    }
+}
 
 //tableType: 1 for lockTable, 2 for CVTable
 bool tableItemExist(string tName, Table* table, int tableType) {

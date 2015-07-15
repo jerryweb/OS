@@ -376,8 +376,6 @@ int AddrSpace::HandleMemoryFull()
         }
     }
 
-    ipt[pageIndex].use = FALSE;
-
     DEBUG('x', "%s  EXITING HandleMemoryFull. new ppn = %d\n", currentThread->getName(), pageIndex);
     
     return pageIndex;
@@ -436,7 +434,6 @@ int AddrSpace::HandleIPTMiss(int vpn)
     ipt[ppn].space = this;
     ipt[ppn].processID = id;
     ipt[ppn].valid = TRUE;
-    ipt[ppn].use = FALSE;
     ipt[ppn].dirty = FALSE;
     ipt[ppn].readOnly = FALSE;
 
