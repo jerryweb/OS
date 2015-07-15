@@ -213,7 +213,7 @@ main(int argc, char **argv)
         }
 
         if (!strcmp(*argv,"-server")) {
-        	RunServer();
+        //	RunServer();
         }
 #endif // NETWORK
     }
@@ -270,4 +270,4 @@ void RunServer() {
 
 		}
 
-	}
+	}*/

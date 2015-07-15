@@ -62,21 +62,6 @@ Thread::Thread(char* threadName)
     boxCountIndexLock->Release();*/
 }
 
-
-Thread::SetMailBoxNum(){
-    boxCountIndexLock->Acquire();
-    if(currentBoxCountPointer == 10)
-        printf("Max number of mailboxes already reached! Will continue to increment.\n");
-    
-    mailBoxNumber = currentBoxCountPointer;
-    currentBoxCountPointer++;               //increment the current index for the boxes
-    printf("Thread %s mail box number is %d\n", name, mailBoxNumber);
-    
-    boxCountIndexLock->Release();
-}
-
-
-
 //----------------------------------------------------------------------
 // Thread::~Thread
 // 	De-allocate a thread.
@@ -97,6 +82,21 @@ Thread::~Thread()
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 }
+
+
+void
+Thread::SetMailBoxNum(){
+    boxCountIndexLock->Acquire();
+    if(currentBoxCountPointer == 10)
+        printf("Max number of mailboxes already reached! Will continue to increment.\n");
+    
+    mailBoxNumber = currentBoxCountPointer;
+    currentBoxCountPointer++;               //increment the current index for the boxes
+    printf("Thread %s mail box number is %d\n", name, mailBoxNumber);
+    
+    boxCountIndexLock->Release();
+}
+
 
 //----------------------------------------------------------------------
 // Thread::Fork
