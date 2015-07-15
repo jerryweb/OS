@@ -82,7 +82,7 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
-    currentBoxCountPointer = 0;
+    currentBoxCountPointer = 1;
     boxCountIndexLock = new Lock("boxCountIndexLock");
 
 /*TODO: add the Process tables here*/

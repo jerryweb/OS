@@ -82,6 +82,13 @@ BitMap* memMap;
 
 Lock* forkLock;
 Lock* execLock;
+// This keeps track of the number of threads that call the create lock function.
+// Whenever a lock is created, it will increment by 1. Whenevr the destroy lock 
+// function is called, it will decrement by 1. 
+int createLockRequests = 0;
+
+// Similarto the createLockRequests instantiated above.
+int createCVRequests = 0;
 
 void DestroyLock_Syscall(int id);
 void DestroyCondition_Syscall(int id);
@@ -557,25 +564,61 @@ void Acquire_Syscall(int lock)
 // Acquire the kernel lock with the given ID. If the current process
 //  does not have access to the lock or the lock does not exist,
 //  will print an error without acquiring.
-{
+{  
     lockTable->lockAcquire();
 
     ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
-    if (sLock == NULL)
+    if (sLock == NULL|| sLock->machineID != currentThread->getThreadID())
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
         lockTable->lockRelease();
         return;
     }
 
-    if(sLock->serverLockState == FREE){
-        sLock->serverLockState = BUSY;
-        /*TODO: Send reply code goes here*/
+    if(sLock->lock == NULL){
+        DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
+        lockTable->lockRelease();
+        return;
     }
-    else 
 
-        //sLock->waitQueue->Append((Void*)replyMsg);
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *ack = "Acquire lock reply";
+    char buffer[MaxMailSize];
 
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = currentThread->getThreadID();
+    outMailHdr.length = strlen(ack) + 1;
+    // char buffer[MaxMailSize];
+    // Mail* reply = new Mail(); 
+
+    if(sLock->serverLockState == FREE){
+        // Send reply message that the lock was created
+        bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
+        
+        if ( !success ) {
+          printf("The Aquire reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+          interrupt->Halt();
+        }
+
+        // Wait for server reply
+        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+        sLock->serverLockState = BUSY;
+        // sLock->lock->Acquire(); MAKE SURE TO CHECK THIS
+        sLock->mailboxNum = currentThread->getMailBoxNum();
+        sLock->machineID = currentThread->getThreadID();
+
+        DEBUG('z', "Client thread with machine ID %d just acquired lock %s.\n",
+         currentThread->getThreadID(), sLock->lock->getName());
+    }
+    else{
+        // Queue the reply message
+        Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
+        sLock->LockWaitQueue->Append((void*)reply); //queue the reply message
+        DEBUG('z', "Server lock %s state is BUSY\n", sLock->lock->getName());
+    }
     /*
         KernelLock* kLock = (KernelLock*) lockTable->Get(id);
         if (kLock == NULL || kLock->owner == NULL)
@@ -619,20 +662,70 @@ void Release_Syscall(int lock)
     lockTable->lockAcquire();
 
     ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
-    if (sLock == NULL)
+    if (sLock == NULL|| sLock->machineID != currentThread->getThreadID())
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
         lockTable->lockRelease();
         return;
     }
 
+    if(sLock->lock == NULL){
+        DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
+        lockTable->lockRelease();
+        return;
+    }
+
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *ack = "Release lock reply";
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = currentThread->getThreadID();
+    outMailHdr.length = strlen(ack) + 1;
+
     if(sLock->LockWaitQueue->IsEmpty()){
-        sLock->LockState = FREE;
         /*TODO: Send reply code goes here*/
+        bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
+        
+        if ( !success ) {
+          printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+          interrupt->Halt();
+        }
+
+        // Wait for server reply
+        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+        sLock->serverLockState = FREE;
+        // sLock->lock->Release(); MAKE SURE TO CHECK THIS
+        sLock->mailboxNum = 0;
+        sLock->machineID = 0;
+
+        DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
+         currentThread->getThreadID(), sLock->lock->getName());
     }
     else{
-        //replyMsg = (ReplyMessage*) sLock->waitQueue->Remove();
+        Mail* replyMsg = (ReplyMessage*) sLock->waitQueue->Remove();
         /*TODO: Send reply code goes here*/
+        bool success = postOffice->Send(replyMsg.outPktHdr, replyMsg.outMailHdr, replyMsg.ack);
+        
+        if ( !success ) {
+          printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+          interrupt->Halt();
+        }
+
+        // Wait for server reply
+        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+        sLock->serverLockState = FREE;
+        // sLock->lock->Release(); MAKE SURE TO CHECK THIS
+        sLock->mailboxNum = 0;
+        sLock->machineID = 0;
+
+        DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
+         currentThread->getThreadID(), sLock->lock->getName());
     }
    /* 
         KernelLock* kLock = (KernelLock*) lockTable->Get(id);
@@ -719,6 +812,7 @@ void Wait_Syscall(int lock, int CV)
     */
     CVTable->lockRelease();
 }
+
 void Signal_Syscall(int id, int lockID)
 // Signals the kernel condition with the given ID, using the kernel
 //  lock with the given ID. If the current process does not have access
@@ -760,6 +854,7 @@ void Signal_Syscall(int id, int lockID)
     */
     CVTable->lockRelease();
 }
+
 void Broadcast_Syscall(int id, int lockID)
 // Broadcasts on the kernel condition with the given ID, using the kernel
 //  lock with the given ID. If the current process does not have access
@@ -829,6 +924,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 
     buf[len]='\0';
 
+    // Checks to see if the lock already exists 
     for(int i = 0; i < lockTable->getCount(); i++){
         ServerLock* sLockTemp =  new ServerLock;
         sLockTemp = (ServerLock*)lockTable->Get(i);
@@ -839,19 +935,22 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 
     ServerLock* sLock = new ServerLock;
     sLock->lock = new Lock(buf);
+    sLock->machineID = currentThread->getThreadID();                           
     sLock->mailboxNum = GetMyBoxNumber_Syscall();
     sLock->isToBeDeleted = false;
+
+    createLockRequests++;
     /*    
-    KernelLock* kLock = new KernelLock;
-    kLock->lock = new Lock(buf);
-    kLock->owner = currentThread->space;
-    kLock->isToBeDeleted = false;
+        KernelLock* kLock = new KernelLock;
+        kLock->lock = new Lock(buf);
+        kLock->owner = currentThread->space;
+        kLock->isToBeDeleted = false;
     */
     delete[] buf;
     
-    //int id = lockTable->Put(kLock);
+    int id = lockTable->Put(sLock);
     
-    // DEBUG('z', "Thread %s: Successfully created Lock, ID %d\n", currentThread->getName(), id);
+    DEBUG('z', "Thread %s: Successfully created server Lock, ID %d\n", currentThread->getName(), id);
     
     return 0;
 }
@@ -882,15 +981,20 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     }
 
     buf[len]='\0';
-    
-    KernelCondition* kCond = new KernelCondition;
-    kCond->condition = new Condition(buf);
-    kCond->owner = currentThread->space;
-    kCond->isToBeDeleted = false;
-    
+    ServerCV* sCV = new ServerCV;
+    sCV->isToBeDeleted = false;
+    sCV->lockUsed = 0;
+
+    createCVRequests++;
+    /*
+        KernelCondition* kCond = new KernelCondition;
+        kCond->condition = new Condition(buf);
+        kCond->owner = currentThread->space;
+        kCond->isToBeDeleted = false;
+    */
     delete[] buf;
     
-    int id = CVTable->Put(kCond);
+    int id = CVTable->Put(sCV);
     
     DEBUG('z', "Thread %s: Successfully created Condition, ID %d\n", currentThread->getName(), id);
     
@@ -905,15 +1009,15 @@ void DestroyLock_Syscall(int id)
 {
     lockTable->lockAcquire();
     
-    KernelLock* kLock = (KernelLock*) lockTable->Get(id);
-    
-    if (kLock == NULL || kLock->owner == NULL)
+    ServerLock* sLock = (ServerLock*) lockTable->Get(id);
+
+    if (sLock == NULL) //|| sLock->machineID != currentThread->get)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to destroy invalid KernelLock, ID %d\n", currentThread->getName(), id);
         lockTable->lockRelease();
         return;
     }
-    if (currentThread->space != kLock->owner)
+    /*if (currentThread->space != kLock->owner)
     {   // Check if current process has access to lock.
         DEBUG('z', "Thread %s: Trying to destroy other process's Lock, ID %d\n", currentThread->getName(), id);
         lockTable->lockRelease();
@@ -932,7 +1036,7 @@ void DestroyLock_Syscall(int id)
         DEBUG('z', "Thread %s: Destroying Lock, ID %d\n", currentThread->getName(), id);
         kLock->lock = NULL;
         kLock->owner = NULL;
-    }
+    }*/
     
     lockTable->lockRelease();
 }
@@ -1173,7 +1277,7 @@ void ExceptionHandler(ExceptionType which) {
                 break;
             case SC_SetMailBoxNum:
                 DEBUG('a', "SetMailBoxNum syscall.\n");
-                SetMailBoxNum_Syscall();
+                SetMyBoxNumber_Syscall();
                 break;  
                 /*
             case SC_CreateMonitorVariable:

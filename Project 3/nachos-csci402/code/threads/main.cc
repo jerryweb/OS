@@ -194,18 +194,19 @@ int main(int argc, char **argv) {
 		}
 #endif // FILESYS
 #ifdef NETWORK
-		if (!strcmp(*argv, "-o")) {
-			ASSERT(argc > 1);
-			Delay(2); 				// delay for 2 seconds
-			// to give the user time to
-			// start up another nachos
-			MailTest(atoi(*(argv + 1)));
-			argCount = 2;
-		}
+        if (!strcmp(*argv, "-o")) {
+	    ASSERT(argc > 1);
+            Delay(2); 				// delay for 2 seconds
+						// to give the user time to 
+						// start up another nachos
+            MailTest(atoi(*(argv + 1)));
+            argCount = 2;
+        }
 
-		if (!strcmp(*argv,"-server")) {
-			RunServer();
-		}
+        if (!strcmp(*argv,"-server")) {
+        //	RunServer();
+        }
+
 #endif // NETWORK
 	}
 
@@ -283,7 +284,6 @@ void RunServer() {
 			printf("invalid request type\n");
 			//ToDO: halt?
 		}
-
 	}
 }
 
@@ -385,3 +385,4 @@ bool acquireLock(string lName, Table* sTable) {
 	if (!tableItemExist(lName, sTable, 1)) {
 	}
 }*/
+
