@@ -229,6 +229,7 @@ main(int argc, char **argv)
     return(0);			// Not reached...
 }
 
+/*put the client code in test because it's a user prog
 	//server code goes in main
 // request type:
 // 1  -> create lock
@@ -239,8 +240,8 @@ main(int argc, char **argv)
 // 6  -> destory CV
 // 7  -> CV signal
 // 8  -> CV wait
-
-RunServer {
+	
+void RunServer() {
 	//TODO:build lock and CV table here
 	Table* severLockTable;
 	Table* severCVTable;
@@ -278,4 +279,4 @@ RunServer {
 
 		}
 
-	}
+	}*/
