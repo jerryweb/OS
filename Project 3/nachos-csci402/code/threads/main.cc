@@ -242,49 +242,146 @@ void RunServer() {
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
 		stringstream ss;
-		ss << "";
+		ss.str("");
+		ss.clear();
 		int request = -1;
+		string arg1;
 
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
 		ss << buffer;
 		ss >> request;
+		ss >> arg1;
 
 		//create lock
 		if (request == 1) {
-			string lockName;
-			ss >> lockName;
+			createLock(arg1, serverLockTable, inPktHdr.from);
 
-			//check if lock already exists
-			for (int i = 0;i<serverTable->Size();i++) {
-
-			}
-
-		//destory lock
+			//destory lock
 		} else if (request == 2) {
+			destoryLock(arg1, serverLockTable, inPktHdr.from);
 
-		//lock acquire
+			//lock acquire
 		} else if (request == 3) {
 
-		//lock release
+			//lock release
 		} else if (request == 4) {
 
-		//create CV
+			//create CV
 		} else if (request == 5) {
 
-		//destory CV
+			//destory CV
 		} else if (request == 6) {
 
-		//CV signal
+			//CV signal
 		} else if (request == 7) {
 
-		//CV wait
+			//CV wait
 		} else if (request == 8) {
 
-		//invalid request
+			//invalid request
 		} else {
 			printf("invalid request type\n");
 			//ToDO: halt?
 		}
 
+	}
+}
+
+//tableType: 1 for lockTable, 2 for CVTable
+bool tableItemExist(string tName, Table* table, int tableType) {
+	bool toReturn = false;
+
+	for (int i = 0; i < table->Size(); i++) {
+		if (tableType == 1)
+			serverLock* tableItem = (serverLock*) sTable->Get(i);
+		else
+			serverCV* tableItem = (serverCV*) sTable->Get(i);
+		if (tableItem->name == lName) {
+			toReturn = true;
+			break;
+		}
+	}
+
+	return toReturn;
+}
+
+void createLock(string lName, Table* sTable, int out) {
+	PacketHeader outPktHdr, inPktHdr;
+	MailHeader outMailHdr, inMailHdr;
+	char *msg;
+	char buffer[MaxMailSize];
+	stringstream ss;
+	ss.str("");
+	ss.clear;
+
+	outPktHdr.to = out;
+	outMailHdr.to = 0;
+	outMailHdr.from = out;
+
+	if (!tableItemExist(lName, sTable, 1)) {
+		serverLock* toPut = new serverLock(lName, -1, -1);
+		sTable->Put(toPut);
+		msg = "0";
+	} else {
+		msg = "1";
+	}
+
+	bool success = postOffice->Send(outPktHdr, outMailhdr, msg);
+
+	if (!success) {
+		//TODO: handle it
+	}
+
+	//wait for acknowledgement
+	postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
+	int ack = -1;
+	ss << buffer;
+	ss >> ack;
+
+	if (ack != 0) {
+		//TODO: handle it
+	}
+}
+
+void destoryLock(string lName, Table* sTable, int out) {
+	PacketHeader outPktHdr, inPktHdr;
+	MailHeader outMailHdr, inMailHdr;
+	char *msg;
+	char buffer[MaxMailSize];
+	stringstream ss;
+	ss.str("");
+	ss.clear;
+
+	outPktHdr.to = out;
+	outMailHdr.to = 0;
+	outMailHdr.from = out;
+
+	if (!tableItemExist(lName, sTable, 1)) {
+		msg = "1";
+	} else {
+		serverLock* tItem = (serverLock*) (sTable->Remove(toRemove));
+		delete tItem;
+		msg = "0";
+	}
+
+	bool success = postOffice->Send(outPktHdr, outMailhdr, msg);
+
+	if (!success) {
+		//TODO: handle it
+	}
+
+	//wait for acknowledgement
+	postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
+	int ack = -1;
+	ss << buffer;
+	ss >> ack;
+
+	if (ack != 0) {
+		//TODO: handle it
+	}
+}
+
+bool acquireLock(string lName, Table* sTable) {
+	if (!tableItemExist(lName, sTable, 1)) {
 	}
 }*/

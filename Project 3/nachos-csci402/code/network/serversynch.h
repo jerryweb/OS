@@ -25,7 +25,7 @@ public:
 	void Acquire(int out);
 	void Release();
 
-	char* name;     //for debug
+	string name;
 	lockState state;
 	int owenerID;       //owner machine id
 	int mailboxID;      //owner mailbox number
