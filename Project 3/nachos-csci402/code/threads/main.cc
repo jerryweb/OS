@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
 	return (0);			// Not reached...
 }
 
-/*put the client code in test because it's a user prog
+//put the client code in test because it's a user prog
 //server code goes in main
 // request type:
 // 1  -> create lock
@@ -331,16 +331,6 @@ void createLock(string lName, Table* sTable, int out) {
 	if (!success) {
 		//TODO: handle it
 	}
-
-	//wait for acknowledgement
-	postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
-	int ack = -1;
-	ss << buffer;
-	ss >> ack;
-
-	if (ack != 0) {
-		//TODO: handle it
-	}
 }
 
 void destoryLock(string lName, Table* sTable, int out) {
@@ -369,20 +359,10 @@ void destoryLock(string lName, Table* sTable, int out) {
 	if (!success) {
 		//TODO: handle it
 	}
-
-	//wait for acknowledgement
-	postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
-	int ack = -1;
-	ss << buffer;
-	ss >> ack;
-
-	if (ack != 0) {
-		//TODO: handle it
-	}
 }
 
 bool acquireLock(string lName, Table* sTable) {
 	if (!tableItemExist(lName, sTable, 1)) {
 	}
-}*/
+}
 

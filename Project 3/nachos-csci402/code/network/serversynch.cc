@@ -37,17 +37,6 @@ void serverLock::Acquire(int out) {
 			interrupt->Halt();
 		}
 
-		//wait for acknowledgement
-		postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
-		int ack = -1;
-		ss << buffer;
-		ss >> ack;
-
-		if (ack != 0) {
-			printf("acknowledgement lost from machine %d in acquire\n",out);
-			interrupt->Halt();
-		}
-
 		//proceed after acknowledgement
 		state = BUSY;
 		ownerID = out;
@@ -88,17 +77,6 @@ void serverLock::Release() {
 
 		if (!success) {
 			printf("severlock %d sending faliure in release\n",name);
-			interrupt->Halt();
-		}
-
-		//wait for acknowledgement
-		postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
-		int ack = -1;
-		ss << buffer;
-		ss >> ack;
-
-		if (ack != 0) {
-			printf("acknowledgement lost from machine %d in release\n",out);
 			interrupt->Halt();
 		}
 
