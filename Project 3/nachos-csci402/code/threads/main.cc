@@ -230,15 +230,9 @@ main(int argc, char **argv)
 }
 
 /*put the client code in test because it's a user prog
-void RunServer(){
-
-	while(true){
-		
-	}
-}*/
 	//server code goes in main
 	
-RunServer {
+void RunServer() {
 	//TODO:build lock and CV table here
 	Table* severLockTable;
 	Table* severCVTable;

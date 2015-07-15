@@ -27,6 +27,7 @@
 #include "../threads/synch.h"
 #include "../threads/thread.h"
 #include "table.h"
+#include "../network/post.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -52,7 +53,7 @@ struct ServerLock
     LockState serverLockState;  //state of server lock
     int machineID;
     int mailboxNum;
-    List* waitQueue;            //for reply messages
+    List* LockWaitQueue;            //for reply messages
     bool isToBeDeleted; 
 };
 
@@ -572,6 +573,7 @@ void Acquire_Syscall(int lock)
         /*TODO: Send reply code goes here*/
     }
     else 
+
         //sLock->waitQueue->Append((Void*)replyMsg);
 
     /*
@@ -624,7 +626,7 @@ void Release_Syscall(int lock)
         return;
     }
 
-    if(sLock->waitQueue->IsEmpty()){
+    if(sLock->LockWaitQueue->IsEmpty()){
         sLock->LockState = FREE;
         /*TODO: Send reply code goes here*/
     }
