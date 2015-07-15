@@ -85,6 +85,7 @@ Lock* execLock;
 
 void DestroyLock_Syscall(int id);
 void DestroyCondition_Syscall(int id);
+int GetMyBoxNumber_Syscall();
 
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
@@ -304,9 +305,9 @@ void kernel_function(int vaddr)
     
     int stackPage = currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8;
     currentThread->setStackLocation(stackPage);
-    printf("Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), stackPage*PageSize, stackPage, stackPage + 7);
+    printf("Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), (stackPage+8)*PageSize, stackPage, stackPage + 7);
 
-    machine->WriteRegister(StackReg, stackPage*PageSize);
+    machine->WriteRegister(StackReg, (stackPage+8)*PageSize);
 
     printf("Fork: Thread %s: Running\n", currentThread->getName());
     
@@ -354,7 +355,6 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     // update thread table
     t->setThreadTableLocation(t->space->threadTable->Put(t));
     printf("Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
-    // DEBUG('z', "Thread table location: %d\n", t->getThreadTableLocation());
 
     printf("Fork: Thread table size %d\n", t->space->threadTable->getCount());
 
@@ -560,7 +560,7 @@ void Acquire_Syscall(int lock)
 {
     lockTable->lockAcquire();
 
-    ServerLock* sLock =  (ServerLock*) lockTable->GetID(lock);
+    ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
     if (sLock == NULL)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
@@ -568,8 +568,8 @@ void Acquire_Syscall(int lock)
         return;
     }
 
-    if(sLock->LockState == FREE){
-        sLock->LockState = BUSY;
+    if(sLock->serverLockState == FREE){
+        sLock->serverLockState = BUSY;
         /*TODO: Send reply code goes here*/
     }
     else 
@@ -618,7 +618,7 @@ void Release_Syscall(int lock)
 {
     lockTable->lockAcquire();
 
-    ServerLock* sLock =  (ServerLock*) lockTable->GetID(lock);
+    ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
     if (sLock == NULL)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
@@ -671,10 +671,10 @@ void Wait_Syscall(int lock, int CV)
 {
     CVTable->lockAcquire();
 
-    ServerCV* sCond = (ServerCV*) CVTable->GetID(CV);
-    if (sCond == NULL /*|| sCond->machineID == currentThread*/)
+    ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
+    if (sCond == NULL) // || sCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
         CVTable->lockRelease();
         return;
     }
@@ -726,7 +726,7 @@ void Signal_Syscall(int id, int lockID)
 //  an error without signalling.
 {
     CVTable->lockAcquire();
-    
+    /*
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
@@ -757,7 +757,7 @@ void Signal_Syscall(int id, int lockID)
     DEBUG('z', "Thread %s: Signalling Condition, ID %d\n", currentThread->getName(), id);
     
     kCond->condition->Signal(kLock->lock);
-    
+    */
     CVTable->lockRelease();
 }
 void Broadcast_Syscall(int id, int lockID)
@@ -767,7 +767,7 @@ void Broadcast_Syscall(int id, int lockID)
     //  an error without broadcasting.
 {
     CVTable->lockAcquire();
-    
+    /*
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     if (kCond == NULL || kCond->owner == NULL)
     {   // Check if condition has been created (or not yet destroyed).
@@ -798,7 +798,7 @@ void Broadcast_Syscall(int id, int lockID)
     DEBUG('z', "Thread %s: Broadcasting on Condition, ID %d\n", currentThread->getName(), id);
     
     kCond->condition->Broadcast(kLock->lock);
-    
+    */
     CVTable->lockRelease();
 }
 
@@ -830,8 +830,8 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     buf[len]='\0';
 
     for(int i = 0; i < lockTable->getCount(); i++){
-        ServerLock sLockTemp =  new ServerLock;
-        sLockTemp = lockTable->Get(i);
+        ServerLock* sLockTemp =  new ServerLock;
+        sLockTemp = (ServerLock*)lockTable->Get(i);
         if(buf == sLockTemp->lock->getName()){
             return i;
         }
@@ -849,11 +849,11 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     */
     delete[] buf;
     
-    int id = lockTable->Put(kLock);
+    //int id = lockTable->Put(kLock);
     
-    DEBUG('z', "Thread %s: Successfully created Lock, ID %d\n", currentThread->getName(), id);
+    // DEBUG('z', "Thread %s: Successfully created Lock, ID %d\n", currentThread->getName(), id);
     
-    return id;
+    return 0;
 }
 
 int CreateCondition_Syscall(unsigned int vaddr, int len)
@@ -1162,10 +1162,6 @@ void ExceptionHandler(ExceptionType which) {
             case SC_GetID:
                 DEBUG('a', "GetID syscall.\n");
                 rv = GetID_Syscall();
-                break;
-            case SC_SetID:
-                DEBUG('a', "SetID syscall.\n");
-                SetID_Syscall(machine->ReadRegister(4));
                 break;
             case SC_SetID:
                 DEBUG('a', "SetID syscall.\n");

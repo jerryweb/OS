@@ -469,7 +469,7 @@ void AddrSpace::PageFault()
     int PTIndex = getPPN(regVal/PageSize); // will return -1 if not found
     iptLock->Release();
     
-    DEBUG('f', "PageFault: reg = %d, vpn = %d, ppn = %d\n", regVal, regVal/PageSize, PTIndex);
+    //DEBUG('x', "%s PageFault: reg = %d, vpn = %d, ppn = %d\n", currentThread->getName(), regVal, regVal/PageSize, PTIndex);
 
     if (PTIndex == -1)
     {
