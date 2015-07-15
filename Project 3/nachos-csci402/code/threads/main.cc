@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
 		if (!strcmp(*argv, "-z"))               // print copyright
 			printf(copyright);
 #ifdef USER_PROGRAM
-		if (!strcmp(*argv, "-x")) {        	// run a user program
+        if (!strcmp(*argv, "-x")) {        	// run a user program
 			ASSERT(argc > 1);
 			DEBUG('t', "filename: %s\n", *(argv + 1));
 			StartProcess(*(argv + 1));

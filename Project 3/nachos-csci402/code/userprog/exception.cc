@@ -603,9 +603,9 @@ void Acquire_Syscall(int lock)
           interrupt->Halt();
         }
 
-        // Wait for server reply
-        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
-        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+        // // Wait for server reply
+        // postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        // printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
 
         sLock->serverLockState = BUSY;
         // sLock->lock->Acquire(); MAKE SURE TO CHECK THIS
@@ -696,8 +696,8 @@ void Release_Syscall(int lock)
           interrupt->Halt();
         }
 
-        // Wait for server reply
-        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        // // Wait for server reply
+        // postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
         printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
 
         DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
@@ -713,9 +713,9 @@ void Release_Syscall(int lock)
           interrupt->Halt();
         }
 
-        // Wait for server reply
-        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
-        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+        // // Wait for server reply
+        // postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        // printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
 
 
     }
@@ -781,6 +781,7 @@ void Wait_Syscall(int lock, int CV)
     
     Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
     sCond->CVWaitQueue->Append((void*)reply);
+    sCond->lockUsed = lock;
 
     Release_Syscall(lock);
    /* CVTable->lockAcquire();
@@ -836,7 +837,7 @@ void Signal_Syscall(int lock, int CV)
     CVTable->lockAcquire();
 
     ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
-    if (sCond == NULL) 
+    if (sCond == NULL || lock != sCond->lockUsed) 
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
         CVTable->lockRelease();
@@ -844,7 +845,25 @@ void Signal_Syscall(int lock, int CV)
     }    
 
     Mail* replyMsg = (Mail*) sCond->CVWaitQueue->Remove();
+    Acquire_Syscall(sCond->lockUsed);
 
+    PacketHeader outPktHdr;
+    MailHeader outMailHdr;
+    char *ack = "Signal reply";
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = currentThread->getThreadID();                                           // Send to Server
+    outPktHdr.from = 0;
+    outMailHdr.length = strlen(ack) + 1;
+
+    bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
+        
+    if ( !success ) {
+      printf("The Signal reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
+
+    sCond->lockUsed = 0;
     /*
         KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
         if (kCond == NULL || kCond->owner == NULL)
@@ -969,12 +988,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     sLock->isToBeDeleted = false;
 
     createLockRequests++;
-    /*    
-        KernelLock* kLock = new KernelLock;
-        kLock->lock = new Lock(buf);
-        kLock->owner = currentThread->space;
-        kLock->isToBeDeleted = false;
-    */
+
     delete[] buf;
     
     int id = lockTable->Put(sLock);
@@ -1018,12 +1032,7 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     sCV->lockUsed = 0;
 
     createCVRequests++;
-    /*
-        KernelCondition* kCond = new KernelCondition;
-        kCond->condition = new Condition(buf);
-        kCond->owner = currentThread->space;
-        kCond->isToBeDeleted = false;
-    */
+
     delete[] buf;
     
     id = CVTable->Put(sCV);

@@ -39,6 +39,11 @@ int evictionPolicy;
 OpenFile* swapFile;
 Lock* swapLock;
 
+void SetEvictionPolicy(bool fifo)
+{
+    evictionPolicy = (int)fifo;
+}
+
 Table::Table(int s) : map(s), table(0), lock(0), size(s) {
     table = new void *[size];
     lock = new Lock("TableLock");
@@ -285,8 +290,8 @@ int AddrSpace::HandleMemoryFull()
     int pageIndex = 0;
     
     //Random Eviction
-    if(evictionPolicy == 1)
-    {             //default set in system.cc
+    if (evictionPolicy == 0)
+    {
         do
         {
             pageIndex = rand() % NumPhysPages;
@@ -297,7 +302,7 @@ int AddrSpace::HandleMemoryFull()
     }
     
     //FIFO Eviction
-    else
+    else // if (evictionPolicy == 1)
     {
         do
         {
