@@ -30,13 +30,6 @@ void serverLock::Acquire(int out) {
 		msg = "0";
 		outMailHdr.length = strlen(msg) +1;
 
-		bool success = postOffice->Send(outPktHdr,outMailhdr,msg);
-
-		if (!success) {
-			printf("severlock %d sending faliure in acquire\n",name);
-			interrupt->Halt();
-		}
-
 		//proceed after acknowledgement
 		state = BUSY;
 		ownerID = out;
@@ -73,13 +66,6 @@ void serverLock::Release() {
 		msg = "0";
 		outMailHdr.length = strlen(msg) +1;
 
-		bool success = postOffice->Send(outPktHdr,outMailhdr,msg);
-
-		if (!success) {
-			printf("severlock %d sending faliure in release\n",name);
-			interrupt->Halt();
-		}
-
 		waitQue->Remove();
 		delete [] outPtr;
 	}
@@ -91,18 +77,50 @@ void serverLock::Release() {
 
 }
 
-serverCV::serverCV(char* dName) {
+serverCV::serverCV(char* dName,Table* lTable) {
 	name = dName;
+	lock = NULL;
+	waitQue = new List();
+	lockTable = lTable;
 }
 
 serverCV::~serverCV() {
 	delete waitQue;
 }
 
-void serverCV::Signal(serverLock *sLock) {
+void serverCV::Signal(serverLock *sLock,int out) {
+	PacketHeader outPktHdr, inPktHdr;
+	MailHeader outMailHdr, inMailHdr;
+	char *msg;
+	char buffer[MaxMailSize];
+	stringstream ss;
+	ss.str("");
+	ss.clear;
 
+	outPktHdr.to = out;
+	outMailHdr.to = 0;
+	outMailHdr.from = out;
+
+	//check if lock exist
+	if (!tableItemExist(sLock->name,lockTable,1)) {
+		msg = "1";
+	} else {
+
+	}
 }
 
-void serverCV::Wait(serverLock *sLock) {
+void serverCV::Wait(serverLock *sLock,int out) {
+	PacketHeader outPktHdr, inPktHdr;
+	MailHeader outMailHdr, inMailHdr;
+	char *msg;
+	char buffer[MaxMailSize];
+	stringstream ss;
+	ss.str("");
+	ss.clear;
+
+	outPktHdr.to = out;
+	outMailHdr.to = 0;
+	outMailHdr.from = out;
+
 
 }

@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
 
 #ifdef NETWORK
 
-/*put the client code in test because it's a user prog
+//put the client code in test because it's a user prog
 //server code goes in main
 // request type:
 // 1  -> create lock
@@ -282,24 +282,6 @@ void RunServer() {
 	}
 }
 
-//tableType: 1 for lockTable, 2 for CVTable
-bool tableItemExist(string tName, Table* table, int tableType) {
-	bool toReturn = false;
-
-	for (int i = 0; i < table->Size(); i++) {
-		if (tableType == 1)
-			serverLock* tableItem = (serverLock*) sTable->Get(i);
-		else
-			serverCV* tableItem = (serverCV*) sTable->Get(i);
-		if (tableItem->name == lName) {
-			toReturn = true;
-			break;
-		}
-	}
-
-	return toReturn;
-}
-
 void createLock(string lName, Table* sTable, int out) {
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
@@ -321,11 +303,6 @@ void createLock(string lName, Table* sTable, int out) {
 		msg = "1";
 	}
 
-	bool success = postOffice->Send(outPktHdr, outMailhdr, msg);
-
-	if (!success) {
-		//TODO: handle it
-	}
 }
 
 void destoryLock(string lName, Table* sTable, int out) {
@@ -349,11 +326,6 @@ void destoryLock(string lName, Table* sTable, int out) {
 		msg = "0";
 	}
 
-	bool success = postOffice->Send(outPktHdr, outMailhdr, msg);
-
-	if (!success) {
-		//TODO: handle it
-	}
 }
 
 bool acquireLock(string lName, Table* sTable) {
