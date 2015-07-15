@@ -606,7 +606,7 @@ void Acquire_Syscall(int lock)
         printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
 
         sLock->serverLockState = BUSY;
-        sLock->lock->Acquire();
+        // sLock->lock->Acquire(); MAKE SURE TO CHECK THIS
         sLock->mailboxNum = currentThread->getMailBoxNum();
         sLock->machineID = currentThread->getThreadID();
 
@@ -675,13 +675,57 @@ void Release_Syscall(int lock)
         return;
     }
 
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *ack = "Release lock reply";
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = currentThread->getThreadID();
+    outMailHdr.length = strlen(ack) + 1;
+
     if(sLock->LockWaitQueue->IsEmpty()){
-        sLock->serverLockState = FREE;
         /*TODO: Send reply code goes here*/
+        bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
+        
+        if ( !success ) {
+          printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+          interrupt->Halt();
+        }
+
+        // Wait for server reply
+        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+        sLock->serverLockState = FREE;
+        // sLock->lock->Release(); MAKE SURE TO CHECK THIS
+        sLock->mailboxNum = 0;
+        sLock->machineID = 0;
+
+        DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
+         currentThread->getThreadID(), sLock->lock->getName());
     }
     else{
-        //replyMsg = (ReplyMessage*) sLock->waitQueue->Remove();
+        Mail* replyMsg = (ReplyMessage*) sLock->waitQueue->Remove();
         /*TODO: Send reply code goes here*/
+        bool success = postOffice->Send(replyMsg.outPktHdr, replyMsg.outMailHdr, replyMsg.ack);
+        
+        if ( !success ) {
+          printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+          interrupt->Halt();
+        }
+
+        // Wait for server reply
+        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+        sLock->serverLockState = FREE;
+        // sLock->lock->Release(); MAKE SURE TO CHECK THIS
+        sLock->mailboxNum = 0;
+        sLock->machineID = 0;
+
+        DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
+         currentThread->getThreadID(), sLock->lock->getName());
     }
    /* 
         KernelLock* kLock = (KernelLock*) lockTable->Get(id);
