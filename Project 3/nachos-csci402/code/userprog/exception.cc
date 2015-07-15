@@ -295,7 +295,7 @@ void kernel_function(int vaddr)
 {
     forkLock->Acquire();
     
-    printf("Fork: Thread %s: Entering kernel function\n", currentThread->getName());
+    DEBUG('z', "Fork: Thread %s: Entering kernel function\n", currentThread->getName());
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
@@ -304,11 +304,11 @@ void kernel_function(int vaddr)
     
     int stackPage = currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8;
     currentThread->setStackLocation(stackPage);
-    printf("Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), (stackPage+8)*PageSize, stackPage, stackPage + 7);
+    DEBUG('z', "Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), (stackPage+8)*PageSize, stackPage, stackPage + 7);
 
     machine->WriteRegister(StackReg, (stackPage+8)*PageSize);
 
-    printf("Fork: Thread %s: Running\n", currentThread->getName());
+    DEBUG('z', "Fork: Thread %s: Running\n", currentThread->getName());
     
     forkLock->Release();
     // Run the new program.
@@ -346,16 +346,16 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
     
-    printf("Fork: Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
+    DEBUG('z', "Fork: Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
 
     //reallocate the page table
     
     t->space->setNewPageTable();
     // update thread table
     t->setThreadTableLocation(t->space->threadTable->Put(t));
-    printf("Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
+    DEBUG('z', "Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
 
-    printf("Fork: Thread table size %d\n", t->space->threadTable->getCount());
+    DEBUG('z', "Fork: Thread table size %d\n", t->space->threadTable->getCount());
 
     forkLock->Release();
     
@@ -1043,6 +1043,10 @@ void SetID_Syscall(int id){
 
 int GetMyBoxNumber_Syscall(){
     return currentThread->getMailBoxNum();
+}
+
+void SetMailBoxNum_Syscall(){
+    
 }
 
 void SetMyBoxNumber_Syscall(){

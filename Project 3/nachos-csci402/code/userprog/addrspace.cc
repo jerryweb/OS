@@ -283,8 +283,6 @@ int AddrSpace::HandleMemoryFull()
     DEBUG('x', "%s  ENTERING HandleMemoryFull.\n", currentThread->getName());
 
     int pageIndex = 0;
-
-    iptLock->Acquire();
     
     //Random Eviction
     if(evictionPolicy == 1)
@@ -379,8 +377,6 @@ int AddrSpace::HandleMemoryFull()
     }
 
     ipt[pageIndex].use = FALSE;
-    
-    iptLock->Release();
 
     DEBUG('x', "%s  EXITING HandleMemoryFull. new ppn = %d\n", currentThread->getName(), pageIndex);
     
@@ -388,11 +384,7 @@ int AddrSpace::HandleMemoryFull()
 }
 int AddrSpace::HandleIPTMiss(int vpn)
 {
-    iptLock->Acquire();
-    
     int ppn = getFreePage();
-    
-    iptLock->Release();
     
     DEBUG('x', "%s ENTERING HandleIPTMiss. vpn = %d, ppn = %d\n", currentThread->getName(), vpn, ppn);
     
@@ -439,8 +431,6 @@ int AddrSpace::HandleIPTMiss(int vpn)
     
     pageTableLock->Release();
     
-    iptLock->Acquire();
-    
     ipt[ppn].virtualPage = vpn;
     ipt[ppn].physicalPage = ppn;
     ipt[ppn].space = this;
@@ -452,8 +442,6 @@ int AddrSpace::HandleIPTMiss(int vpn)
 
     // add ppn to the FIFO queue
     FIFOEvictionQueue->Append((void*)ppn);
-
-    iptLock->Release();
     
     DEBUG('x', "%s EXITING HandleIPTMiss. vpn = %d, ppn = %d\n", currentThread->getName(), vpn, ppn);
     
@@ -462,12 +450,12 @@ int AddrSpace::HandleIPTMiss(int vpn)
 //Copy page table info to the tlb
 void AddrSpace::PageFault()
 {
+    iptLock->Acquire();
+    
     //page table index
     int regVal = (int)machine->ReadRegister(39);
     
-    iptLock->Acquire();
     int PTIndex = getPPN(regVal/PageSize); // will return -1 if not found
-    iptLock->Release();
     
     //DEBUG('x', "%s PageFault: reg = %d, vpn = %d, ppn = %d\n", currentThread->getName(), regVal, regVal/PageSize, PTIndex);
 
@@ -496,6 +484,11 @@ void AddrSpace::PageFault()
         currentTLB++;
     
     (void) interrupt->SetLevel(oldLevel);
+    
+    
+    ipt[PTIndex].use = FALSE;
+    
+    iptLock->Release();
 }
 
 void
@@ -562,6 +555,7 @@ int AddrSpace::getPPN(int vpn)
         TranslationEntryIPT t = ipt[i];
         if (t.valid && t.processID == id && t.virtualPage == vpn)
         {
+            ipt[i].use = true;
             return t.physicalPage;
         }
     }

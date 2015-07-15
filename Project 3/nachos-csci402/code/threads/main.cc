@@ -238,7 +238,9 @@ void RunServer(){
 }*/
 	//server code goes in main
 	
-RunServer {
+#ifdef NETWORK
+
+void RunServer() {
 	//TODO:build lock and CV table here
 	Table* severLockTable;
 	Table* severCVTable;
@@ -256,24 +258,28 @@ RunServer {
 		ss >> request;
 
 		//create lock
-		if (request == 1) {
-			string lockName;
-			ss >> lockName;
-
-		} else if (request == 2) {
-
-		} else if (request == 3) {
-
-		} else if (request == 4) {
-
-		} else if (request == 5) {
-
-		} else if (request == 6) {
-
-		} else if (request == 7) {
-
-		} else if (request == 8) {
-
-		}
-
+        switch (request)
+        {
+            case 1:
+                string lockName;
+                ss >> lockName;
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 7:
+                break;
+            case 8:
+                break;
+        }
 	}
+}
+#endif // NETWORK
+    
