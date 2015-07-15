@@ -45,7 +45,7 @@ void serverLock::Acquire(int out) {
 	}
 }
 
-void serverLock::Release() {
+void serverLock::Release(int lock) {
 
 	if (!waitQue->IsEmpty()) {
 		int* outPtr = (int*)waitQue->First();

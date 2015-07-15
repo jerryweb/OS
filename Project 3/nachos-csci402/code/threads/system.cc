@@ -214,7 +214,7 @@ Initialize(int argc, char **argv)
 #endif
 
 #ifdef NETWORK
-    postOffice = new PostOffice(netname, rely, 10);
+    postOffice = new PostOffice(netname, rely, 30);
 #endif
 }
 
