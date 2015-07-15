@@ -221,7 +221,9 @@ int main(int argc, char **argv) {
 	return (0);			// Not reached...
 }
 
-//put the client code in test because it's a user prog
+#ifdef NETWORK
+
+/*put the client code in test because it's a user prog
 //server code goes in main
 // request type:
 // 1  -> create lock
@@ -238,7 +240,8 @@ void RunServer() {
 	Table* serverLockTable = new Table(2048);
 	Table* serverCVTable = new Table(2048);
 
-	while (true) {
+	while (true)
+    {
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
@@ -253,37 +256,29 @@ void RunServer() {
 		ss >> request;
 		ss >> arg1;
 
-		//create lock
-		if (request == 1) {
-			createLock(arg1, serverLockTable, inPktHdr.from);
-
-			//destory lock
-		} else if (request == 2) {
-			destoryLock(arg1, serverLockTable, inPktHdr.from);
-
-			//lock acquire
-		} else if (request == 3) {
-
-			//lock release
-		} else if (request == 4) {
-
-			//create CV
-		} else if (request == 5) {
-
-			//destory CV
-		} else if (request == 6) {
-
-			//CV signal
-		} else if (request == 7) {
-
-			//CV wait
-		} else if (request == 8) {
-
-			//invalid request
-		} else {
-			printf("invalid request type\n");
-			//ToDO: halt?
-		}
+        switch (request)
+        {
+            case 1:
+                createLock(arg1, serverLockTable, inPktHdr.from);
+                break;
+            case 2:
+                destroyLock(arg1, serverLockTable, inPktHdr.from);
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 7:
+                break;
+            case 8:
+                break;
+            default:
+                printf("invalid request type\n");
+        }
 	}
 }
 
@@ -366,3 +361,4 @@ bool acquireLock(string lName, Table* sTable) {
 	}
 }
 
+#endif // NETWORK

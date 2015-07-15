@@ -60,7 +60,7 @@ struct ServerLock
 Table* serverCVTable;
 struct ServerCV
 {
-    List* CVwaitQueue;
+    List* CVWaitQueue;
     int lockUsed;               //index to the lock in the serverLock table
     //cannot use lock pointers
     bool isToBeDeleted;  
@@ -303,7 +303,7 @@ void kernel_function(int vaddr)
 {
     forkLock->Acquire();
     
-    printf("Fork: Thread %s: Entering kernel function\n", currentThread->getName());
+    DEBUG('z', "Fork: Thread %s: Entering kernel function\n", currentThread->getName());
     unsigned int addr = (unsigned int) vaddr;
     // Set program counter to new program.
     machine->WriteRegister(PCReg, addr);
@@ -312,11 +312,11 @@ void kernel_function(int vaddr)
     
     int stackPage = currentThread->space->getNumPages() - (currentThread->space->threadTable->getMaxCount() - currentThread->getThreadTableLocation()) * 8;
     currentThread->setStackLocation(stackPage);
-    printf("Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), (stackPage+8)*PageSize, stackPage, stackPage + 7);
+    DEBUG('z', "Fork: Thread %s: stack pointer %d; stack pages %d-%d\n", currentThread->getName(), (stackPage+8)*PageSize, stackPage, stackPage + 7);
 
     machine->WriteRegister(StackReg, (stackPage+8)*PageSize);
 
-    printf("Fork: Thread %s: Running\n", currentThread->getName());
+    DEBUG('z', "Fork: Thread %s: Running\n", currentThread->getName());
     
     forkLock->Release();
     // Run the new program.
@@ -354,16 +354,16 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
     Thread* t = new Thread(buf); // Create new thread.
     t->space = currentThread->space; // Set the process to the currently running one.
     
-    printf("Fork: Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
+    DEBUG('z', "Fork: Thread %s: Forking thread %s\n", currentThread->getName(), t->getName());
 
     //reallocate the page table
     
     t->space->setNewPageTable();
     // update thread table
     t->setThreadTableLocation(t->space->threadTable->Put(t));
-    printf("Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
+    DEBUG('z', "Fork: Thread %s belongs to process %d\n", t->getName(), t->space->getID());
 
-    printf("Fork: Thread table size %d\n", t->space->threadTable->getCount());
+    DEBUG('z', "Fork: Thread table size %d\n", t->space->threadTable->getCount());
 
     forkLock->Release();
     
@@ -565,6 +565,8 @@ void Acquire_Syscall(int lock)
 //  does not have access to the lock or the lock does not exist,
 //  will print an error without acquiring.
 {  
+
+#ifdef NETWORK
     lockTable->lockAcquire();
 
     ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
@@ -651,14 +653,15 @@ void Acquire_Syscall(int lock)
      DEBUG('z', "Thread %s: Acquired Lock, ID %d\n", currentThread->getName(), id);
     */
     lockTable->lockRelease();
+#endif // NETWORK
 }
 
-//void Release_Syscall(int id)
 void Release_Syscall(int lock)
 // Release the kernel lock with the given ID. If the current process
 //  does not have access to the lock or the lock does not exist,
 //  will print an error without releasing.
 {
+#ifdef NETWORK    
     lockTable->lockAcquire();
 
     ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
@@ -697,18 +700,13 @@ void Release_Syscall(int lock)
         postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
         printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
 
-        sLock->serverLockState = FREE;
-        // sLock->lock->Release(); MAKE SURE TO CHECK THIS
-        sLock->mailboxNum = 0;
-        sLock->machineID = 0;
-
         DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
          currentThread->getThreadID(), sLock->lock->getName());
     }
     else{
-        Mail* replyMsg = (ReplyMessage*) sLock->waitQueue->Remove();
+        Mail* replyMsg = (Mail*) sLock->LockWaitQueue->Remove();
         /*TODO: Send reply code goes here*/
-        bool success = postOffice->Send(replyMsg.outPktHdr, replyMsg.outMailHdr, replyMsg.ack);
+        bool success = postOffice->Send(replyMsg->pktHdr, replyMsg->mailHdr, ack);
         
         if ( !success ) {
           printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
@@ -719,13 +717,7 @@ void Release_Syscall(int lock)
         postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
         printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
 
-        sLock->serverLockState = FREE;
-        // sLock->lock->Release(); MAKE SURE TO CHECK THIS
-        sLock->mailboxNum = 0;
-        sLock->machineID = 0;
 
-        DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
-         currentThread->getThreadID(), sLock->lock->getName());
     }
    /* 
         KernelLock* kLock = (KernelLock*) lockTable->Get(id);
@@ -752,7 +744,12 @@ void Release_Syscall(int lock)
         
         kLock->lock->Release();
     */
+    sLock->serverLockState = FREE;
+    // sLock->lock->Release(); MAKE SURE TO CHECK THIS
+    sLock->mailboxNum = 0;
+    sLock->machineID = 0;
     lockTable->lockRelease();
+#endif // NETWORK
 }
 
 //void Wait_Syscall(int id, int lockID)
@@ -762,15 +759,30 @@ void Wait_Syscall(int lock, int CV)
 //  to the condition or the lock or either does not exist, will print
 //  an error without waiting.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
 
     ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
-    if (sCond == NULL) // || sCond->owner == NULL)
+    if (sCond == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
         CVTable->lockRelease();
         return;
     }
+
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *ack = "Wait reply";
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = currentThread->getThreadID();
+    outMailHdr.length = strlen(ack) + 1;
+    
+    Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
+    sCond->CVWaitQueue->Append((void*)reply);
+
+    Release_Syscall(lock);
    /* CVTable->lockAcquire();
     
         KernelCondition* sCond = (KernelCondition*) CVTable->Get(id);
@@ -811,48 +823,62 @@ void Wait_Syscall(int lock, int CV)
         DEBUG('z', "Thread %s: Waited on Condition, ID %d\n", currentThread->getName(), id);
     */
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
-void Signal_Syscall(int id, int lockID)
+void Signal_Syscall(int lock, int CV)
 // Signals the kernel condition with the given ID, using the kernel
 //  lock with the given ID. If the current process does not have access
 //  to the condition or the lock or either does not exist, will print
 //  an error without signalling.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
-    /*
-    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
-    if (kCond == NULL || kCond->owner == NULL)
+
+    ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
+    if (sCond == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to signal invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
         CVTable->lockRelease();
         return;
-    }
-    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
-    if (kLock == NULL || kLock->owner == NULL)
-    {   // Check if lock has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to signal using invalid KernelLock, ID %d\n", currentThread->getName(), lockID);
-        CVTable->lockRelease();
-        return;
-    }
-    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
-    {   // Check if current process has access to condition and lock.
-        DEBUG('z', "Thread %s: Trying to signal other process's Condition, ID %d\n", currentThread->getName(), id);
-        CVTable->lockRelease();
-        return;
-    }
-    if (kCond->condition == NULL)
-    {   // Make sure condition is valid. Should never reach here.
-        DEBUG('z', "Thread %s: Trying to signal invalid Condition, ID %d\n", currentThread->getName(), id);
-        CVTable->lockRelease();
-        return;
-    }
-    
-    DEBUG('z', "Thread %s: Signalling Condition, ID %d\n", currentThread->getName(), id);
-    
-    kCond->condition->Signal(kLock->lock);
+    }    
+
+    Mail* replyMsg = (Mail*) sCond->CVWaitQueue->Remove();
+
+    /*
+        KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+        if (kCond == NULL || kCond->owner == NULL)
+        {   // Check if condition has been created (or not yet destroyed).
+            DEBUG('z', "Thread %s: Trying to signal invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+            CVTable->lockRelease();
+            return;
+        }
+        KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+        if (kLock == NULL || kLock->owner == NULL)
+        {   // Check if lock has been created (or not yet destroyed).
+            DEBUG('z', "Thread %s: Trying to signal using invalid KernelLock, ID %d\n", currentThread->getName(), lockID);
+            CVTable->lockRelease();
+            return;
+        }
+        if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+        {   // Check if current process has access to condition and lock.
+            DEBUG('z', "Thread %s: Trying to signal other process's Condition, ID %d\n", currentThread->getName(), id);
+            CVTable->lockRelease();
+            return;
+        }
+        if (kCond->condition == NULL)
+        {   // Make sure condition is valid. Should never reach here.
+            DEBUG('z', "Thread %s: Trying to signal invalid Condition, ID %d\n", currentThread->getName(), id);
+            CVTable->lockRelease();
+            return;
+        }
+        
+        DEBUG('z', "Thread %s: Signalling Condition, ID %d\n", currentThread->getName(), id);
+        
+        kCond->condition->Signal(kLock->lock);
     */
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
 void Broadcast_Syscall(int id, int lockID)
@@ -861,6 +887,7 @@ void Broadcast_Syscall(int id, int lockID)
 //  to the condition or the lock or either does not exist, will print
     //  an error without broadcasting.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
     /*
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
@@ -895,6 +922,7 @@ void Broadcast_Syscall(int id, int lockID)
     kCond->condition->Broadcast(kLock->lock);
     */
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
 int CreateLock_Syscall(unsigned int vaddr, int len)
@@ -903,6 +931,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 //  it is placed in the kernel lock table and its index is returned.
 //  If there are any errors, -1 is returned.
 {
+#ifdef NETWORK
     lockTable->lockAcquire();
     
     char *buf = new char[len+1];	// Kernel buffer: name
@@ -952,6 +981,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     
     DEBUG('z', "Thread %s: Successfully created server Lock, ID %d\n", currentThread->getName(), id);
     
+#endif // NETWORK
     return 0;
 }
 
@@ -961,6 +991,8 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 //  it is placed in the kernel condition table and its index is returned.
 //  If there are any errors, -1 is returned.
 {
+    int id;
+#ifdef NETWORK
     CVTable->lockAcquire();
     
     char *buf = new char[len+1];	// Kernel buffer: name
@@ -994,10 +1026,11 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     */
     delete[] buf;
     
-    int id = CVTable->Put(sCV);
+    id = CVTable->Put(sCV);
     
     DEBUG('z', "Thread %s: Successfully created Condition, ID %d\n", currentThread->getName(), id);
     
+#endif // NETWORK
     return id;
 }
 
@@ -1007,6 +1040,7 @@ void DestroyLock_Syscall(int id)
 //  current process does not have access to the lock or the lock does not
 //  exist, will print an error without destroying or setting the flag. 
 {
+#ifdef NETWORK
     lockTable->lockAcquire();
     
     ServerLock* sLock = (ServerLock*) lockTable->Get(id);
@@ -1039,6 +1073,7 @@ void DestroyLock_Syscall(int id)
     }*/
     
     lockTable->lockRelease();
+#endif // NETWORK
 }
 void DestroyCondition_Syscall(int id)
 // Destroys the kernel condition with the given ID. If there are threads
@@ -1046,6 +1081,7 @@ void DestroyCondition_Syscall(int id)
 //  does not have access to the condition or the condition does not
 //  exist, will print an error without destroying or setting the flag.
 {
+#ifdef NETWORK
     CVTable->lockAcquire();
     
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
@@ -1078,6 +1114,7 @@ void DestroyCondition_Syscall(int id)
     }
     
     CVTable->lockRelease();
+#endif // NETWORK
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
@@ -1149,6 +1186,10 @@ void SetID_Syscall(int id){
 
 int GetMyBoxNumber_Syscall(){
     return currentThread->getMailBoxNum();
+}
+
+void SetMailBoxNum_Syscall(){
+    
 }
 
 void SetMyBoxNumber_Syscall(){
