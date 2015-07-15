@@ -158,6 +158,14 @@ Initialize(int argc, char **argv)
 	if (!strcmp(*argv, "-s"))
 	    debugUserProg = TRUE;
 #endif
+#ifdef VM
+    if (!strcmp(*argv, "-P")) {
+        if (!strcmp(*(argv + 1), "RAND"))
+            SetEvictionPolicy(false);
+        else
+            SetEvictionPolicy(true);
+    }
+#endif
 #ifdef FILESYS_NEEDED
 	if (!strcmp(*argv, "-f"))
 	    format = TRUE;
