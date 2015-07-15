@@ -234,6 +234,14 @@ GetMyBoxNumber:
 	j	$31
 	.end GetMyBoxNumber
 
+	.globl SetMailBoxNum
+	.ent SetMailBoxNum
+SetMailBoxNum:
+	addiu $2,$0,SC_SetMailBoxNum
+	syscall
+	j	$31
+	.end SetMailBoxNum
+
 	.globl CreateMonitorVariable
 	.ent CreateMonitorVariable
 CreateMonitorVariable:

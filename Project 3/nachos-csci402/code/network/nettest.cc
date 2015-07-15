@@ -1,16 +1,16 @@
 // nettest.cc 
-//	Test out message delivery between two "Nachos" machines,
-//	using the Post Office to coordinate delivery.
+//  Test out message delivery between two "Nachos" machines,
+//  using the Post Office to coordinate delivery.
 //
-//	Two caveats:
-//	  1. Two copies of Nachos must be running, with machine ID's 0 and 1:
-//		./nachos -m 0 -o 1 &
-//		./nachos -m 1 -o 0 &
+//  Two caveats:
+//    1. Two copies of Nachos must be running, with machine ID's 0 and 1:
+//      ./nachos -m 0 -o 1 &
+//      ./nachos -m 1 -o 0 &
 //
-//	  2. You need an implementation of condition variables,
-//	     which is *not* provided as part of the baseline threads 
-//	     implementation.  The Post Office won't work without
-//	     a correct implementation of condition variables.
+//    2. You need an implementation of condition variables,
+//       which is *not* provided as part of the baseline threads 
+//       implementation.  The Post Office won't work without
+//       a correct implementation of condition variables.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
@@ -28,11 +28,11 @@
 using namespace std;
 
 // Test out message delivery, by doing the following:
-//	1. send a message to the machine with ID "farAddr", at mail box #0
-//	2. wait for the other machine's message to arrive (in our mailbox #0)
-//	3. send an acknowledgment for the other machine's message
-//	4. wait for an acknowledgement from the other machine to our 
-//	    original message
+//  1. send a message to the machine with ID "farAddr", at mail box #0
+//  2. wait for the other machine's message to arrive (in our mailbox #0)
+//  3. send an acknowledgment for the other machine's message
+//  4. wait for an acknowledgement from the other machine to our 
+//      original message
 
 void MailTest(int farAddr) {
 	PacketHeader outPktHdr, inPktHdr;
@@ -98,44 +98,54 @@ void MailTest(int farAddr) {
 // 7  -> CV signal
 // 8  -> CV wait
 void
-RunServer {
-	//TODO:build lock and CV table here
-	Table* severLockTable;
-	Table* severCVTable;
+MailTest(int farAddr)
+{
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *data = "Hello there!";
+    char *ack = "Got it!";
+    char buffer[MaxMailSize];
 
-	while (true) {
-		PacketHeader outPktHdr, inPktHdr;
-		MailHeader outMailHdr, inMailHdr;
-		char buffer[MaxMailSize];
-		stringstream ss;
-		ss << "";
-		int request = -1;
+    // construct packet, mail header for original message
+    // To: destination machine, mailbox 0
+    // From: our machine, reply to: mailbox 1
+    outPktHdr.to = farAddr;     
+    outMailHdr.to = 0;
+    outMailHdr.from = 1;
+    outMailHdr.length = strlen(data) + 1;
 
-		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
-		ss << buffer;
-		ss >> request;
+    // Send the first message
+    bool success = postOffice->Send(outPktHdr, outMailHdr, data); 
 
-		//create lock
-		if (request == 1) {
-			string lockName;
-			ss >> lockName;
+    if ( !success ) {
+      printf("The postOffice Send failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
 
-		} else if (request == 2) {
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+    fflush(stdout);
 
-		} else if (request == 3) {
+    // Send acknowledgement to the other machine (using "reply to" mailbox
+    // in the message that just arrived
+    outPktHdr.to = inPktHdr.from;
+    outMailHdr.to = inMailHdr.from;
+    outMailHdr.length = strlen(ack) + 1;
+    success = postOffice->Send(outPktHdr, outMailHdr, ack); 
 
-		} else if (request == 4) {
+    if ( !success ) {
+      printf("The postOffice Send failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
 
-		} else if (request == 5) {
+    // Wait for the ack from the other machine to the first message we sent.
+    postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+    fflush(stdout);
 
-		} else if (request == 6) {
+    // Then we're done!
+    interrupt->Halt();
 
-		} else if (request == 7) {
-
-		} else if (request == 8) {
-
-		}
-
-	}
 
 }
