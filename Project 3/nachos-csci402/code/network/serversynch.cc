@@ -57,14 +57,17 @@ void serverLock::Acquire(int out) {
 
 	else {
 		//append the machine index, since the message is always the same
-		waitQue->Append(out);
+		int* toAppend = new int[1];
+		toAppend[0] = out;
+		waitQue->Append(toAppend);
 	}
 }
 
 void serverLock::Release() {
 
 	if (!waitQue->IsEmpty()) {
-		int out = (int)waitQue->First();
+		int* outPtr = (int*)waitQue->First();
+		int out = outPtr[0];
 
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
@@ -100,6 +103,7 @@ void serverLock::Release() {
 		}
 
 		waitQue->Remove();
+		delete [] outPtr;
 	}
 
 	else {
