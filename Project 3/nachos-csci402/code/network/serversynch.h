@@ -8,8 +8,14 @@
 #include "post.h"
 
 enum lockState {
-	SL_FREE, SL_BUSY
+	FREE, BUSY
 };
+
+/*routine for sending proceed call
+//and ackonwledging
+int sendProceedMsg(int out) {
+
+}*/
 
 class serverLock {
 public:
@@ -17,9 +23,9 @@ public:
 	~serverLock();
 
 	void Acquire(int out);
-	void Release(int out);
+	void Release();
 
-	char* name;     //for debug
+	string name;
 	lockState state;
 	int owenerID;       //owner machine id
 	int mailboxID;      //owner mailbox number

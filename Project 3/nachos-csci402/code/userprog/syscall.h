@@ -197,7 +197,7 @@ void Printf(char* string, int len, int numParams, int params);
  */
 int GetID();
 
-/*Sets the ID of the current thread.
+/*Sets the machine ID of the current thread.
  */
 void SetID(int id);
 

@@ -73,8 +73,8 @@ extern void InspectTest();
 extern void MTest();
 extern void AirportSim();
 extern void MainMenu();
-	int currentBoxCountPointer;
-	Lock* boxCountIndexLock;
+int currentBoxCountPointer;
+Lock* boxCountIndexLock;
 
 //void RunServer();
 //----------------------------------------------------------------------
@@ -91,116 +91,107 @@ extern void MainMenu();
 //		ex: "nachos -d +" -> argv = {"nachos", "-d", "+"}
 //----------------------------------------------------------------------
 
-int
-main(int argc, char **argv)
-{
-    int argCount;			// the number of arguments 
-					// for a particular command
+int main(int argc, char **argv) {
+	int argCount;			// the number of arguments
+	// for a particular command
 
-	
-    DEBUG('t', "Entering main");
-    (void) Initialize(argc, argv);
-   //arCount = 1;
+	DEBUG('t', "Entering main");
+	(void) Initialize(argc, argv);
+	//arCount = 1;
 	for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-    argCount = 1;
+		argCount = 1;
 // #ifdef THREADS
-    if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
-		TestSuite();
-	} 
+		if (!strcmp(*argv, "-T")) {	// Lock and Condition Test
+			TestSuite();
+		}
 
-	if (!strcmp(*argv, "-manager")) {	// Manager and full simulation test
-		ManagerTest();
-	}
+		if (!strcmp(*argv, "-manager")) {	// Manager and full simulation test
+			ManagerTest();
+		}
 
-	if (!strcmp(*argv, "-mtest")) {	// Manager and full simulation test
-		MTest();
-	}  
+		if (!strcmp(*argv, "-mtest")) {	// Manager and full simulation test
+			MTest();
+		}
 
-	if(!strcmp(*argv, "-findCIS"))
-    {	// Tests if passengers go the the correct CIS line.
-		PassengerFindsCorrectCISLine();
-	}
+		if (!strcmp(*argv, "-findCIS")) {// Tests if passengers go the the correct CIS line.
+			PassengerFindsCorrectCISLine();
+		}
 
-	if (!strcmp(*argv, "-findL")) {				//Tests to see if the passenger goes to the shortest line
-		PassengerFindsShortestLiaisonLine();
-	}
-    
-	if (!strcmp(*argv, "-liaison"))
-    {   // Tests if liaison directs customer to correct check-in area.
-		LiaisonTest();
-	}
-    
-	if (!strcmp(*argv, "-checkin"))
-    {   // Tests if check-in prioritizes executive line.
-		CheckInTest();
-	}
-    
-	if (!strcmp(*argv, "-cargo"))
-    {   // Tests if cargo handler functions.
-		CargoTest();
-	}
+		if (!strcmp(*argv, "-findL")) {	//Tests to see if the passenger goes to the shortest line
+			PassengerFindsShortestLiaisonLine();
+		}
 
-	if (!strcmp(*argv, "-screen")) {
-		ScreenTest();
-	}
+		if (!strcmp(*argv, "-liaison")) { // Tests if liaison directs customer to correct check-in area.
+			LiaisonTest();
+		}
 
-	if (!strcmp(*argv, "-inspect")) {
-		InspectTest();
-	}
-    
-	if (!strcmp(*argv, "-airport"))
-    {   // Runs the full airport simulation.
-		AirportSim();
-	}
-    
-	if (!strcmp(*argv, "-menu"))
-    {   // Runs the full airport simulation.
-		MainMenu();
-	}
-	
+		if (!strcmp(*argv, "-checkin")) { // Tests if check-in prioritizes executive line.
+			CheckInTest();
+		}
+
+		if (!strcmp(*argv, "-cargo")) {   // Tests if cargo handler functions.
+			CargoTest();
+		}
+
+		if (!strcmp(*argv, "-screen")) {
+			ScreenTest();
+		}
+
+		if (!strcmp(*argv, "-inspect")) {
+			InspectTest();
+		}
+
+		if (!strcmp(*argv, "-airport")) {   // Runs the full airport simulation.
+			AirportSim();
+		}
+
+		if (!strcmp(*argv, "-menu")) {   // Runs the full airport simulation.
+			MainMenu();
+		}
+
 // #endif
 
-        if (!strcmp(*argv, "-z"))               // print copyright
-            printf (copyright);
+		if (!strcmp(*argv, "-z"))               // print copyright
+			printf(copyright);
 #ifdef USER_PROGRAM
-        if (!strcmp(*argv, "-x")) {        	// run a user program
-	    ASSERT(argc > 1);
-	    	DEBUG('t', "filename: %s\n", *(argv + 1));
-            StartProcess(*(argv + 1));
-            argCount = 2;
-        } else if (!strcmp(*argv, "-c")) {      // test the console
-	    if (argc == 1)
-	        ConsoleTest(NULL, NULL);
-	    else {
-		ASSERT(argc > 2);
-	        ConsoleTest(*(argv + 1), *(argv + 2));
-	        argCount = 3;
-	    }
-	    interrupt->Halt();		// once we start the console, then 
-					// Nachos will loop forever waiting 
-					// for console input
-	}
+		if (!strcmp(*argv, "-x")) {        	// run a user program
+			ASSERT(argc > 1);
+			DEBUG('t', "filename: %s\n", *(argv + 1));
+			StartProcess(*(argv + 1));
+			argCount = 2;
+		} else if (!strcmp(*argv, "-c")) {      // test the console
+			if (argc == 1)
+			ConsoleTest(NULL, NULL);
+			else {
+				ASSERT(argc > 2);
+				ConsoleTest(*(argv + 1), *(argv + 2));
+				argCount = 3;
+			}
+			interrupt->Halt();		// once we start the console, then
+			// Nachos will loop forever waiting
+			// for console input
+		}
 #endif // USER_PROGRAM
 #ifdef FILESYS
-	if (!strcmp(*argv, "-cp")) { 		// copy from UNIX to Nachos
-	    ASSERT(argc > 2);
-	    Copy(*(argv + 1), *(argv + 2));
-	    argCount = 3;
-	} else if (!strcmp(*argv, "-p")) {	// print a Nachos file
-	    ASSERT(argc > 1);
-	    Print(*(argv + 1));
-	    argCount = 2;
-	} else if (!strcmp(*argv, "-r")) {	// remove Nachos file
-	    ASSERT(argc > 1);
-	    fileSystem->Remove(*(argv + 1));
-	    argCount = 2;
-	} else if (!strcmp(*argv, "-l")) {	// list Nachos directory
-            fileSystem->List();
-	} else if (!strcmp(*argv, "-D")) {	// print entire filesystem
-            fileSystem->Print();
-	} else if (!strcmp(*argv, "-t")) {	// performance test
-            PerformanceTest();
-	} 
+		if (!strcmp(*argv, "-cp")) { 		// copy from UNIX to Nachos
+			ASSERT(argc > 2);
+			Copy(*(argv + 1), *(argv + 2));
+			argCount = 3;
+		} else if (!strcmp(*argv, "-p")) {	// print a Nachos file
+			ASSERT(argc > 1);
+			Print(*(argv + 1));
+			argCount = 2;
+		} else if (!strcmp(*argv, "-r")) {	// remove Nachos file
+			ASSERT(argc > 1);
+			fileSystem->Remove(*(argv + 1));
+			argCount = 2;
+		} else if (!strcmp(*argv, "-l")) {	// list Nachos directory
+			fileSystem->List();
+		} else if (!strcmp(*argv, "-D")) {	// print entire filesystem
+			fileSystem->Print();
+		} else if (!strcmp(*argv, "-t")) {	// performance test
+			PerformanceTest();
+		}
 #endif // FILESYS
 #ifdef NETWORK
         if (!strcmp(*argv, "-o")) {
@@ -213,58 +204,64 @@ main(int argc, char **argv)
         }
 
         if (!strcmp(*argv,"-server")) {
-        	RunServer();
+        //	RunServer();
         }
-#endif // NETWORK
-    }
 
-    currentThread->Finish();	// NOTE: if the procedure "main" 
-				// returns, then the program "nachos"
-				// will exit (as any other normal program
-				// would).  But there may be other
-				// threads on the ready list.  We switch
-				// to those threads by saying that the
-				// "main" thread is finished, preventing
-				// it from returning.
-    return(0);			// Not reached...
+#endif // NETWORK
+	}
+
+	currentThread->Finish();	// NOTE: if the procedure "main"
+	// returns, then the program "nachos"
+	// will exit (as any other normal program
+	// would).  But there may be other
+	// threads on the ready list.  We switch
+	// to those threads by saying that the
+	// "main" thread is finished, preventing
+	// it from returning.
+	return (0);			// Not reached...
 }
 
 /*put the client code in test because it's a user prog
-void RunServer(){
+//server code goes in main
+// request type:
+// 1  -> create lock
+// 2  -> destory lock
+// 3  -> lock acquire
+// 4  -> lock release
+// 5  -> create CV
+// 6  -> destory CV
+// 7  -> CV signal
+// 8  -> CV wait
 
-	while(true){
-		
-	}
-}*/
-	//server code goes in main
-	
 #ifdef NETWORK
 
 void RunServer() {
 	//TODO:build lock and CV table here
-	Table* severLockTable;
-	Table* severCVTable;
+	Table* serverLockTable = new Table(2048);
+	Table* serverCVTable = new Table(2048);
 
 	while (true) {
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
 		stringstream ss;
-		ss << "";
+		ss.str("");
+		ss.clear();
 		int request = -1;
+		string arg1;
 
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
 		ss << buffer;
 		ss >> request;
+		ss >> arg1;
 
-		//create lock
         switch (request)
         {
             case 1:
-                string lockName;
-                ss >> lockName;
+		createLock(arg1, serverLockTable, inPktHdr.from);
                 break;
             case 2:
+		destroyLock(arg1, serverLockTable, inPktHdr.from);
                 break;
             case 3:
                 break;
@@ -278,8 +275,109 @@ void RunServer() {
                 break;
             case 8:
                 break;
+	    default:
+		printf("invalid request type\n");
         }
 	}
+    }
+
+//tableType: 1 for lockTable, 2 for CVTable
+bool tableItemExist(string tName, Table* table, int tableType) {
+	bool toReturn = false;
+
+	for (int i = 0; i < table->Size(); i++) {
+		if (tableType == 1)
+			serverLock* tableItem = (serverLock*) sTable->Get(i);
+		else
+			serverCV* tableItem = (serverCV*) sTable->Get(i);
+		if (tableItem->name == lName) {
+			toReturn = true;
+			break;
+		}
+	}
+
+	return toReturn;
 }
+
+void createLock(string lName, Table* sTable, int out) {
+	PacketHeader outPktHdr, inPktHdr;
+	MailHeader outMailHdr, inMailHdr;
+	char *msg;
+	char buffer[MaxMailSize];
+	stringstream ss;
+	ss.str("");
+	ss.clear;
+
+	outPktHdr.to = out;
+	outMailHdr.to = 0;
+	outMailHdr.from = out;
+
+	if (!tableItemExist(lName, sTable, 1)) {
+		serverLock* toPut = new serverLock(lName, -1, -1);
+		sTable->Put(toPut);
+		msg = "0";
+	} else {
+		msg = "1";
+	}
+
+	bool success = postOffice->Send(outPktHdr, outMailhdr, msg);
+
+	if (!success) {
+		//TODO: handle it
+	}
+
+	//wait for acknowledgement
+	postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
+	int ack = -1;
+	ss << buffer;
+	ss >> ack;
+
+	if (ack != 0) {
+		//TODO: handle it
+	}
+}
+
+void destoryLock(string lName, Table* sTable, int out) {
+	PacketHeader outPktHdr, inPktHdr;
+	MailHeader outMailHdr, inMailHdr;
+	char *msg;
+	char buffer[MaxMailSize];
+	stringstream ss;
+	ss.str("");
+	ss.clear;
+
+	outPktHdr.to = out;
+	outMailHdr.to = 0;
+	outMailHdr.from = out;
+
+	if (!tableItemExist(lName, sTable, 1)) {
+		msg = "1";
+	} else {
+		serverLock* tItem = (serverLock*) (sTable->Remove(toRemove));
+		delete tItem;
+		msg = "0";
+	}
+
+	bool success = postOffice->Send(outPktHdr, outMailhdr, msg);
+
+	if (!success) {
+		//TODO: handle it
+	}
+
+	//wait for acknowledgement
+	postOffice->Receive(out, &inPktHdr, &inMailHdr, buffer);
+	int ack = -1;
+	ss << buffer;
+	ss >> ack;
+
+	if (ack != 0) {
+		//TODO: handle it
+	}
+}
+
+bool acquireLock(string lName, Table* sTable) {
+	if (!tableItemExist(lName, sTable, 1)) {
+	}
+}*/
+
 #endif // NETWORK
-    
