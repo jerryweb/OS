@@ -133,3 +133,58 @@ Project 4: Distributed Airport - Part 1
 		C.S. Entry Rule: get ok from all 
 
 	Worst Case: All members request - timestamps same
+
+
+	Variation #2 - Majority Rules										//Basically everyone votes on who enters next
+	 2 New Rules
+	 	1. A member can enter a C.S. with N/2 +1 oks
+	 	2. A member only sends 1 ok at a time - wait for Release to send next ok
+	 	+ Can lose N/2 - 1 members and still function correctly
+	 	- SimplePoint of failure - member in C.S. dies
+
+
+
+	P4 Part 2 
+	 Extension to fully dist. mutual exclusion between multiple servers 
+	 	* servers are the group, not clients 
+	 	// Part 1 should have no effect on the airport
+	 "No" change to clients 
+	 	* randomly pick a machine ID for server
+	 	* work with 1 to 5 servers
+	 	* machine IDs 0,1,2,3,4....
+	 	* Add a command line arguement - # of servers and store it into a global int in system.cc/h
+	 	//machine IDs will start after
+	 	//you can implement this portion in part 1 so that integrating parts 1 and 2 are simpler
+	 	//xterm&
+
+
+	 Every Sever will process every client request 				//total redundancy 
+	 	* For this to work, each server must process client requests in the same order 
+	 2 Major Tasks:
+	 //suggestion: do number 1 first and print out the messeages that each server is getting to make sure that
+	 //every server is getting every message
+	 	1. When a server gets a client request, the server immediately forwards to all other servers
+	 		Add: timestamp of send to the msg 
+	 			 machine ID & mailbox number of original server 
+	 		Do not lose client machine ID & mailbox number
+
+	 	2. implement Total Ordering
+	 	 Data
+	 	 	1. Sorted queue of pending client request msgs
+	 	 		* messages waiting to be processed
+	 	 	by timestamp & forwarding servers machine ID
+	 	 		* Nachos List class has Sorted Insert/Remove
+
+	 	 	2. Last timestamp Recieve Table 
+	 	 	 	* An array (uses server machine ID as index)			;
+	 	 	 	of timestamp values
+	 	 	 		- Only highest timestamp
+
+
+	 	Total Ordering Algorithm	//MUST TEST THAT THE DATA IS CORRECT, MSG QUEUING IS CORRECT, ETC.
+	 	1. sever recieves a forwarded msg
+	 	2. Extract timestamp and forwarding server machine ID //needed to update the timestamp recieve table
+	 	3. Put msg in sorted message queue
+	 	4. Update L.T.R table with the info from step 2 
+	 	5. Scan timestamp table and get smallest time 
+	 	6. Process any msg in our pending msg queue with a timestamp <= step 5 time 

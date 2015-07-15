@@ -60,7 +60,7 @@ struct ServerLock
 Table* serverCVTable;
 struct ServerCV
 {
-    List* CVwaitQueue;
+    List* CVWaitQueue;
     int lockUsed;               //index to the lock in the serverLock table
     //cannot use lock pointers
     bool isToBeDeleted;  
@@ -780,7 +780,7 @@ void Wait_Syscall(int lock, int CV)
     outMailHdr.length = strlen(ack) + 1;
     
     Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
-    sCond->CVwaitQueue->Append((void*)reply);
+    sCond->CVWaitQueue->Append((void*)reply);
 
     Release_Syscall(lock);
    /* CVTable->lockAcquire();
