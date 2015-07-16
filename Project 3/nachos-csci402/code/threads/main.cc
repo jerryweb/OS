@@ -93,6 +93,13 @@ Lock* boxCountIndexLock;
 
 int main(int argc, char **argv) {
 	int argCount;			// the number of arguments
+	// This keeps track of the number of threads that call the create lock function.
+	// Whenever a lock is created, it will increment by 1. Whenevr the destroy lock 
+	// function is called, it will decrement by 1. 
+	int createLockRequests = 0;
+
+	// Similarto the createLockRequests instantiated above.
+	int createCVRequests = 0;
 	// for a particular command
 
 	DEBUG('t', "Entering main");
@@ -235,7 +242,7 @@ int main(int argc, char **argv) {
 // 6  -> destory CV
 // 7  -> CV signal
 // 8  -> CV wait
-
+//need to add Broadcast
 void RunServer() {
 	//TODO:build lock and CV table here
 	// Table* serverLockTable = new Table(2048);
@@ -278,13 +285,17 @@ void RunServer() {
                 break;
             case 8:
                 break;
+            case 9:
+            //broadcast
+            	break;
             default:
                 printf("invalid request type\n");
         }
 	}
 }
-
+//returns the location of the lock
 void createLock(string lName, Table* sTable, int out) {
+	int location = 0;
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
 	char *msg;
@@ -299,11 +310,26 @@ void createLock(string lName, Table* sTable, int out) {
 
 	if (!tableItemExist(lName, sTable, 1)) {
 		serverLock* toPut = new serverLock(lName, -1, -1);
-		sTable->Put(toPut);
+		location = sTable->Put(toPut);
+		createLockRequests++;
 		msg = "0";
-	} else {
-		msg = "1";
+	}	//This returns the location if the lock already exists of that lock 
+	else {
+		for (int i = 0; i < table->Size(); i++) {
+			if (tableType == 1)
+				serverLock* tableItem = (serverLock*) sTable->Get(i);
+			else
+				serverCV* tableItem = (serverCV*) sTable->Get(i);
+			if (tableItem->name == lName) {
+				location = i;
+				break;
+			}
+		}
+		//msg = "1";
 	}
+
+	//send reply message with location of the lock
+	//return location;
 
 }
 
@@ -320,12 +346,20 @@ void destoryLock(string lName, Table* sTable, int out) {
 	outMailHdr.to = 0;
 	outMailHdr.from = out;
 
-	if (!tableItemExist(lName, sTable, 1)) {
-		msg = "1";
-	} else {
-		serverLock* tItem = (serverLock*) (sTable->Remove(toRemove));
-		delete tItem;
-		msg = "0";
+	if(createLockRequests == 0){
+		if (!tableItemExist(lName, sTable, 1)) {
+			msg = "1";
+		} 
+		else {	//Delete all the locks from the. This should only run at the end of the program
+			while(sTable->getCount() != 0){
+				serverLock* tItem = (serverLock*) (sTable->Remove(toRemove));
+				delete tItem;
+				msg = "0";
+			}
+		}
+	}
+	else{
+		createLockRequests--;
 	}
 
 }

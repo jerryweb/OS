@@ -85,7 +85,7 @@ serverCV::serverCV(char* dName,Table* lTable) {
 	name = dName;
 	lock = NULL;
 	waitQue = new List();
-	lockTable = lTable;
+	lockTable = lTable;		//??? what is this for?
 }
 
 serverCV::~serverCV() {
