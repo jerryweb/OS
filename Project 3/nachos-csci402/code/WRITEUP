@@ -10,7 +10,8 @@ I. Requirements:
     Part 3: Implement remote procedure calls for locks, condition variables, and monitor variables.
 
 II. Assumptions:
-    [NETWORK]
+    We are assuming that each client is single threaded within the network. This means that there will only be one mailbox for each thread in the Post Office (mailbox 0). There is also only one server for this test with machine ID 0. 
+    For virtual memory, we are assuming that the program will never run out of swap file spaces for each evicted page. 
 
 III. Design:
     Virtual memory:
@@ -185,7 +186,12 @@ IV. Implementation:
         code/userprog/exception.cc:
             [NETWORK]
         code/userprog/syscall.h:
-            [NETWORK]
+            int CreateMonitorVariable(char* name, int length, int MVArraySize)
+            void DestroyMonitorVariable(int MVArrayIndex)
+            int GetMonitorVariable(int indexPosition)
+            void SetMonitorVariable(/*a,*/int indexPosition, int size)
+            int GetMyBoxNumber()
+            void SetMailBoxNum()
         [NETWORK]
     
 	+ Functions modified and in which file.
@@ -199,7 +205,15 @@ IV. Implementation:
             void RestoreState()
             TranslationEntryExec* getPageTable()
         code/userprog/exception.cc:
-            [NETWORK]
+            void Acquire_Syscall(int lock)
+            void Release_Syscall(int lock)
+            void Wait_Syscall(int lock, int CV)
+            void Signal_Syscall(int lock, int CV)
+            void Broadcast_Syscall(int id, int lockID)
+            int CreateLock_Syscall(unsigned int vaddr, int len)
+            void CreateCondition_Syscall(unsigned int vaddr, int len)
+            void DestroyLock_Syscall(int id)
+            void DestroyCondition_Syscall(int id)
             void ExceptionHandler(ExceptionType which)
         code/userprog/progtest.cc
             void StartProcess(char *filename)

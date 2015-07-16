@@ -1371,10 +1371,6 @@ int GetMyBoxNumber_Syscall(){
 }
 
 void SetMailBoxNum_Syscall(){
-    
-}
-
-void SetMyBoxNumber_Syscall(){
     currentThread->SetMailBoxNum();
 }
 

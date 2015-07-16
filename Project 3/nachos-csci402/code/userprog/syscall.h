@@ -204,6 +204,8 @@ void SetID(int id);
 /*returns the index of the last added thread box number*/
 int GetMyBoxNumber();
 
+void SetMailBoxNum();
+
 /*function used to create monitor variables
 */
 int CreateMonitorVariable(char* name, int length, int MVArraySize);
