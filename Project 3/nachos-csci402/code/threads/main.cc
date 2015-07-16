@@ -265,7 +265,8 @@ void RunServer() {
             case 2:
                 destroyLock(arg1, serverLockTable, inPktHdr.from);
                 break;
-            case 3:
+            case 3://TODO: need to find the correct lock in the serverLockTable
+
                 break;
             case 4:
                 break;

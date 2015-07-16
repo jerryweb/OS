@@ -48,10 +48,10 @@ void serverLock::Acquire(int out, int mailbox) {
 
 }
 
-void serverLock::Release(int lock) {
+void serverLock::Release() {
 
 	if (!waitQue->IsEmpty()) {
-		int* outPtr = (int*)waitQue->First();
+		int* outPtr = (int*)waitQue->Remove();
 		int out = outPtr[0];
 
 		PacketHeader outPktHdr, inPktHdr;
@@ -66,10 +66,11 @@ void serverLock::Release(int lock) {
 		outMailHdr.to = 0;
 		outMailHdr.from = out;
 
+
 		msg = "0";
 		outMailHdr.length = strlen(msg) +1;
 
-		waitQue->Remove();
+		// waitQue->Remove();
 		delete [] outPtr;
 	}
 
