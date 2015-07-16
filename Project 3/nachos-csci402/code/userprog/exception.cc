@@ -30,6 +30,7 @@
 #include "../network/post.h"
 #include <stdio.h>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -82,17 +83,28 @@ BitMap* memMap;
 
 Lock* forkLock;
 Lock* execLock;
-// This keeps track of the number of threads that call the create lock function.
-// Whenever a lock is created, it will increment by 1. Whenevr the destroy lock 
-// function is called, it will decrement by 1. 
-int createLockRequests = 0;
 
-// Similarto the createLockRequests instantiated above.
-int createCVRequests = 0;
 
 void DestroyLock_Syscall(int id);
 void DestroyCondition_Syscall(int id);
 int GetMyBoxNumber_Syscall();
+
+void serverResponseValidation(char buffer[MaxMailSize]){
+    int responseValidation = 0;
+
+    stringstream ss;
+    ss.str("");
+    ss.clear();
+    ss << buffer;
+    ss >> responseValidation;
+
+    if(responseValidation == 0){
+        printf("Response from server was invalid. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
+
+    fflush(stdout);
+}
 
 int copyin(unsigned int vaddr, int len, char *buf) {
     // Copy len bytes from the current thread's virtual address vaddr.
@@ -568,16 +580,15 @@ void Acquire_Syscall(int lock)
 
 #ifdef NETWORK
     //lockTable->lockAcquire();
-
-    serverLock* sLock =  (serverLock*) lockTable->Get(lock);
-    if (sLock == NULL|| sLock->machineID != currentThread->getThreadID())
+    serverLock* sLock =  (serverLock*) serverLockTable->Get(lock);
+    if (sLock == NULL|| sLock->ownerID != -1) //currentThread->getThreadID())
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
         //lockTable->lockRelease();
         return;
     }
 
-    if(sLock->lock == NULL){
+    if(sLock->name == NULL){
         DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
         //lockTable->lockRelease();
         return;
@@ -585,38 +596,51 @@ void Acquire_Syscall(int lock)
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *request = "1 %s", sLock->name;
+    char *requestType = "3 %s", sLock->name;
     char buffer[MaxMailSize];
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = currentThread->getThreadID();
-    outMailHdr.length = strlen(request) + 1;
+    outPktHdr.from = addr;//currentThread->getThreadID();
+    outMailHdr.length = strlen(requestType) + 1;
+
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType); 
+
+    if ( !success ) {
+      printf("The postOffice Send failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
+
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+    
+    serverResponseValidation(buffer);
     // char buffer[MaxMailSize];
     // Mail* reply = new Mail(); 
 
-    if(sLock->serverLockState == FREE){
-        // Send reply message that the lock was created
-        bool success = postOffice->Send(outPktHdr, outMailHdr, request);
+    // if(sLock->serverLockState == FREE){
+    //     // Send reply message that the lock was created
+    //     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
         
-        if ( !success ) {
-          printf("The Aquire reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
-          interrupt->Halt();
-        }
+    //     if ( !success ) {
+    //       printf("The Aquire reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+    //       interrupt->Halt();
+    //     }
 
-        // sLock->serverLockState = BUSY;
-        // sLock->lock->Acquire(); MAKE SURE TO CHECK THIS
-        // sLock->mailboxNum = currentThread->getMailBoxNum();
-        // sLock->machineID = currentThread->getThreadID();
+    //     // sLock->serverLockState = BUSY;
+    //     // sLock->lock->Acquire(); MAKE SURE TO CHECK THIS
+    //     // sLock->mailboxNum = currentThread->getMailBoxNum();
+    //     // sLock->machineID = currentThread->getThreadID();
 
-        DEBUG('z', "Client thread with machine ID %d just acquired lock %s.\n",
-         currentThread->getThreadID(), sLock->lock->getName());
-    }
-    else{
-        // Queue the reply message
-        Mail* reply = new Mail(outPktHdr, outMailHdr, request);
-        sLock->LockWaitQueue->Append((void*)reply); //queue the reply message
-        DEBUG('z', "Server lock %s state is BUSY\n", sLock->lock->getName());
-    }
+    //     DEBUG('z', "Client thread with machine ID %d just acquired lock %s.\n",
+    //      currentThread->getThreadID(), sLock->lock->getName());
+    // }
+    // else{
+    //     // Queue the reply message
+    //     Mail* reply = new Mail(outPktHdr, outMailHdr, request);
+    //     sLock->LockWaitQueue->Append((void*)reply); //queue the reply message
+    //     DEBUG('z', "Server lock %s state is BUSY\n", sLock->lock->getName());
+    // }
     /*
         KernelLock* kLock = (KernelLock*) lockTable->Get(id);
         if (kLock == NULL || kLock->owner == NULL)
@@ -658,54 +682,67 @@ void Release_Syscall(int lock)
 //  will print an error without releasing.
 {
 #ifdef NETWORK    
-    lockTable->lockAcquire();
+    // lockTable->lockAcquire();
 
-    ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
-    if (sLock == NULL|| sLock->machineID != currentThread->getThreadID())
+    serverLock* sLock =  (serverLock*) serverLockTable->Get(lock);
+    if (sLock == NULL|| sLock->machineID != addr)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
-        lockTable->lockRelease();
+        // lockTable->lockRelease();
         return;
     }
 
-    if(sLock->lock == NULL){
+    if(sLock->name == NULL){
         DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
-        lockTable->lockRelease();
+        // lockTable->lockRelease();
         return;
     }
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *ack = "Release lock reply";
+    char *requestType = "4 %s", sLock->name;
     char buffer[MaxMailSize];
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = currentThread->getThreadID();
-    outMailHdr.length = strlen(ack) + 1;
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
 
-    if(sLock->LockWaitQueue->IsEmpty()){
-        /*TODO: Send reply code goes here*/
-        bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
-        
-        if ( !success ) {
-          printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
-          interrupt->Halt();
-        }
-
-        DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
-         currentThread->getThreadID(), sLock->lock->getName());
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    
+    if ( !success ) {
+      printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      interrupt->Halt();
     }
-    else{
-        Mail* replyMsg = (Mail*) sLock->LockWaitQueue->Remove();
-        /*TODO: Send reply code goes here*/
-        bool success = postOffice->Send(replyMsg->pktHdr, replyMsg->mailHdr, ack);
+    
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+    
+    serverResponseValidation(buffer);
+    // if(sLock->LockWaitQueue->IsEmpty()){
+    //     /*TODO: Send reply code goes here*/
+    //     bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
         
-        if ( !success ) {
-          printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
-          interrupt->Halt();
-        }
+    //     if ( !success ) {
+    //       printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+    //       interrupt->Halt();
+    //     }
 
-    }
+    //     DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
+    //      currentThread->getThreadID(), sLock->lock->getName());
+    // }
+
+    // else{
+    //     Mail* replyMsg = (Mail*) sLock->LockWaitQueue->Remove();
+    //     /*TODO: Send reply code goes here*/
+    //     bool success = postOffice->Send(replyMsg->pktHdr, replyMsg->mailHdr, requestType);
+        
+    //     if ( !success ) {
+    //       printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+    //       interrupt->Halt();
+    //     }
+
+    // }
    /* 
         KernelLock* kLock = (KernelLock*) lockTable->Get(id);
         if (kLock == NULL || kLock->owner == NULL)
@@ -731,11 +768,7 @@ void Release_Syscall(int lock)
         
         kLock->lock->Release();
     */
-    sLock->serverLockState = FREE;
-    // sLock->lock->Release(); MAKE SURE TO CHECK THIS
-    sLock->mailboxNum = 0;
-    sLock->machineID = 0;
-    lockTable->lockRelease();
+
 #endif // NETWORK
 }
 
@@ -747,30 +780,54 @@ void Wait_Syscall(int lock, int CV)
 //  an error without waiting.
 {
 #ifdef NETWORK
-    CVTable->lockAcquire();
 
-    ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
-    if (sCond == NULL) 
+    serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
+    if (sCond == NULL || name == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
-        CVTable->lockRelease();
+        DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
         return;
     }
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *ack = "Wait reply";
+
+    serverLock* sLock =  (serverLock*) serverLockTable->Get(lock);
+    if (sLock == NULL|| sLock->ownerID != -1) //currentThread->getThreadID())
+    {   // Check if lock has been created (or not yet destroyed).
+        DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
+        //lockTable->lockRelease();
+        return;
+    }
+
+    if(sLock->name == NULL){
+        DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
+        //lockTable->lockRelease();
+        return;
+    }
+
+    char *requestType = "8 %s", sLock->name;
     char buffer[MaxMailSize];
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = currentThread->getThreadID();
-    outMailHdr.length = strlen(ack) + 1;
-    
-    Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
-    sCond->CVWaitQueue->Append((void*)reply);
-    sCond->lockUsed = lock;
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
 
-    Release_Syscall(lock);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+
+    if ( !success ) {
+      printf("The Wait reply failed. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
+
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+    serverResponseValidation(buffer);
+    
+    // Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
+    // sCond->CVWaitQueue->Append((void*)reply);
+    // sCond->lockUsed = lock;
    /* CVTable->lockAcquire();
     
         KernelCondition* sCond = (KernelCondition*) CVTable->Get(id);
@@ -810,7 +867,6 @@ void Wait_Syscall(int lock, int CV)
         
         DEBUG('z', "Thread %s: Waited on Condition, ID %d\n", currentThread->getName(), id);
     */
-    CVTable->lockRelease();
 #endif // NETWORK
 }
 
@@ -822,36 +878,51 @@ void Signal_Syscall(int lock, int CV)
 {
 
 #ifdef NETWORK
-    CVTable->lockAcquire();
 
-    ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
-    if (sCond == NULL || lock != sCond->lockUsed) 
+    serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
+    if (sCond == NULL || name == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
-        CVTable->lockRelease();
+        DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
         return;
-    }    
+    }  
 
-    Mail* replyMsg = (Mail*) sCond->CVWaitQueue->Remove();
-    Acquire_Syscall(sCond->lockUsed);
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
 
-    PacketHeader outPktHdr;
-    MailHeader outMailHdr;
-    char *ack = "Signal reply";
+    serverLock* sLock =  (serverLock*) serverLockTable->Get(lock);
+    if (sLock == NULL|| sLock->ownerID != -1) //currentThread->getThreadID())
+    {   // Check if lock has been created (or not yet destroyed).
+        DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
+        //lockTable->lockRelease();
+        return;
+    }
+
+    if(sLock->name == NULL){
+        DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
+        //lockTable->lockRelease();
+        return;
+    }
+
+
+    char *requestType = "7 %s", sLock->name;
     char buffer[MaxMailSize];
 
-    outPktHdr.to = currentThread->getThreadID();                                           // Send to Server
-    outPktHdr.from = 0;
-    outMailHdr.length = strlen(ack) + 1;
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
-        
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+
     if ( !success ) {
-      printf("The Signal reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      printf("The Signal reply failed. Terminating Nachos.\n");
       interrupt->Halt();
     }
 
-    sCond->lockUsed = 0;
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+    serverResponseValidation(buffer);
     /*
         KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
         if (kCond == NULL || kCond->owner == NULL)
@@ -884,7 +955,6 @@ void Signal_Syscall(int lock, int CV)
         
         kCond->condition->Signal(kLock->lock);
     */
-    CVTable->lockRelease();
 #endif // NETWORK
 }
 
@@ -895,36 +965,51 @@ void Broadcast_Syscall(int id, int lockID)
     //  an error without broadcasting.
 {
 #ifdef NETWORK
-    CVTable->lockAcquire();
-
-    ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
-    if (sCond == NULL)// || lock != sCond->lockUsed) 
+    
+    serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
+    if (sCond == NULL || name == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
-        CVTable->lockRelease();
+        DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
         return;
-    }    
-    while(!sCond->CVWaitQueue->IsEmpty()){
-        Mail* replyMsg = (Mail*) sCond->CVWaitQueue->Remove();
-        Acquire_Syscall(sCond->lockUsed);
-        sCond->lockUsed = 0;
-    }
+    }  
 
-    PacketHeader outPktHdr;
-    MailHeader outMailHdr;
-    char *ack = "Broadcast reply";
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+
+    // serverLock* sLock =  (serverLock*) serverLockTable->Get(lock);
+    // if (sLock == NULL|| sLock->ownerID != -1) //currentThread->getThreadID())
+    // {   // Check if lock has been created (or not yet destroyed).
+    //     DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
+    //     //lockTable->lockRelease();
+    //     return;
+    // }
+
+    // if(sLock->name == NULL){
+    //     DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
+    //     //lockTable->lockRelease();
+    //     return;
+    // }
+
+
+    char *requestType = "9 %s", sCond->name;
     char buffer[MaxMailSize];
 
-    outPktHdr.to = currentThread->getThreadID();                                           // Send to Server
-    outPktHdr.from = 0;
-    outMailHdr.length = strlen(ack) + 1;
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
-        
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+
     if ( !success ) {
-      printf("The Broadcast reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      printf("The Broadcast reply failed. Terminating Nachos.\n");
       interrupt->Halt();
     }
+
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+    serverResponseValidation(buffer);
     /*
         KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
         if (kCond == NULL || kCond->owner == NULL)
@@ -957,7 +1042,6 @@ void Broadcast_Syscall(int id, int lockID)
         
         kCond->condition->Broadcast(kLock->lock);
     */
-    CVTable->lockRelease();
 #endif // NETWORK
 }
 
@@ -968,14 +1052,12 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 //  If there are any errors, -1 is returned.
 {
 #ifdef NETWORK
-    lockTable->lockAcquire();
     
     char *buf = new char[len+1];	// Kernel buffer: name
 
     if (! buf)
     {
         DEBUG('z', "Thread %s: Can't allocate kernel buffer in CreateLock, ID -1\n", currentThread->getName());
-        lockTable->lockRelease();
         return -1;
     }
 
@@ -983,54 +1065,70 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     {
         DEBUG('z', "Thread %s: Bad pointer %d passed to CreateLock, ID -1\n", currentThread->getName(), vaddr);
         delete[] buf;
-        lockTable->lockRelease();
         return -1;
     }
 
     buf[len]='\0';
 
-    // Checks to see if the lock already exists 
-    for(int i = 0; i < lockTable->getCount(); i++){
-        ServerLock* sLockTemp =  new ServerLock;
-        sLockTemp = (ServerLock*)lockTable->Get(i);
-        if(buf == sLockTemp->lock->getName()){
-            return i;
-        }
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *requestType = "1 %s", buf;
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
+
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+
+    if ( !success ) {
+      printf("The Create Lock reply failed. Terminating Nachos.\n");
+      interrupt->Halt();
     }
 
-    ServerLock* sLock = new ServerLock;
-    sLock->lock = new Lock(buf);
-    sLock->machineID = currentThread->getThreadID();                           
-    sLock->mailboxNum = GetMyBoxNumber_Syscall();
-    sLock->isToBeDeleted = false;
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
 
-    createLockRequests++;
+    serverResponseValidation(buffer);
+   // // Checks to see if the lock already exists 
+    // for(int i = 0; i < lockTable->getCount(); i++){
+    //     ServerLock* sLockTemp =  new ServerLock;
+    //     sLockTemp = (ServerLock*)lockTable->Get(i);
+    //     if(buf == sLockTemp->lock->getName()){
+    //         return i;
+    //     }
+    // }
+
+    // ServerLock* sLock = new ServerLock;
+    // sLock->lock = new Lock(buf);
+    // sLock->machineID = currentThread->getThreadID();                           
+    // sLock->mailboxNum = GetMyBoxNumber_Syscall();
+    // sLock->isToBeDeleted = false;
+
+    // createLockRequests++;
 
     delete[] buf;
-    
-    int id = lockTable->Put(sLock);
-    
-    DEBUG('z', "Thread %s: Successfully created server Lock, ID %d\n", currentThread->getName(), id);
+        
+    // DEBUG('z', "Thread %s: Successfully created server Lock, ID %d\n", currentThread->getName(), id);
     
 #endif // NETWORK
     return 0;
 }
 
-int CreateCondition_Syscall(unsigned int vaddr, int len)
+void CreateCondition_Syscall(unsigned int vaddr, int len)
 // Create a kernel condition with the name in the user buffer pointed
 //  to by vaddr, with length len. If the condition is created successfully,
 //  it is placed in the kernel condition table and its index is returned.
 //  If there are any errors, -1 is returned.
 {
-    int id;
-    CVTable->lockAcquire();
+#ifdef NETWORK
     
     char *buf = new char[len+1];	// Kernel buffer: name
 
     if (! buf)
     {
         DEBUG('z', "Thread %s: Can't allocate kernel buffer in CreateCondition, ID -1\n", currentThread->getName());
-        CVTable->lockRelease();
         return -1;
     }
 
@@ -1038,25 +1136,37 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
     {
         DEBUG('z', "Thread %s: Bad pointer %d passed to CreateCondition, ID -1\n", currentThread->getName(), vaddr);
         delete[] buf;
-        CVTable->lockRelease();
         return -1;
     }
 
     buf[len]='\0';
-    ServerCV* sCV = new ServerCV;
-    sCV->isToBeDeleted = false;
-    sCV->lockUsed = 0;
+    
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *requestType = "5 %s", buf;
+    char buffer[MaxMailSize];
 
-    createCVRequests++;
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
 
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+
+    if ( !success ) {
+      printf("The Create cv reply failed. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
+
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+    serverResponseValidation(buffer);
     delete[] buf;
     
-    id = CVTable->Put(sCV);
-    
-    DEBUG('z', "Thread %s: Successfully created Condition, ID %d\n", currentThread->getName(), id);
+    // DEBUG('z', "Thread %s: Successfully created Condition, ID %d\n", currentThread->getName(), id);
     
 #endif // NETWORK
-    return id;
 }
 
 void DestroyLock_Syscall(int id)
@@ -1066,17 +1176,37 @@ void DestroyLock_Syscall(int id)
 //  exist, will print an error without destroying or setting the flag. 
 {
 #ifdef NETWORK
-    lockTable->lockAcquire();
     
     ServerLock* sLock = (ServerLock*) lockTable->Get(id);
 
-    if (sLock == NULL) //|| sLock->machineID != currentThread->get)
+    if (sLock == NULL || sLock->name == NULL) //|| sLock->machineID != currentThread->get)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to destroy invalid KernelLock, ID %d\n", currentThread->getName(), id);
-        lockTable->lockRelease();
         return;
     }
-    /*if (currentThread->space != kLock->owner)
+
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *requestType = "2 %s", buf;
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
+
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+
+    if ( !success ) {
+      printf("The Destroy Lock reply failed. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
+
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+    serverResponseValidation(buffer);
+   /*if (currentThread->space != kLock->owner)
     {   // Check if current process has access to lock.
         DEBUG('z', "Thread %s: Trying to destroy other process's Lock, ID %d\n", currentThread->getName(), id);
         lockTable->lockRelease();
@@ -1097,7 +1227,6 @@ void DestroyLock_Syscall(int id)
         kLock->owner = NULL;
     }*/
     
-    lockTable->lockRelease();
 #endif // NETWORK
 }
 void DestroyCondition_Syscall(int id)
@@ -1107,7 +1236,36 @@ void DestroyCondition_Syscall(int id)
 //  exist, will print an error without destroying or setting the flag.
 {
 #ifdef NETWORK
-    CVTable->lockAcquire();
+    serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
+    if (sCond == NULL || name == NULL) 
+    {   // Check if condition has been created (or not yet destroyed).
+        DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
+        return;
+    }  
+
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char *requestType = "6 %s", buf;
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = 0;                                           // Send to Server
+    outPktHdr.from = addr;
+    outMailHdr.length = strlen(requestType) + 1;
+
+    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+
+    if ( !success ) {
+      printf("The Destroy CV reply failed. Terminating Nachos.\n");
+      interrupt->Halt();
+    }
+
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+
+    serverResponseValidation(buffer);
+#endif // NETWORK
+    /*CVTable->lockAcquire();
     
     KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
     
@@ -1138,8 +1296,7 @@ void DestroyCondition_Syscall(int id)
         kCond->owner = NULL;
     }
     
-    CVTable->lockRelease();
-#endif // NETWORK
+    CVTable->lockRelease();*/
 }
 
 void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)

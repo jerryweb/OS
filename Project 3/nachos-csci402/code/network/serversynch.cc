@@ -54,10 +54,8 @@ void serverLock::Release(int outAddr, int outBox) {
 		ss >> waitAddr >> waitBox;
 
 		waitMsg = "0";
-
 		ServerReplay(waitMsg,waitAddr,waitBox);
 	}
-
 	else {
 		state = FREE;
 		ownerID = -1;
@@ -70,7 +68,7 @@ serverCV::serverCV(char* dName, Table* lTable) {
 	name = dName;
 	lock = NULL;
 	waitQue = new List();
-	lockTable = lTable;
+	lockTable = lTable;		//??? what is this for?
 }
 
 serverCV::~serverCV() {
