@@ -342,7 +342,7 @@ int AddrSpace::HandleMemoryFull()
     AddrSpace* AddrSPtemp =  (AddrSpace*)processTable->Get(ipt[pageIndex].processID);
     //If dirty is true, move to swap
     
-    if(AddrSPtemp && ipt[pageIndex].dirty)
+    if(AddrSPtemp && ipt[pageIndex].dirty) // check if process is not NULL; shouldn't ever happen but just in case
     {
         DEBUG('x', "%s  HandleMemoryFull: Accessing swapfile\n", currentThread->getName());
         //write to swapfile
@@ -375,7 +375,7 @@ int AddrSpace::HandleMemoryFull()
 
             }
             else
-                DEBUG('x', "%s  HandleMemoryFull: swapfile full!!\n", currentThread->getName());
+                printf("%s  HandleMemoryFull: swapfile full!!\n", currentThread->getName());
             
             swapLock->Release();
         }
