@@ -52,7 +52,7 @@ public:
 	~serverLock();
 
 	void Acquire(int out);
-	void Release();
+	void Release(int lock);
 
 	string name;
 	lockState state;

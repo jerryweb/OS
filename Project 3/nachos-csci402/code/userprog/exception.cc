@@ -567,57 +567,53 @@ void Acquire_Syscall(int lock)
 {  
 
 #ifdef NETWORK
-    lockTable->lockAcquire();
+    //lockTable->lockAcquire();
 
-    ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
+    serverLock* sLock =  (serverLock*) lockTable->Get(lock);
     if (sLock == NULL|| sLock->machineID != currentThread->getThreadID())
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
-        lockTable->lockRelease();
+        //lockTable->lockRelease();
         return;
     }
 
     if(sLock->lock == NULL){
         DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
-        lockTable->lockRelease();
+        //lockTable->lockRelease();
         return;
     }
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *ack = "Acquire lock reply";
+    char *request = "1 %s", sLock->name;
     char buffer[MaxMailSize];
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = currentThread->getThreadID();
-    outMailHdr.length = strlen(ack) + 1;
+    outMailHdr.length = strlen(request) + 1;
     // char buffer[MaxMailSize];
     // Mail* reply = new Mail(); 
 
     if(sLock->serverLockState == FREE){
         // Send reply message that the lock was created
-        bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
+        bool success = postOffice->Send(outPktHdr, outMailHdr, request);
         
         if ( !success ) {
           printf("The Aquire reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
           interrupt->Halt();
         }
 
-        // // Wait for server reply
-        // postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
-        // printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
-
-        sLock->serverLockState = BUSY;
+        // sLock->serverLockState = BUSY;
         // sLock->lock->Acquire(); MAKE SURE TO CHECK THIS
-        sLock->mailboxNum = currentThread->getMailBoxNum();
-        sLock->machineID = currentThread->getThreadID();
+        // sLock->mailboxNum = currentThread->getMailBoxNum();
+        // sLock->machineID = currentThread->getThreadID();
 
         DEBUG('z', "Client thread with machine ID %d just acquired lock %s.\n",
          currentThread->getThreadID(), sLock->lock->getName());
     }
     else{
         // Queue the reply message
-        Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
+        Mail* reply = new Mail(outPktHdr, outMailHdr, request);
         sLock->LockWaitQueue->Append((void*)reply); //queue the reply message
         DEBUG('z', "Server lock %s state is BUSY\n", sLock->lock->getName());
     }
@@ -635,7 +631,7 @@ void Acquire_Syscall(int lock)
             lockTable->lockRelease();
             return;
         }
-        if (kLock->lock == NULL)
+         if (kLock->lock == NULL)
         {   // Make sure lock is valid. Should never reach here.
             DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), id);
             lockTable->lockRelease();
@@ -652,7 +648,7 @@ void Acquire_Syscall(int lock)
         
      DEBUG('z', "Thread %s: Acquired Lock, ID %d\n", currentThread->getName(), id);
     */
-    lockTable->lockRelease();
+    //lockTable->lockRelease();
 #endif // NETWORK
 }
 
@@ -696,10 +692,6 @@ void Release_Syscall(int lock)
           interrupt->Halt();
         }
 
-        // // Wait for server reply
-        // postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
-        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
-
         DEBUG('z', "Client thread with machine ID %d just released lock %s.\n",
          currentThread->getThreadID(), sLock->lock->getName());
     }
@@ -712,11 +704,6 @@ void Release_Syscall(int lock)
           printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
           interrupt->Halt();
         }
-
-        // // Wait for server reply
-        // postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
-        // printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
-
 
     }
    /* 
@@ -833,6 +820,7 @@ void Signal_Syscall(int lock, int CV)
 //  to the condition or the lock or either does not exist, will print
 //  an error without signalling.
 {
+
 #ifdef NETWORK
     CVTable->lockAcquire();
 
@@ -908,37 +896,66 @@ void Broadcast_Syscall(int id, int lockID)
 {
 #ifdef NETWORK
     CVTable->lockAcquire();
-    /*
-    KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
-    if (kCond == NULL || kCond->owner == NULL)
+
+    ServerCV* sCond = (ServerCV*) CVTable->Get(CV);
+    if (sCond == NULL)// || lock != sCond->lockUsed) 
     {   // Check if condition has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to broadcast on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+        DEBUG('z', "Thread %s: Trying to wait on invalid KernelCondition, ID %d\n", currentThread->getName(), CV);
         CVTable->lockRelease();
         return;
+    }    
+    while(!sCond->CVWaitQueue->IsEmpty()){
+        Mail* replyMsg = (Mail*) sCond->CVWaitQueue->Remove();
+        Acquire_Syscall(sCond->lockUsed);
+        sCond->lockUsed = 0;
     }
-    KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
-    if (kLock == NULL || kLock->owner == NULL)
-    {   // Check if lock has been created (or not yet destroyed).
-        DEBUG('z', "Thread %s: Trying to broadcast using invalid KernelLock, ID %d\n", currentThread->getName(), lockID);
-        CVTable->lockRelease();
-        return;
+
+    PacketHeader outPktHdr;
+    MailHeader outMailHdr;
+    char *ack = "Broadcast reply";
+    char buffer[MaxMailSize];
+
+    outPktHdr.to = currentThread->getThreadID();                                           // Send to Server
+    outPktHdr.from = 0;
+    outMailHdr.length = strlen(ack) + 1;
+
+    bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
+        
+    if ( !success ) {
+      printf("The Broadcast reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
+      interrupt->Halt();
     }
-    if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
-    {   // Check if current process has access to condition and lock.
-        DEBUG('z', "Thread %s: Trying to broadcast on other process's Condition, ID %d\n", currentThread->getName(), id);
-        CVTable->lockRelease();
-        return;
-    }
-    if (kCond->condition == NULL)
-    {   // Make sure condition is valid. Should never reach here.
-        DEBUG('z', "Thread %s: Trying to broadcast on invalid Condition, ID %d\n", currentThread->getName(), id);
-        CVTable->lockRelease();
-        return;
-    }
-    
-    DEBUG('z', "Thread %s: Broadcasting on Condition, ID %d\n", currentThread->getName(), id);
-    
-    kCond->condition->Broadcast(kLock->lock);
+    /*
+        KernelCondition* kCond = (KernelCondition*) CVTable->Get(id);
+        if (kCond == NULL || kCond->owner == NULL)
+        {   // Check if condition has been created (or not yet destroyed).
+            DEBUG('z', "Thread %s: Trying to broadcast on invalid KernelCondition, ID %d\n", currentThread->getName(), id);
+            CVTable->lockRelease();
+            return;
+        }
+        KernelLock* kLock = (KernelLock*) lockTable->Get(lockID);
+        if (kLock == NULL || kLock->owner == NULL)
+        {   // Check if lock has been created (or not yet destroyed).
+            DEBUG('z', "Thread %s: Trying to broadcast using invalid KernelLock, ID %d\n", currentThread->getName(), lockID);
+            CVTable->lockRelease();
+            return;
+        }
+        if (currentThread->space != kLock->owner || currentThread->space != kCond->owner)
+        {   // Check if current process has access to condition and lock.
+            DEBUG('z', "Thread %s: Trying to broadcast on other process's Condition, ID %d\n", currentThread->getName(), id);
+            CVTable->lockRelease();
+            return;
+        }
+        if (kCond->condition == NULL)
+        {   // Make sure condition is valid. Should never reach here.
+            DEBUG('z', "Thread %s: Trying to broadcast on invalid Condition, ID %d\n", currentThread->getName(), id);
+            CVTable->lockRelease();
+            return;
+        }
+        
+        DEBUG('z', "Thread %s: Broadcasting on Condition, ID %d\n", currentThread->getName(), id);
+        
+        kCond->condition->Broadcast(kLock->lock);
     */
     CVTable->lockRelease();
 #endif // NETWORK
@@ -1006,7 +1023,6 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 //  If there are any errors, -1 is returned.
 {
     int id;
-#ifdef NETWORK
     CVTable->lockAcquire();
     
     char *buf = new char[len+1];	// Kernel buffer: name

@@ -194,6 +194,7 @@ int main(int argc, char **argv) {
 		}
 #endif // FILESYS
 #ifdef NETWORK
+		Table* serverLockTable
         if (!strcmp(*argv, "-o")) {
 	    ASSERT(argc > 1);
             Delay(2); 				// delay for 2 seconds
@@ -237,7 +238,7 @@ int main(int argc, char **argv) {
 
 void RunServer() {
 	//TODO:build lock and CV table here
-	Table* serverLockTable = new Table(2048);
+	// Table* serverLockTable = new Table(2048);
 	Table* serverCVTable = new Table(2048);
 
 	while (true)

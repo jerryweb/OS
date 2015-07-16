@@ -87,7 +87,7 @@ Thread::~Thread()
 void
 Thread::SetMailBoxNum(){
     boxCountIndexLock->Acquire();
-    if(currentBoxCountPointer == 10)
+    if(currentBoxCountPointer == 30)
         printf("Max number of mailboxes already reached! Will continue to increment.\n");
     
     mailBoxNumber = currentBoxCountPointer;
