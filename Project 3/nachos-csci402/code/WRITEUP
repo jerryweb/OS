@@ -44,7 +44,7 @@ III. Design:
             Return the previous physical page number of the evicted page.
     Network:
         [NETWORK]
-
+        
 IV. Implementation:
 	+ Files Modified
         code/
@@ -175,6 +175,8 @@ IV. Implementation:
             int getStackLocation();
             void setStackLocation(int stackPage);
             [NETWORK]
+            int getMailBoxNum()
+            void SetMailBoxNum()
         code/userprog/addrspace.h:
             int HandleIPTMiss(int vpn);
             void PageFault();
@@ -185,6 +187,8 @@ IV. Implementation:
             void SetEvictionPolicy(bool fifo)
         code/userprog/exception.cc:
             [NETWORK]
+            int GetMyBoxNumber_Syscall()
+            void SetMailBoxNum()
         code/userprog/syscall.h:
             int CreateMonitorVariable(char* name, int length, int MVArraySize)
             void DestroyMonitorVariable(int MVArrayIndex)
