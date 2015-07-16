@@ -1,6 +1,9 @@
 #include "serversynch.h"
 #include "interrupt.h"
 #include <sstream>
+#include <string>
+
+using namespace std;
 
 serverLock::serverLock(char* dName, int owner, int mailbox) {
 	name = dName;
@@ -14,63 +17,45 @@ serverLock::~serverLock() {
 	delete waitQue;
 }
 
-void serverLock::Acquire(int out, int mailbox) {
-	PacketHeader outPktHdr, inPktHdr;
-	MailHeader outMailHdr, inMailHdr;
-	char *msg;
-	char buffer[MaxMailSize];
-	stringstream ss;
-	ss.str("");
-	ss.clear;
-
-	outPktHdr.to = out;
-	outMailHdr.to = 0;
-	outMailHdr.from = out;
+void serverLock::Acquire(int outAddr, int outBox) {
+	char* msg = new char[MaxMailSize];
 
 	if (state == FREE) {
-		msg = "0";
-		outMailHdr.length = strlen(msg) +1;
-
-		//proceed after acknowledgement
+		//proceed
 		state = BUSY;
-		ownerID = out;
-		//mailboxID = set this to the thread requesting the info
+		ownerID = outAddr;
+		mailboxID = outBox;
 
+		msg = "0";
+		ServerReply(msg, outAddr, mailbox, 0);
+	} else {
+		//append msg to wait queue
+		string toAppend;
+		stringstream ss;
+		ss << outAddr << " " << outBox;
+		toAppend = ss.str();
+		msg = (char*) toAppend->c_str();
+		waitQue->Append((void*) toAppend);
 	}
-
-	else {
-		//append the machine index, since the message is always the same
-		int* toAppend = new int[1];
-		toAppend[0] = out;
-		waitQue->Append((void*)toAppend);
-	}
-
-
 }
 
-void serverLock::Release(int lock) {
+void serverLock::Release(int outAddr, int outBox) {
+
+	char* msg = new char[MaxMailSize];
 
 	if (!waitQue->IsEmpty()) {
-		int* outPtr = (int*)waitQue->First();
-		int out = outPtr[0];
+		//send reply to waiting userprog
+		char* waitMsg = new char[MaxMailSize];
+		waitMsg = (char*) waitQue->First();
 
-		PacketHeader outPktHdr, inPktHdr;
-		MailHeader outMailHdr, inMailHdr;
-		char *msg;
-		char buffer[MaxMailSize];
+		int waitAddr, waitBox;
 		stringstream ss;
-		ss.str("");
-		ss.clear;
+		ss << waitMsg;
+		ss >> waitAddr >> waitBox;
 
-		outPktHdr.to = out;
-		outMailHdr.to = 0;
-		outMailHdr.from = out;
+		waitMsg = "0";
 
-		msg = "0";
-		outMailHdr.length = strlen(msg) +1;
-
-		waitQue->Remove();
-		delete [] outPtr;
+		ServerReplay(waitMsg,waitAddr,waitBox);
 	}
 
 	else {
@@ -78,9 +63,10 @@ void serverLock::Release(int lock) {
 		ownerID = -1;
 	}
 
+	//
 }
 
-serverCV::serverCV(char* dName,Table* lTable) {
+serverCV::serverCV(char* dName, Table* lTable) {
 	name = dName;
 	lock = NULL;
 	waitQue = new List();
@@ -91,7 +77,7 @@ serverCV::~serverCV() {
 	delete waitQue;
 }
 
-void serverCV::Signal(serverLock *sLock,int out) {
+void serverCV::Signal(serverLock *sLock, int out) {
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
 	char *msg;
@@ -105,14 +91,14 @@ void serverCV::Signal(serverLock *sLock,int out) {
 	outMailHdr.from = out;
 
 	//check if lock exist
-	if (!tableItemExist(sLock->name,lockTable,1)) {
+	if (!tableItemExist(sLock->name, lockTable, 1)) {
 		msg = "1";
 	} else {
 
 	}
 }
 
-void serverCV::Wait(serverLock *sLock,int out) {
+void serverCV::Wait(serverLock *sLock, int out) {
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
 	char *msg;
@@ -124,6 +110,5 @@ void serverCV::Wait(serverLock *sLock,int out) {
 	outPktHdr.to = out;
 	outMailHdr.to = 0;
 	outMailHdr.from = out;
-
 
 }

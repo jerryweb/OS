@@ -30,7 +30,7 @@ bool tableItemExist(string tName, Table* table, int tableType) {
 	return toReturn;
 }
 
-bool ServerReply(char* msg,int outMachine,int outMailbox,int fromMailbox) {
+bool ServerReply(char* sMsg,int outMachine,int outMailbox,int fromMailbox) {
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
 	char buffer[MaxMailSize];
@@ -42,8 +42,11 @@ bool ServerReply(char* msg,int outMachine,int outMailbox,int fromMailbox) {
 	outPktHdr.from = 0;
 	outMailHdr.to = outMailbox;
 	outMailHdr.from = fromMailbox;
+	outMailHdr.length = strlen(sMsg) + 1;
 
-	postOffice->Send(outPktHdr, outMailHdr, msg);
+	postOffice->Send(outPktHdr, outMailHdr, sMsg);
+
+	delete [] sMsg;
 }
 
 class serverLock {
@@ -51,8 +54,8 @@ public:
 	serverLock(char* dName, int owner, int mailbox);
 	~serverLock();
 
-	void Acquire(int out);
-	void Release(int lock);
+	void Acquire(int outAddr,int outBox);
+	void Release(int outAddr,int outBox);
 
 	string name;
 	lockState state;
