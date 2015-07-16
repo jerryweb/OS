@@ -299,7 +299,8 @@ void RunServer() {
 	}
 }
 //returns the location of the lock
-void createLock(string lName, Table* sTable, int out) {
+void createLock(char* lName, Table* sTable, int out) {
+	char* msg = new char[MaxMailSize];
 	int location = 0;
 
 	if (!tableItemExist(lName, sTable, 1)) {
@@ -319,7 +320,7 @@ void createLock(string lName, Table* sTable, int out) {
 				break;
 			}
 		}
-		//msg = "1";
+		msg = "1";
 	}
 
 	//send reply message with location of the lock
@@ -327,7 +328,8 @@ void createLock(string lName, Table* sTable, int out) {
 
 }
 
-void destoryLock(string lName, Table* sTable, int out) {
+void destoryLock(char* lName, Table* sTable, int out) {
+	char* msg = new char[MaxMailSize];
 
 	if(createLockRequests == 0){
 		if (!tableItemExist(lName, sTable, 1)) {

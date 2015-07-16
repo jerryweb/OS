@@ -13,7 +13,7 @@ enum lockState {
 };
 
 //tableType: 1 for lockTable, 2 for CVTable
-bool tableItemExist(string tName, Table* table, int tableType) {
+bool tableItemExist(char* tName, Table* table, int tableType) {
 	bool toReturn = false;
 1
 	for (int i = 0; i < table->Size(); i++) {
@@ -57,7 +57,7 @@ public:
 	void Acquire(int outAddr,int outBox);
 	void Release(int outAddr,int outBox);
 
-	string name;
+	char* name;
 	lockState state;
 	int owenerID;       //owner machine id
 	int mailboxID;      //owner mailbox number
