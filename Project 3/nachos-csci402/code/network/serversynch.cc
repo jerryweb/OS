@@ -13,7 +13,7 @@ serverLock::~serverLock() {
 	delete waitQue;
 }
 
-void serverLock::Acquire(int out) {
+void serverLock::Acquire(int out,int mailbox) {
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
 	char *msg;
@@ -34,7 +34,6 @@ void serverLock::Acquire(int out) {
 		state = BUSY;
 		ownerID = out;
 
-		fflush (stdout);   //TODO: where else to flush?
 	}
 
 	else {

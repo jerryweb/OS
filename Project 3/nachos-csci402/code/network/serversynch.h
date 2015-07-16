@@ -30,8 +30,20 @@ bool tableItemExist(string tName, Table* table, int tableType) {
 	return toReturn;
 }
 
-bool replyMessage(char* msg,int out) {
-}
+bool ServerReply(char* msg,int outMachine,int outMailbox,int fromMailbox) {
+	PacketHeader outPktHdr, inPktHdr;
+	MailHeader outMailHdr, inMailHdr;
+	char buffer[MaxMailSize];
+	stringstream ss;
+	ss.str("");
+	ss.clear;
+
+	outPktHdr.to = outMachine;
+	outPktHdr.from = 0;
+	outMailHdr.to = outMailbox;
+	outMailHdr.from = fromMailbox;
+
+	postOffice->Send(outPktHdr, outMailHdr, msg);
 }
 
 class serverLock {
