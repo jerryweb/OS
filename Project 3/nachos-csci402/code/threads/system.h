@@ -36,6 +36,7 @@ extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;				// performance metrics
 extern Timer *timer;					// the hardware alarm clock
 extern Table* lockTable;				// Tables for the CVs and Locks
+extern Table* serverLockTable;
 extern Table* CVTable;	
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes

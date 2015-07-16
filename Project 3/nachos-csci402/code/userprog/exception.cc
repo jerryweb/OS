@@ -567,57 +567,53 @@ void Acquire_Syscall(int lock)
 {  
 
 #ifdef NETWORK
-    lockTable->lockAcquire();
+    //lockTable->lockAcquire();
 
-    ServerLock* sLock =  (ServerLock*) lockTable->Get(lock);
+    serverLock* sLock =  (serverLock*) lockTable->Get(lock);
     if (sLock == NULL|| sLock->machineID != currentThread->getThreadID())
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
-        lockTable->lockRelease();
+        //lockTable->lockRelease();
         return;
     }
 
     if(sLock->lock == NULL){
         DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
-        lockTable->lockRelease();
+        //lockTable->lockRelease();
         return;
     }
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *ack = "Acquire lock reply";
+    char *request = "1 %s", sLock->name;
     char buffer[MaxMailSize];
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = currentThread->getThreadID();
-    outMailHdr.length = strlen(ack) + 1;
+    outMailHdr.length = strlen(request) + 1;
     // char buffer[MaxMailSize];
     // Mail* reply = new Mail(); 
 
     if(sLock->serverLockState == FREE){
         // Send reply message that the lock was created
-        bool success = postOffice->Send(outPktHdr, outMailHdr, ack);
+        bool success = postOffice->Send(outPktHdr, outMailHdr, request);
         
         if ( !success ) {
           printf("The Aquire reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
           interrupt->Halt();
         }
 
-        // // Wait for server reply
-        // postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
-        // printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
-
-        sLock->serverLockState = BUSY;
+        // sLock->serverLockState = BUSY;
         // sLock->lock->Acquire(); MAKE SURE TO CHECK THIS
-        sLock->mailboxNum = currentThread->getMailBoxNum();
-        sLock->machineID = currentThread->getThreadID();
+        // sLock->mailboxNum = currentThread->getMailBoxNum();
+        // sLock->machineID = currentThread->getThreadID();
 
         DEBUG('z', "Client thread with machine ID %d just acquired lock %s.\n",
          currentThread->getThreadID(), sLock->lock->getName());
     }
     else{
         // Queue the reply message
-        Mail* reply = new Mail(outPktHdr, outMailHdr, ack);
+        Mail* reply = new Mail(outPktHdr, outMailHdr, request);
         sLock->LockWaitQueue->Append((void*)reply); //queue the reply message
         DEBUG('z', "Server lock %s state is BUSY\n", sLock->lock->getName());
     }
@@ -635,7 +631,7 @@ void Acquire_Syscall(int lock)
             lockTable->lockRelease();
             return;
         }
-        if (kLock->lock == NULL)
+         if (kLock->lock == NULL)
         {   // Make sure lock is valid. Should never reach here.
             DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), id);
             lockTable->lockRelease();
@@ -652,7 +648,7 @@ void Acquire_Syscall(int lock)
         
      DEBUG('z', "Thread %s: Acquired Lock, ID %d\n", currentThread->getName(), id);
     */
-    lockTable->lockRelease();
+    //lockTable->lockRelease();
 #endif // NETWORK
 }
 

@@ -7,13 +7,14 @@ serverLock::serverLock(char* dName, int owner, int mailbox) {
 	ownerID = owner;
 	mailboxID = mailbox;
 	waitQue = new List();
+	state = FREE;
 }
 
 serverLock::~serverLock() {
 	delete waitQue;
 }
 
-void serverLock::Acquire(int out) {
+void serverLock::Acquire(int out, char* lockName) {
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
 	char *msg;
@@ -33,6 +34,7 @@ void serverLock::Acquire(int out) {
 		//proceed after acknowledgement
 		state = BUSY;
 		ownerID = out;
+		//mailboxID = set this to the thread requesting the info
 
 		fflush (stdout);   //TODO: where else to flush?
 	}
@@ -41,8 +43,10 @@ void serverLock::Acquire(int out) {
 		//append the machine index, since the message is always the same
 		int* toAppend = new int[1];
 		toAppend[0] = out;
-		waitQue->Append(toAppend);
+		waitQue->Append((void*)toAppend);
 	}
+
+
 }
 
 void serverLock::Release(int lock) {
