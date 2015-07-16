@@ -285,7 +285,8 @@ void RunServer() {
                 break;
             case 6:
                 break;
-            case 7:
+            case 7:   //TODO:7,8,9 same as case 4
+            		  //fetch CV from CVtable
                 break;
             case 8:
                 break;
@@ -300,17 +301,6 @@ void RunServer() {
 //returns the location of the lock
 void createLock(string lName, Table* sTable, int out) {
 	int location = 0;
-	PacketHeader outPktHdr, inPktHdr;
-	MailHeader outMailHdr, inMailHdr;
-	char *msg;
-	char buffer[MaxMailSize];
-	stringstream ss;
-	ss.str("");
-	ss.clear;
-
-	outPktHdr.to = out;
-	outMailHdr.to = 0;
-	outMailHdr.from = out;
 
 	if (!tableItemExist(lName, sTable, 1)) {
 		serverLock* toPut = new serverLock(lName, -1, -1);
@@ -338,17 +328,6 @@ void createLock(string lName, Table* sTable, int out) {
 }
 
 void destoryLock(string lName, Table* sTable, int out) {
-	PacketHeader outPktHdr, inPktHdr;
-	MailHeader outMailHdr, inMailHdr;
-	char *msg;
-	char buffer[MaxMailSize];
-	stringstream ss;
-	ss.str("");
-	ss.clear;
-
-	outPktHdr.to = out;
-	outMailHdr.to = 0;
-	outMailHdr.from = out;
 
 	if(createLockRequests == 0){
 		if (!tableItemExist(lName, sTable, 1)) {
