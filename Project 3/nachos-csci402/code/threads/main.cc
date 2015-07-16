@@ -273,11 +273,15 @@ void RunServer() {
                 destroyLock(arg1, serverLockTable, inPktHdr.from);
                 break;
             case 3://TODO: need to find the correct lock in the serverLockTable
-
+            	   //then call the acquire on that lock
+            	   //then it's done
+            		//how to find it see case 5
                 break;
-            case 4:
+            case 4:   //TODO: same patter as acquire
                 break;
-            case 5:
+            case 5:   //TODO: need discussion on this
+            		  //I was finding locks/cv by name
+            		  //but I think this is slow, professor said it's fine though
                 break;
             case 6:
                 break;
@@ -362,11 +366,6 @@ void destoryLock(string lName, Table* sTable, int out) {
 		createLockRequests--;
 	}
 
-}
-
-bool acquireLock(string lName, Table* sTable) {
-	if (!tableItemExist(lName, sTable, 1)) {
-	}
 }
 
 #endif // NETWORK

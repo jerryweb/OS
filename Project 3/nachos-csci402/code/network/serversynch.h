@@ -70,13 +70,13 @@ public:
 	serverCV(char* dName);
 	~serverCV();
 
-	void Signal(serverLock *sLock,int out);
-	void Wait(serverLock *sLock,int out);
+	void Signal(serverLock *sLock,int outAddr,int outBox);
+	void Wait(serverLock *sLock,int outAddr,int outBox);
+	void Boardcast(serverLock *sLock,int outAddr,int outBox);
 
 	char* name;
-	serverLock* lock;
+	serverLock* waitLock;
 	List* waitQue;
-	Table* lockTable;
 };
 
 #endif

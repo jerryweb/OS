@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//TODO: owen the lock when I create it?
 serverLock::serverLock(char* dName, int owner, int mailbox) {
 	name = dName;
 	ownerID = owner;
@@ -20,7 +21,8 @@ serverLock::~serverLock() {
 void serverLock::Acquire(int outAddr, int outBox) {
 	char* msg = new char[MaxMailSize];
 
-	if (state == FREE) {
+	//free or sender already has the lock
+	if (state == FREE || (ownerID == outAddr && mailboxID == outBox)) {
 		//proceed
 		state = BUSY;
 		ownerID = outAddr;
@@ -42,71 +44,157 @@ void serverLock::Acquire(int outAddr, int outBox) {
 void serverLock::Release(int outAddr, int outBox) {
 
 	char* msg = new char[MaxMailSize];
+	msg = "0"; //default to success
 
-	if (!waitQue->IsEmpty()) {
+	//if sender not the owner
+	if (outAddr != ownerID || outBox != mailboxID) {
+		msg = "1";
+
+		//wait queue not empty, remove the first one and send reply to it
+	} else if (!waitQue->IsEmpty()) {
 		//send reply to waiting userprog
 		char* waitMsg = new char[MaxMailSize];
-		waitMsg = (char*) waitQue->First();
+		waitMsg = (char*) waitQue->Remove();
 
 		int waitAddr, waitBox;
 		stringstream ss;
 		ss << waitMsg;
 		ss >> waitAddr >> waitBox;
 
+		//change owner
+		ownerId = waitAddr;
+		mailboxId = waitBox;
+
 		waitMsg = "0";
-		ServerReplay(waitMsg,waitAddr,waitBox);
-	}
-	else {
+		ServerReply(waitMsg, waitAddr, waitBox, 0);
+
+		//wait queue empty, change state and clear owner&mailbox
+	} else {
 		state = FREE;
 		ownerID = -1;
+		mailboxId = -1;
 	}
 
-	//
+	//send reply to sender
+	ServerReply(msg, outAddr, outBox, 0);
 }
 
 serverCV::serverCV(char* dName, Table* lTable) {
 	name = dName;
-	lock = NULL;
+	waitLock = NULL;
 	waitQue = new List();
-	lockTable = lTable;		//??? what is this for?
 }
 
 serverCV::~serverCV() {
 	delete waitQue;
 }
 
-void serverCV::Signal(serverLock *sLock, int out) {
-	PacketHeader outPktHdr, inPktHdr;
-	MailHeader outMailHdr, inMailHdr;
-	char *msg;
-	char buffer[MaxMailSize];
-	stringstream ss;
-	ss.str("");
-	ss.clear;
+void serverCV::Signal(serverLock *sLock, int outAddr, int outBox) {
 
-	outPktHdr.to = out;
-	outMailHdr.to = 0;
-	outMailHdr.from = out;
+	char* msg = new char[MaxMailSize];
+	msg = "0";      //default to success
+	bool success = true;
 
-	//check if lock exist
-	if (!tableItemExist(sLock->name, lockTable, 1)) {
+	//check if lock is valid
+	if (sLock == NULL) {
+		printf("serverCV %d Signal:pass in lock is not valid\n", name);
+		success = false;
+	} else if (waitLock != sLock) {
+		printf("serverCV %d Signal: pass in lock not the same as waiting on\n",
+				name);
+		success = false;
+	}
+
+	if (!success) {
 		msg = "1";
 	} else {
+		//remove one msg from waitQue
+		char* waitMsg = new char[MaxMailSize];
+		waitMsg = (char*) waitQue->Remove();
 
+		int waitAddr, waitBox;
+		stringstream ss;
+		ss << waitMsg;
+		ss >> waitAddr >> waitBox;
+
+		//acquire the lock for it (will also send the reply)
+		sLock->Acquire(waitAddr, waitBox);
+	}
+
+	//send reply to sender
+	serverReply(msg, outAddr, outBox, 0);
+}
+
+void serverCV::Wait(serverLock *sLock, int outAddr, int outBox) {
+	char* msg = new char[MaxMailSize];
+
+	bool success = true;
+
+	//check if lock is vaild
+	if (sLock == NULL) {
+		printf("serverCV %d Wait:pass in lock is not valid\n", name);
+		success = false;
+	}
+
+	if (waitLock == NULL) {
+		waitLock = sLock;
+	} else if (waitLock != sLock) {
+		printf("serverCV %d Wait: pass in lock not the same as waiting on\n",
+				name);
+		success = false;
+	}
+
+	if (!success) {
+		msg = "1";
+		serverReply(msg, outAddr, outBox, 0);
+	} else {
+		waitLock->Release(outAddr, outBox);
+		//append msg to wait queue
+		string toAppend;
+		stringstream ss;
+		ss << outAddr << " " << outBox;
+		toAppend = ss.str();
+		msg = (char*) toAppend->c_str();
+		waitQue->Append((void*) toAppend);
 	}
 }
 
-void serverCV::Wait(serverLock *sLock, int out) {
-	PacketHeader outPktHdr, inPktHdr;
-	MailHeader outMailHdr, inMailHdr;
-	char *msg;
-	char buffer[MaxMailSize];
-	stringstream ss;
-	ss.str("");
-	ss.clear;
+void serverCV::Boardcast(serverLock *sLock,int outAddr,int outBox) {
+	char* msg = new char[MaxMailSize];
+	msg = "0";      //default to success
 
-	outPktHdr.to = out;
-	outMailHdr.to = 0;
-	outMailHdr.from = out;
+	bool success = true;
 
+	//check if lock is vaild
+	if (sLock == NULL) {
+		printf("serverCV %d Boardcast:pass in lock is not valid\n", name);
+		success = false;
+	}
+
+	if (waitLock != sLock) {
+		printf("serverCV %d Boardcast: pass in lock not the same as waiting on\n",
+				name);
+		success = false;
+	}
+
+	if (!success) {
+		msg = "1";
+	} else {
+		while (!waitQue->IsEmpty()) {
+			//remove one msg from waitQue
+			char* waitMsg = new char[MaxMailSize];
+			waitMsg = (char*) waitQue->Remove();
+
+			int waitAddr, waitBox;
+			stringstream ss;
+			ss << waitMsg;
+			ss >> waitAddr >> waitBox;
+
+			//acquire the lock for it (will also send the reply)
+			sLock->Acquire(waitAddr, waitBox);
+		}
+	}
+
+	//send reply to sender
+	serverReply(msg, outAddr, outBox, 0);
 }
