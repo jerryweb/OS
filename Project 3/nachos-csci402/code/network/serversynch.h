@@ -16,7 +16,7 @@ enum lockState {
 //tableType: 1 for lockTable, 2 for CVTable
 bool tableItemExist(char* tName, Table* table, int tableType) {
 	bool toReturn = false;
-1
+
 	for (int i = 0; i < table->Size(); i++) {
 		if (tableType == 1)
 			serverLock* tableItem = (serverLock*) sTable->Get(i);

@@ -53,6 +53,7 @@
 #include "utility.h"
 #include "system.h"
 #include <sstream>
+#include <string>
 
 using namespace std;
 // External functions used by this file
@@ -76,7 +77,13 @@ extern void MainMenu();
 int currentBoxCountPointer;
 Lock* boxCountIndexLock;
 
-//void RunServer();
+void RunServer();
+void createLock(char* lName, Table* sTable, int outAddr,int outBox);
+void destroyLock(char* lName, Table* sTable, int outAddr,int outBox);
+void creatCV(char* cName,Table* cTable,int outAddr,int outBox);
+void destroyCV(char* cName,Table* cTable,int outAddr,int outBox);
+
+
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -201,7 +208,9 @@ int main(int argc, char **argv) {
 		}
 #endif // FILESYS
 #ifdef NETWORK
-		Table* serverLockTable
+		Table* serverLockTable;
+		//serverLockTable = new Table(2048);
+		Table* serverCVTable;
 		if (!strcmp(*argv, "-o")) {
 			ASSERT(argc > 1);
 			Delay(2); 				// delay for 2 seconds
@@ -264,7 +273,7 @@ void RunServer() {
 		ss << buffer;
 		ss >> request;
 		ss >> arg1;
-		char* cArg1 = (char*) arg1->c_str();
+		char* cArg1 = (char*) arg1.c_str();
 
 		switch (request)
 		{
@@ -298,7 +307,7 @@ void RunServer() {
 
 			case 7://CV Signal
 			ss>>arg2;
-			char* cArg2 = (char*) arg2->c_str();
+			char* cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(arg1,serverLockTable,2);
 			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
 			sCV->Signal(cArg2,inPakHdr.from,0);
@@ -306,7 +315,7 @@ void RunServer() {
 
 			case 8://CV Wait
 			ss>>arg2;
-			char* cArg2 = (char*) arg2->c_str();
+			char* cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(arg1,serverLockTable,2);
 			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
 			sCV->Wait(cArg2,inPakHdr.from,0);
@@ -314,7 +323,7 @@ void RunServer() {
 
 			case 9://CV Broadcast
 			ss>>arg2;
-			char* cArg2 = (char*) arg2->c_str();
+			char* cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(arg1,serverLockTable,2);
 			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
 			sCV->Boardcast(cArg2,inPakHdr.from,0);

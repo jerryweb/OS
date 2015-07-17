@@ -36,7 +36,7 @@ void serverLock::Acquire(int outAddr, int outBox) {
 		stringstream ss;
 		ss << outAddr << " " << outBox;
 		toAppend = ss.str();
-		msg = (char*) toAppend->c_str();
+		msg = (char*) toAppend.c_str();
 		waitQue->Append((void*) toAppend);
 	}
 }
@@ -154,7 +154,7 @@ void serverCV::Wait(serverLock *sLock, int outAddr, int outBox) {
 		stringstream ss;
 		ss << outAddr << " " << outBox;
 		toAppend = ss.str();
-		msg = (char*) toAppend->c_str();
+		msg = (char*) toAppend.c_str();
 		waitQue->Append((void*) toAppend);
 	}
 }
