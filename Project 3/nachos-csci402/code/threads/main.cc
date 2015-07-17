@@ -314,25 +314,25 @@ void RunServer() {
 			case 7://CV Signal
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(arg1,serverLockTable,2);
+			index = getTableIndex(cArg1,serverLockTable,2);
 			sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Signal(cArg2,inPktHdr.from,0);
+			sCV->Signal(sCV,inPktHdr.from,0);
 			break;
 
 			case 8://CV Wait
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(arg1,serverLockTable,2);
+			index = getTableIndex(cArg1,serverLockTable,2);
 			sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Wait(cArg2,inPktHdr.from,0);
+			sCV->Wait(sCV,inPktHdr.from,0);
 			break;
 
 			case 9://CV Broadcast
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(arg1,serverLockTable,2);
+			index = getTableIndex(cArg1,serverLockTable,2);
 			sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Boardcast(cArg2,inPktHdr.from,0);
+			sCV->Boardcast(sCV,inPktHdr.from,0);
 			break;
 
 			default:

@@ -808,6 +808,14 @@ void Wait_Syscall(int lock, int CV)
     char *requestType = "8 %s", sLock->name;
     char buffer[MaxMailSize];
 
+    /****stringstream***
+    string toSend;
+    stringstream ss;
+    ss << "8 " << sLock->name;
+    toSend = ss.str();
+    requestType = (char*)toSend.c_str();
+    ***********************************/
+
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
