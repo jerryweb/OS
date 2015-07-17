@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
+#include "serversynch.h"
 
 using namespace std;
 
@@ -596,14 +597,20 @@ void Acquire_Syscall(int lock)
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *requestType = "3 %s", sLock->name;
+    //char *requestType = "3 %s", sLock->name;
     char buffer[MaxMailSize];
+    char* request[MaxMailSize];
+    string toSend;
+    stringstream ss;
+    ss << "3 " << sLock->name;
+    toSend == ss.str();
+    request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;//currentThread->getThreadID();
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType); 
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The postOffice Send failed. You must not have the other Nachos running. Terminating Nachos.\n");
@@ -700,14 +707,20 @@ void Release_Syscall(int lock)
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *requestType = "4 %s", sLock->name;
+    //char *request = "4 %s", sLock->name;
     char buffer[MaxMailSize];
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "4 " << sLock->name;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
     
     if ( !success ) {
       printf("The Release reply failed. You must not have the other Nachos running. Terminating Nachos.\n");
@@ -805,22 +818,21 @@ void Wait_Syscall(int lock, int CV)
         return;
     }
 
-    char *requestType = "8 %s", sLock->name;
+    //char *requestType = "8 %s", sLock->name;
     char buffer[MaxMailSize];
 
-    /****stringstream***
-    string toSend;
-    stringstream ss;
-    ss << "8 " << sLock->name;
-    toSend = ss.str();
-    requestType = (char*)toSend.c_str();
-    ***********************************/
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "8 " << sCond->name << " " <<sLock->name;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The Wait reply failed. Terminating Nachos.\n");
@@ -912,14 +924,21 @@ void Signal_Syscall(int lock, int CV)
     }
 
 
-    char *requestType = "7 %s", sLock->name;
+    //char *requestType = "7 %s", sLock->name;
     char buffer[MaxMailSize];
+
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "7 " << sCond->name << " " << sLock->name;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The Signal reply failed. Terminating Nachos.\n");
@@ -999,14 +1018,21 @@ void Broadcast_Syscall(int id, int lockID)
     // }
 
 
-    char *requestType = "9 %s", sCond->name;
+    //char *requestType = "9 %s", sCond->name;
     char buffer[MaxMailSize];
+
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "9 " << sCond->name << " "<<sLock->name;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The Broadcast reply failed. Terminating Nachos.\n");
@@ -1080,14 +1106,21 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *requestType = "1 %s", buf;
+    //char *requestType = "1 %s", buf;
     char buffer[MaxMailSize];
+
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "1 " << buf;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The Create Lock reply failed. Terminating Nachos.\n");
@@ -1151,14 +1184,21 @@ void CreateCondition_Syscall(unsigned int vaddr, int len)
     
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *requestType = "5 %s", buf;
+    //char *requestType = "5 %s", buf;
     char buffer[MaxMailSize];
+
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "5 " << buf;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The Create cv reply failed. Terminating Nachos.\n");
@@ -1195,14 +1235,21 @@ void DestroyLock_Syscall(int id)
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *requestType = "2 %s", buf;
+    //char *requestType = "2 %s", buf;
     char buffer[MaxMailSize];
+
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "2 " << sLock->name;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The Destroy Lock reply failed. Terminating Nachos.\n");
@@ -1253,14 +1300,21 @@ void DestroyCondition_Syscall(int id)
 
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    char *requestType = "6 %s", buf;
+    //char *requestType = "6 %s", buf;
     char buffer[MaxMailSize];
+
+    char* request[MaxMailSize];
+     string toSend;
+     stringstream ss;
+     ss << "6 " << sCond->name;
+     toSend == ss.str();
+     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
     outPktHdr.from = addr;
     outMailHdr.length = strlen(requestType) + 1;
 
-    bool success = postOffice->Send(outPktHdr, outMailHdr, requestType);
+    bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
     if ( !success ) {
       printf("The Destroy CV reply failed. Terminating Nachos.\n");

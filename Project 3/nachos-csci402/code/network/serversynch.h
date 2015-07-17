@@ -6,13 +6,13 @@
 #include "list.h"
 #include "network.h"
 #include "post.h"
-#include <string.h>
-#include <sstream>
+//#include <string>
+//#include <sstream>
 
-using namespace std;
+//using namespace std;
 
 enum lockState {
-	FREE, BUSY
+	SL_FREE, SL_BUSY
 };
 
 class serverLock {
@@ -25,7 +25,7 @@ public:
 
 	char* name;
 	lockState state;
-	int owenerID;       //owner machine id
+	int ownerID;       //owner machine id
 	int mailboxID;      //owner mailbox number
 	List* waitQue;
 
@@ -93,13 +93,9 @@ int getTableIndex(char* tName, Table* table, int tableType) {
 	return toReturn;
 }
 
-bool ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
-	PacketHeader outPktHdr, inPktHdr;
-	MailHeader outMailHdr, inMailHdr;
-	char buffer[MaxMailSize];
-	stringstream ss;
-	ss.str("");
-	ss.clear;
+void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
+	PacketHeader outPktHdr;
+	MailHeader outMailHdr;
 
 	outPktHdr.to = outMachine;
 	outPktHdr.from = 0;

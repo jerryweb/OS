@@ -8,7 +8,7 @@ serverLock::serverLock(char* dName, int owner, int mailbox) {
 	ownerID = owner;
 	mailboxID = mailbox;
 	waitQue = new List();
-	state = FREE;
+	state = SL_FREE;
 }
 
 serverLock::~serverLock() {
@@ -19,9 +19,9 @@ void serverLock::Acquire(int outAddr, int outBox) {
 	char* msg = new char[MaxMailSize];
 
 	//free or sender already has the lock
-	if (state == FREE || (ownerID == outAddr && mailboxID == outBox)) {
+	if (state == SL_FREE || (ownerID == outAddr && mailboxID == outBox)) {
 		//proceed
-		state = BUSY;
+		state = SL_BUSY;
 		ownerID = outAddr;
 		mailboxID = outBox;
 
@@ -67,7 +67,7 @@ void serverLock::Release(int outAddr, int outBox) {
 
 		//wait queue empty, change state and clear owner&mailbox
 	} else {
-		state = FREE;
+		state = SL_FREE;
 		ownerID = -1;
 		mailboxId = -1;
 	}
