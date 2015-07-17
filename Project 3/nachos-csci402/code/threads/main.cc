@@ -280,6 +280,7 @@ void RunServer() {
 		serverLock* sLock;
 		serverCV* sCV;
 		char* cArg2;
+		int index2;
 
 		switch (request)
 		{
@@ -314,25 +315,31 @@ void RunServer() {
 			case 7://CV Signal
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverLockTable,2);
+			index = getTableIndex(cArg1,serverCVTable,2);
+			index2 = getTableIndex(cArg2,serverLockTable,1);
 			sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Signal(sCV,inPktHdr.from,0);
+			sLock = (serverLock*)serverLockTable->Get(index2);
+			sCV->Signal(sLock,inPktHdr.from,0);
 			break;
 
 			case 8://CV Wait
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverLockTable,2);
+			index = getTableIndex(cArg1,serverCVTable,2);
+			index2 = getTableIndex(cArg2,serverLockTable,1);
 			sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Wait(sCV,inPktHdr.from,0);
+			sLock = (serverLock*)serverLockTable->Get(index2);
+			sCV->Wait(sLock,inPktHdr.from,0);
 			break;
 
 			case 9://CV Broadcast
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverLockTable,2);
+			index = getTableIndex(cArg1,serverCVTable,2);
+			index2 = getTableIndex(cArg2,serverLockTable,1);
 			sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Boardcast(sCV,inPktHdr.from,0);
+			sLock = (serverLock*)serverLockTable->Get(index2);
+			sCV->Boardcast(sLock,inPktHdr.from,0);
 			break;
 
 			default:
