@@ -13,44 +13,85 @@ enum lockState {
 	FREE, BUSY
 };
 
+class serverLock {
+public:
+	serverLock(char* dName, int owner, int mailbox);
+	~serverLock();
+
+	void Acquire(int outAddr, int outBox);
+	void Release(int outAddr, int outBox);
+
+	char* name;
+	lockState state;
+	int owenerID;       //owner machine id
+	int mailboxID;      //owner mailbox number
+	List* waitQue;
+
+};
+
+class serverCV {
+public:
+	serverCV(char* dName);
+	~serverCV();
+
+	void Signal(serverLock *sLock, int outAddr, int outBox);
+	void Wait(serverLock *sLock, int outAddr, int outBox);
+	void Boardcast(serverLock *sLock, int outAddr, int outBox);
+
+	char* name;
+	serverLock* waitLock;
+	List* waitQue;
+};
+
 //tableType: 1 for lockTable, 2 for CVTable
 bool tableItemExist(char* tName, Table* table, int tableType) {
 	bool toReturn = false;
 
 	for (int i = 0; i < table->Size(); i++) {
-		if (tableType == 1)
-			serverLock* tableItem = (serverLock*) sTable->Get(i);
-		else
-			serverCV* tableItem = (serverCV*) sTable->Get(i);
-		if (strcmp(tableItem->name,lName) == 0) {
-			toReturn = true;
-			break;
+		if (tableType == 1) {
+			serverLock* tableItem = (serverLock*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = true;
+				break;
+			}
+		} else {
+			serverCV* tableItem = (serverCV*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = true;
+				break;
+			}
 		}
+
 	}
 
 	return toReturn;
 }
 
 //get table item's index by name, 1 for lockTable, 2 for CVTable
-int getTableIndex(char* tName,Table* table,int tableType) {
+int getTableIndex(char* tName, Table* table, int tableType) {
 	int toReturn = -1;
 
-	for (int i=0;i<table->Size();i++) {
-		if (tableType == 1)
-			serverLock* tItem = (serverLock*)sTable->Get(i);
-		else
-			serverCV* tItem = (serverCV*)sTable->Get(i);
-
-		if (strcmp(tableItem->name,lName) == 0) {
-			toReturn = i;
-			break;
+	for (int i = 0; i < table->Size(); i++) {
+		if (tableType == 1) {
+			serverLock* tableItem = (serverLock*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = i;
+				break;
+			}
+		} else {
+			serverCV* tableItem = (serverCV*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = i;
+				break;
+			}
 		}
+
 	}
 
 	return toReturn;
 }
 
-bool ServerReply(char* sMsg,int outMachine,int outMailbox,int fromMailbox) {
+bool ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
 	PacketHeader outPktHdr, inPktHdr;
 	MailHeader outMailHdr, inMailHdr;
 	char buffer[MaxMailSize];
@@ -66,37 +107,7 @@ bool ServerReply(char* sMsg,int outMachine,int outMailbox,int fromMailbox) {
 
 	postOffice->Send(outPktHdr, outMailHdr, sMsg);
 
-	delete [] sMsg;
+	delete[] sMsg;
 }
-
-class serverLock {
-public:
-	serverLock(char* dName, int owner, int mailbox);
-	~serverLock();
-
-	void Acquire(int outAddr,int outBox);
-	void Release(int outAddr,int outBox);
-
-	char* name;
-	lockState state;
-	int owenerID;       //owner machine id
-	int mailboxID;      //owner mailbox number
-	List* waitQue;
-
-};
-
-class serverCV {
-public:
-	serverCV(char* dName);
-	~serverCV();
-
-	void Signal(serverLock *sLock,int outAddr,int outBox);
-	void Wait(serverLock *sLock,int outAddr,int outBox);
-	void Boardcast(serverLock *sLock,int outAddr,int outBox);
-
-	char* name;
-	serverLock* waitLock;
-	List* waitQue;
-};
 
 #endif

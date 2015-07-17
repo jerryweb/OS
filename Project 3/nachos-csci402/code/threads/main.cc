@@ -52,6 +52,7 @@
 
 #include "utility.h"
 #include "system.h"
+#include "serversynch.h"
 #include <sstream>
 #include <string>
 
