@@ -145,37 +145,39 @@ void Yield();
 /* Acquire the kernel lock with the given id.
  * This process must own the lock.
  */
-void Acquire(int id);
+void Acquire(int lock);
 
 /* Release the kernel lock with the given id.
  * This process must own the lock.
  */
-void Release(int id);
+void Release(int lock);
 
 /* Wait on the kernel condition with the given id, using the lock with the given id.
  * This process must own both the condition and lock.
  */
-void Wait(int id, int lockID);
+void Wait(int lock, int CV);
 
 /* Signal the kernel condition with the given id, using the lock with the given id.
  * This process must own both the condition and lock.
  */
-void Signal(int id, int lockID);
+void Signal(int lock, int CV);
 
 /* Broadcast on the kernel condition with the given id, using the lock with the given id.
  * This process must own both the condition and lock.
  */
-void Broadcast(int id, int lockID);
+void Broadcast(int lock, int CV);
 
 /* Create a new kernel lock for the process with the given name.
  * Also pass in the length of the name.
  */
-int CreateLock(char* name, int len);
+//int CreateLock(char* name, int len);
+int CreateLock(unsigned int vaddr, int len);
 
 /* Create a new kernel condition for the process with the given name.
  * Also pass in the length of the name.
  */
-int CreateCondition(char* name, int len);
+//int CreateCondition(char* name, int len);
+int CreateCondition(unsigned int vaddr, int len);
 
 /* Delete the kernel lock with the given id.
  * This process mus own the lock.

@@ -607,8 +607,8 @@ void Acquire_Syscall(int lock)
     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = PostOffice.netAddr;//currentThread->getThreadID();
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = PostOffice->netAddr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -692,7 +692,7 @@ void Release_Syscall(int lock)
     // lockTable->lockAcquire();
 
     serverLock* sLock =  (serverLock*) serverLockTable->Get(lock);
-    if (sLock == NULL|| sLock->ownerID != netAddr)
+    if (sLock == NULL)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
         // lockTable->lockRelease();
@@ -717,8 +717,8 @@ void Release_Syscall(int lock)
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
     
@@ -795,7 +795,7 @@ void Wait_Syscall(int lock, int CV)
 #ifdef NETWORK
 
     serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
-    if (sCond == NULL || name == NULL) 
+    if (sCond == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
         return;
@@ -829,8 +829,8 @@ void Wait_Syscall(int lock, int CV)
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -900,7 +900,7 @@ void Signal_Syscall(int lock, int CV)
 #ifdef NETWORK
 
     serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
-    if (sCond == NULL || name == NULL) 
+    if (sCond == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
         return;
@@ -935,8 +935,8 @@ void Signal_Syscall(int lock, int CV)
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -985,7 +985,7 @@ void Signal_Syscall(int lock, int CV)
 #endif // NETWORK
 }
 
-void Broadcast_Syscall(int id, int lockID)
+void Broadcast_Syscall(int lock, int CV)
 // Broadcasts on the kernel condition with the given ID, using the kernel
 //  lock with the given ID. If the current process does not have access
 //  to the condition or the lock or either does not exist, will print
@@ -994,7 +994,7 @@ void Broadcast_Syscall(int id, int lockID)
 #ifdef NETWORK
     
     serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
-    if (sCond == NULL || name == NULL) 
+    if (sCond == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
         return;
@@ -1024,13 +1024,13 @@ void Broadcast_Syscall(int id, int lockID)
     char* request;
      string toSend;
      stringstream ss;
-     ss << "9 " << sCond->name << " "<<sLock->name;
+     ss << "9 " << sCond->name;// << " "<<sLock->name;
      toSend == ss.str();
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -1117,8 +1117,8 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -1157,7 +1157,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     return 0;
 }
 
-void CreateCondition_Syscall(unsigned int vaddr, int len)
+int CreateCondition_Syscall(unsigned int vaddr, int len)
 // Create a kernel condition with the name in the user buffer pointed
 //  to by vaddr, with length len. If the condition is created successfully,
 //  it is placed in the kernel condition table and its index is returned.
@@ -1195,8 +1195,8 @@ void CreateCondition_Syscall(unsigned int vaddr, int len)
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -1215,6 +1215,7 @@ void CreateCondition_Syscall(unsigned int vaddr, int len)
     // DEBUG('z', "Thread %s: Successfully created Condition, ID %d\n", currentThread->getName(), id);
     
 #endif // NETWORK
+    return 0;
 }
 
 void DestroyLock_Syscall(int id)
@@ -1225,9 +1226,9 @@ void DestroyLock_Syscall(int id)
 {
 #ifdef NETWORK
     
-    ServerLock* sLock = (ServerLock*) lockTable->Get(id);
+    serverLock* sLock = (serverLock*) lockTable->Get(id);
 
-    if (sLock == NULL || sLock->name == NULL) //|| sLock->machineID != currentThread->get)
+    if (sLock == NULL) //|| sLock->machineID != currentThread->get)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to destroy invalid KernelLock, ID %d\n", currentThread->getName(), id);
         return;
@@ -1246,8 +1247,8 @@ void DestroyLock_Syscall(int id)
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -1284,7 +1285,7 @@ void DestroyLock_Syscall(int id)
     
 #endif // NETWORK
 }
-void DestroyCondition_Syscall(int id)
+void DestroyCondition_Syscall(int CV)
 // Destroys the kernel condition with the given ID. If there are threads
 //  waiting on the condition, sets a flag instead. If the current process
 //  does not have access to the condition or the condition does not
@@ -1292,7 +1293,7 @@ void DestroyCondition_Syscall(int id)
 {
 #ifdef NETWORK
     serverCV* sCond = (serverCV*) serverCVTable->Get(CV);
-    if (sCond == NULL || name == NULL) 
+    if (sCond == NULL) 
     {   // Check if condition has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to wait on invalid Server Condition, ID %d\n", currentThread->getName(), CV);
         return;
@@ -1311,8 +1312,8 @@ void DestroyCondition_Syscall(int id)
      request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;
-    outMailHdr.length = strlen(requestType) + 1;
+    // outPktHdr.from = addr;
+    outMailHdr.length = strlen(request) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
 
@@ -1558,7 +1559,7 @@ void ExceptionHandler(ExceptionType which) {
                 break;
             case SC_SetMailBoxNum:
                 DEBUG('a', "SetMailBoxNum syscall.\n");
-                SetMyBoxNumber_Syscall();
+                SetMailBoxNum_Syscall();
                 break;  
                 /*
             case SC_CreateMonitorVariable:
