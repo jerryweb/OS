@@ -364,7 +364,7 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 	}
 
 	//TODO:return location;
-	serverReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,0);
 }
 
 void destoryLock(char* lName, Table* sTable, int outAddr,int outBox) {
@@ -375,8 +375,11 @@ void destoryLock(char* lName, Table* sTable, int outAddr,int outBox) {
 			msg = "1";
 		}
 		else {//Delete all the locks from the. This should only run at the end of the program
+			int toRemove = sTable->Size();
+			toRemove--;
 			while(sTable->getCount() != 0) {
 				serverLock* tItem = (serverLock*) (sTable->Remove(toRemove));
+				toRemove--;
 				delete tItem;
 				msg = "0";
 			}
@@ -386,7 +389,7 @@ void destoryLock(char* lName, Table* sTable, int outAddr,int outBox) {
 		createLockRequests--;
 	}
 
-	serverReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,0);
 
 }
 
@@ -396,7 +399,7 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 
 	if (!tableItemExist(cName,cTable,2)) {
 		serverCV* toPut = new serverCV(cName);
-		location = sTable->Put(toPut);
+		location = cTable->Put(toPut);
 		createCVRequests++;   //TODO: where to put this?
 		msg = "0";
 	} else {
@@ -405,7 +408,7 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	}
 
 	//TODO: return location?
-	serverReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,0);
 }
 
 void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
@@ -416,8 +419,11 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 			msg = "1";
 		}
 		else {//Delete all the CVs from the. This should only run at the end of the program
+			int toRemove = cTable->Size();
+			toRemove--;
 			while(cTable->getCount() != 0) {
-				serverCV* cItem = (serverCV*) (cTable->Remove());
+				serverCV* cItem = (serverCV*) (cTable->Remove(toRemove));
+				toRemove--;
 				delete cItem;
 				msg = "0";
 			}
@@ -427,7 +433,7 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 		createCVRequests--;
 	}
 
-	serverReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,0);
 }
 
 #endif // NETWORK
