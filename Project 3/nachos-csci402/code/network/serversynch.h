@@ -6,6 +6,7 @@
 #include "list.h"
 #include "network.h"
 #include "post.h"
+#include <string.h>
 //TODO:need to include Table here
 
 enum lockState {
@@ -21,8 +22,27 @@ bool tableItemExist(char* tName, Table* table, int tableType) {
 			serverLock* tableItem = (serverLock*) sTable->Get(i);
 		else
 			serverCV* tableItem = (serverCV*) sTable->Get(i);
-		if (tableItem->name == lName) {
+		if (strcmp(tableItem->name,lName) == 0) {
 			toReturn = true;
+			break;
+		}
+	}
+
+	return toReturn;
+}
+
+//get table item's index by name, 1 for lockTable, 2 for CVTable
+int getTableIndex(char* tName,Table* table,int tableType) {
+	int toReturn = -1;
+
+	for (int i=0;i<table->Size();i++) {
+		if (tableType == 1)
+			serverLock* tItem = (serverLock*)sTable->Get(i);
+		else
+			serverCV* tItem = (serverCV*)sTable->Get(i);
+
+		if (strcmp(tableItem->name,lName) == 0) {
+			toReturn = i;
 			break;
 		}
 	}

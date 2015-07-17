@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 		if (!strcmp(*argv, "-z"))               // print copyright
 			printf(copyright);
 #ifdef USER_PROGRAM
-        if (!strcmp(*argv, "-x")) {        	// run a user program
+		if (!strcmp(*argv, "-x")) {        	// run a user program
 			ASSERT(argc > 1);
 			DEBUG('t', "filename: %s\n", *(argv + 1));
 			StartProcess(*(argv + 1));
@@ -202,18 +202,18 @@ int main(int argc, char **argv) {
 #endif // FILESYS
 #ifdef NETWORK
 		Table* serverLockTable
-        if (!strcmp(*argv, "-o")) {
-	    ASSERT(argc > 1);
-            Delay(2); 				// delay for 2 seconds
-						// to give the user time to 
-						// start up another nachos
-            MailTest(atoi(*(argv + 1)));
-            argCount = 2;
-        }
+		if (!strcmp(*argv, "-o")) {
+			ASSERT(argc > 1);
+			Delay(2); 				// delay for 2 seconds
+			// to give the user time to
+			// start up another nachos
+			MailTest(atoi(*(argv + 1)));
+			argCount = 2;
+		}
 
-        if (!strcmp(*argv,"-server")) {
-        //	RunServer();
-        }
+		if (!strcmp(*argv,"-server")) {
+			//	RunServer();
+		}
 
 #endif // NETWORK
 	}
@@ -249,7 +249,7 @@ void RunServer() {
 	Table* serverCVTable = new Table(2048);
 
 	while (true)
-    {
+	{
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
@@ -257,49 +257,76 @@ void RunServer() {
 		ss.str("");
 		ss.clear();
 		int request = -1;
-		string arg1;
+		int index = -1;
+		string arg1,arg2;
 
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
 		ss << buffer;
 		ss >> request;
 		ss >> arg1;
+		char* cArg1 = (char*) arg1->c_str();
 
-        switch (request)
-        {
-            case 1:
-                createLock(arg1, serverLockTable, inPktHdr.from);
-                break;
-            case 2:
-                destroyLock(arg1, serverLockTable, inPktHdr.from);
-                break;
-            case 3://TODO: need to find the correct lock in the serverLockTable
-            	   //then call the acquire on that lock
-            	   //then it's done
-            		//how to find it see case 5
-                break;
-            case 4:   //TODO: same patter as acquire
-                break;
-            case 5:   //TODO: need discussion on this
-            		  //I was finding locks/cv by name
-            		  //but I think this is slow, professor said it's fine though
-                break;
-            case 6:
-                break;
-            case 7:   //TODO:7,8,9 same as case 4
-            		  //fetch CV from CVtable
-                break;
-            case 8:
-                break;
-            case 9:
-            //broadcast
-            	break;
-            default:
-                printf("invalid request type\n");
-        }
+		switch (request)
+		{
+			case 1:   //create lock
+			createLock(cArg1, serverLockTable, inPktHdr.from,0);
+			break;
+
+			case 2://destory lock
+			destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
+			break;
+
+			case 3://acquire lock
+			index = getTableIndex(cArg1,serverLockTable,1);
+			serverLock* sLock = (serverLock*)serverLockTable->Get(index);
+			sLock->Acquire(inPakHdr.from,0);
+			break;
+
+			case 4://release lock
+			index = getTableIndex(cArg1,serverLockTable,1);
+			serverLock* sLock = (serverLock*)serverLockTable->Get(index);
+			sLock->Release(inPakHdr.from,0);
+			break;
+
+			case 5://create CV
+			createCV(cArg1,serverCVTable,inPktHdr.from,0);
+			break;
+
+			case 6://destroy CV
+			destroyCV(cArg1,serverCVTable,inPktHdr.from,0);
+			break;
+
+			case 7://CV Signal
+			ss>>arg2;
+			char* cArg2 = (char*) arg2->c_str();
+			index = getTableIndex(arg1,serverLockTable,2);
+			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
+			sCV->Signal(cArg2,inPakHdr.from,0);
+			break;
+
+			case 8://CV Wait
+			ss>>arg2;
+			char* cArg2 = (char*) arg2->c_str();
+			index = getTableIndex(arg1,serverLockTable,2);
+			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
+			sCV->Wait(cArg2,inPakHdr.from,0);
+			break;
+
+			case 9://CV Broadcast
+			ss>>arg2;
+			char* cArg2 = (char*) arg2->c_str();
+			index = getTableIndex(arg1,serverLockTable,2);
+			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
+			sCV->Boardcast(cArg2,inPakHdr.from,0);
+			break;
+
+			default:
+			printf("invalid request type\n");
+		}
 	}
 }
 //returns the location of the lock
-void createLock(char* lName, Table* sTable, int out) {
+void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 	int location = 0;
 
@@ -310,43 +337,75 @@ void createLock(char* lName, Table* sTable, int out) {
 		msg = "0";
 	}	//This returns the location if the lock already exists of that lock 
 	else {
-		for (int i = 0; i < table->Size(); i++) {
-			if (tableType == 1)
-				serverLock* tableItem = (serverLock*) sTable->Get(i);
-			else
-				serverCV* tableItem = (serverCV*) sTable->Get(i);
-			if (tableItem->name == lName) {
-				location = i;
-				break;
-			}
-		}
+		location = getTableIndex(lName,sTable,1);
 		msg = "1";
 	}
 
-	//send reply message with location of the lock
-	//return location;
-
+	//TODO:return location;
+	serverReply(msg,outAddr,outBox,0);
 }
 
-void destoryLock(char* lName, Table* sTable, int out) {
+void destoryLock(char* lName, Table* sTable, int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 
-	if(createLockRequests == 0){
+	if(createLockRequests == 0) {
 		if (!tableItemExist(lName, sTable, 1)) {
 			msg = "1";
-		} 
-		else {	//Delete all the locks from the. This should only run at the end of the program
-			while(sTable->getCount() != 0){
+		}
+		else {//Delete all the locks from the. This should only run at the end of the program
+			while(sTable->getCount() != 0) {
 				serverLock* tItem = (serverLock*) (sTable->Remove(toRemove));
 				delete tItem;
 				msg = "0";
 			}
 		}
 	}
-	else{
+	else {
 		createLockRequests--;
 	}
 
+	serverReply(msg,outAddr,outBox,0);
+
+}
+
+void creatCV(char* cName,Table* cTable,int outAddr,int outBox) {
+	char* msg = new char[MaxMailSize];
+	int location = -1;
+
+	if (!tableItemExist(cName,cTable,2)) {
+		serverCV* toPut = new serverCV(cName);
+		location = sTable->Put(toPut);
+		createCVRequests++;   //TODO: where to put this?
+		msg = "0";
+	} else {
+		location = getTableIndex(cName,cTable,2);
+		msg = "1";
+	}
+
+	//TODO: return location?
+	serverReply(msg,outAddr,outBox,0);
+}
+
+void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
+	char* msg = new char[MaxMailSize];
+
+	if(createCVRequests == 0) {
+		if (!tableItemExist(cName, cTable, 2)) {
+			msg = "1";
+		}
+		else {//Delete all the CVs from the. This should only run at the end of the program
+			while(cTable->getCount() != 0) {
+				serverCV* cItem = (serverCV*) (cTable->Remove());
+				delete cItem;
+				msg = "0";
+			}
+		}
+	}
+	else {
+		createCVRequests--;
+	}
+
+	serverReply(msg,outAddr,outBox,0);
 }
 
 #endif // NETWORK

@@ -79,7 +79,7 @@ void serverLock::Release(int outAddr, int outBox) {
 	ServerReply(msg, outAddr, outBox, 0);
 }
 
-serverCV::serverCV(char* dName, Table* lTable) {
+serverCV::serverCV(char* dName) {
 	name = dName;
 	waitLock = NULL;
 	waitQue = new List();
