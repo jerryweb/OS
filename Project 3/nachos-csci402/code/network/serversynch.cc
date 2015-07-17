@@ -1,7 +1,4 @@
 #include "serversynch.h"
-#include "interrupt.h"
-#include <sstream>
-#include <string>
 
 using namespace std;
 

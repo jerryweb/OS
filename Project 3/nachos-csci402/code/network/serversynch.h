@@ -7,7 +7,9 @@
 #include "network.h"
 #include "post.h"
 #include <string.h>
-//TODO:need to include Table here
+#include <sstream>
+
+using namespace std;
 
 enum lockState {
 	FREE, BUSY

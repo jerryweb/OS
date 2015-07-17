@@ -104,11 +104,8 @@ int main(int argc, char **argv) {
 	// This keeps track of the number of threads that call the create lock function.
 	// Whenever a lock is created, it will increment by 1. Whenevr the destroy lock 
 	// function is called, it will decrement by 1. 
-	int createLockRequests = 0;
-
-	// Similarto the createLockRequests instantiated above.
-	int createCVRequests = 0;
-	// for a particular command
+	createLockRequests = 0;
+	createCVRequests = 0;
 
 	DEBUG('t', "Entering main");
 	(void) Initialize(argc, argv);
@@ -209,9 +206,11 @@ int main(int argc, char **argv) {
 		}
 #endif // FILESYS
 #ifdef NETWORK
-		Table* serverLockTable;
-		//serverLockTable = new Table(2048);
-		Table* serverCVTable;
+		//Table* serverLockTable;
+		serverLockTable = new Table(2048);
+		//Table* serverCVTable;
+		serverCVTable = new Table(2048);
+
 		if (!strcmp(*argv, "-o")) {
 			ASSERT(argc > 1);
 			Delay(2); 				// delay for 2 seconds
@@ -256,7 +255,7 @@ int main(int argc, char **argv) {
 void RunServer() {
 	//TODO:build lock and CV table here
 	// Table* serverLockTable = new Table(2048);
-	Table* serverCVTable = new Table(2048);
+	//Table* serverCVTable = new Table(2048);
 
 	while (true)
 	{
