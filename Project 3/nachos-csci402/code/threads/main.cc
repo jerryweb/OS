@@ -81,7 +81,7 @@ Lock* boxCountIndexLock;
 void RunServer();
 void createLock(char* lName, Table* sTable, int outAddr,int outBox);
 void destroyLock(char* lName, Table* sTable, int outAddr,int outBox);
-void creatCV(char* cName,Table* cTable,int outAddr,int outBox);
+void createCV(char* cName,Table* cTable,int outAddr,int outBox);
 void destroyCV(char* cName,Table* cTable,int outAddr,int outBox);
 
 
@@ -276,6 +276,11 @@ void RunServer() {
 		ss >> arg1;
 		char* cArg1 = (char*) arg1.c_str();
 
+		//declare these used for switch block
+		serverLock* sLock;
+		serverCV* sCV;
+		char* cArg2;
+
 		switch (request)
 		{
 			case 1:   //create lock
@@ -288,14 +293,14 @@ void RunServer() {
 
 			case 3://acquire lock
 			index = getTableIndex(cArg1,serverLockTable,1);
-			serverLock* sLock = (serverLock*)serverLockTable->Get(index);
-			sLock->Acquire(inPakHdr.from,0);
+			sLock = (serverLock*)serverLockTable->Get(index);
+			sLock->Acquire(inPktHdr.from,0);
 			break;
 
 			case 4://release lock
 			index = getTableIndex(cArg1,serverLockTable,1);
-			serverLock* sLock = (serverLock*)serverLockTable->Get(index);
-			sLock->Release(inPakHdr.from,0);
+			sLock = (serverLock*)serverLockTable->Get(index);
+			sLock->Release(inPktHdr.from,0);
 			break;
 
 			case 5://create CV
@@ -308,26 +313,26 @@ void RunServer() {
 
 			case 7://CV Signal
 			ss>>arg2;
-			char* cArg2 = (char*) arg2.c_str();
+			cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(arg1,serverLockTable,2);
-			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Signal(cArg2,inPakHdr.from,0);
+			sCV = (serverCV*)serverCVTable->Get(index);
+			sCV->Signal(cArg2,inPktHdr.from,0);
 			break;
 
 			case 8://CV Wait
 			ss>>arg2;
-			char* cArg2 = (char*) arg2.c_str();
+			cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(arg1,serverLockTable,2);
-			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Wait(cArg2,inPakHdr.from,0);
+			sCV = (serverCV*)serverCVTable->Get(index);
+			sCV->Wait(cArg2,inPktHdr.from,0);
 			break;
 
 			case 9://CV Broadcast
 			ss>>arg2;
-			char* cArg2 = (char*) arg2.c_str();
+			cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(arg1,serverLockTable,2);
-			serverCV* sCV = (serverCV*)serverCVTable->Get(index);
-			sCV->Boardcast(cArg2,inPakHdr.from,0);
+			sCV = (serverCV*)serverCVTable->Get(index);
+			sCV->Boardcast(cArg2,inPktHdr.from,0);
 			break;
 
 			default:
@@ -378,7 +383,7 @@ void destoryLock(char* lName, Table* sTable, int outAddr,int outBox) {
 
 }
 
-void creatCV(char* cName,Table* cTable,int outAddr,int outBox) {
+void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 	int location = -1;
 
