@@ -599,7 +599,7 @@ void Acquire_Syscall(int lock)
     MailHeader outMailHdr, inMailHdr;
     //char *requestType = "3 %s", sLock->name;
     char buffer[MaxMailSize];
-    char* request[MaxMailSize];
+    char* request;
     string toSend;
     stringstream ss;
     ss << "3 " << sLock->name;
@@ -607,7 +607,7 @@ void Acquire_Syscall(int lock)
     request = (char*)toSend.c_str();
 
     outPktHdr.to = 0;                                           // Send to Server
-    outPktHdr.from = addr;//currentThread->getThreadID();
+    outPktHdr.from = PostOffice.netAddr;//currentThread->getThreadID();
     outMailHdr.length = strlen(requestType) + 1;
 
     bool success = postOffice->Send(outPktHdr, outMailHdr, request);
@@ -692,7 +692,7 @@ void Release_Syscall(int lock)
     // lockTable->lockAcquire();
 
     serverLock* sLock =  (serverLock*) serverLockTable->Get(lock);
-    if (sLock == NULL|| sLock->machineID != addr)
+    if (sLock == NULL|| sLock->ownerID != netAddr)
     {   // Check if lock has been created (or not yet destroyed).
         DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
         // lockTable->lockRelease();
@@ -709,7 +709,7 @@ void Release_Syscall(int lock)
     MailHeader outMailHdr, inMailHdr;
     //char *request = "4 %s", sLock->name;
     char buffer[MaxMailSize];
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "4 " << sLock->name;
@@ -821,7 +821,7 @@ void Wait_Syscall(int lock, int CV)
     //char *requestType = "8 %s", sLock->name;
     char buffer[MaxMailSize];
 
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "8 " << sCond->name << " " <<sLock->name;
@@ -927,7 +927,7 @@ void Signal_Syscall(int lock, int CV)
     //char *requestType = "7 %s", sLock->name;
     char buffer[MaxMailSize];
 
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "7 " << sCond->name << " " << sLock->name;
@@ -1021,7 +1021,7 @@ void Broadcast_Syscall(int id, int lockID)
     //char *requestType = "9 %s", sCond->name;
     char buffer[MaxMailSize];
 
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "9 " << sCond->name << " "<<sLock->name;
@@ -1109,7 +1109,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
     //char *requestType = "1 %s", buf;
     char buffer[MaxMailSize];
 
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "1 " << buf;
@@ -1187,7 +1187,7 @@ void CreateCondition_Syscall(unsigned int vaddr, int len)
     //char *requestType = "5 %s", buf;
     char buffer[MaxMailSize];
 
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "5 " << buf;
@@ -1238,7 +1238,7 @@ void DestroyLock_Syscall(int id)
     //char *requestType = "2 %s", buf;
     char buffer[MaxMailSize];
 
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "2 " << sLock->name;
@@ -1303,7 +1303,7 @@ void DestroyCondition_Syscall(int id)
     //char *requestType = "6 %s", buf;
     char buffer[MaxMailSize];
 
-    char* request[MaxMailSize];
+    char* request;
      string toSend;
      stringstream ss;
      ss << "6 " << sCond->name;
