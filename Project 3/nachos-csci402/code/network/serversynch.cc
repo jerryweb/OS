@@ -1,7 +1,5 @@
 #include "serversynch.h"
 
-using namespace std;
-
 //TODO: owen the lock when I create it?
 serverLock::serverLock(char* dName, int owner, int mailbox) {
 	name = dName;
@@ -26,7 +24,7 @@ void serverLock::Acquire(int outAddr, int outBox) {
 		mailboxID = outBox;
 
 		msg = "0";
-		ServerReply(msg, outAddr, mailbox, 0);
+		ServerReply(msg, outAddr, outBox, 0);
 	} else {
 		//append msg to wait queue
 		string toAppend;
