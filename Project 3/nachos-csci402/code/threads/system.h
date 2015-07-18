@@ -36,9 +36,7 @@ extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;				// performance metrics
 extern Timer *timer;					// the hardware alarm clock
 extern Table* lockTable;				// Tables for the CVs and Locks
-extern Table* serverLockTable;
 extern Table* CVTable;	
-extern Table* serverCVTable;
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes
 extern BitMap* memMap;
@@ -79,6 +77,8 @@ extern SynchDisk   *synchDisk;
 extern PostOffice* postOffice;
 extern int createLockRequests;
 extern int createCVRequests;
+extern Table* serverLockTable;
+extern Table* serverCVTable;
 #endif
 
 #endif // SYSTEM_H

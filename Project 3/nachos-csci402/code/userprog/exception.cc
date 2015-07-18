@@ -48,8 +48,20 @@ struct KernelLock {
 	bool isToBeDeleted;
 };
 
-/*Table* serverLockTable;
-struct ServerLock {
+//table for condition variables
+Table* CVTable;
+struct KernelCondition {
+	Condition* condition;
+	AddrSpace* owner;
+	bool isToBeDeleted;
+};
+
+Table* serverLockTable;
+Table* serverCVTable;
+int createLockRequests,createCVRequests;
+
+
+/*struct ServerLock {
 	Lock* lock;
 	LockState serverLockState;  //state of server lock
 	int machineID;
@@ -58,7 +70,6 @@ struct ServerLock {
 	bool isToBeDeleted;
 };
 
-Table* serverCVTable;
 struct ServerCV {
 	List* CVWaitQueue;
 	int lockUsed;               //index to the lock in the serverLock table
@@ -66,13 +77,6 @@ struct ServerCV {
 	bool isToBeDeleted;
 };*/
 
-//table for condition variables
-Table* CVTable;
-struct KernelCondition {
-	Condition* condition;
-	AddrSpace* owner;
-	bool isToBeDeleted;
-};
 
 //table for processes
 Table* processTable;

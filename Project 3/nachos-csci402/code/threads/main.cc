@@ -373,7 +373,7 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 	ServerReply(msg,outAddr,outBox,0);
 }
 
-void destoryLock(char* lName, Table* sTable, int outAddr,int outBox) {
+void destroyLock(char* lName, Table* sTable, int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 
 	if(createLockRequests == 0) {
