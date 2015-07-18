@@ -122,7 +122,6 @@ void clientRequest(char* msg, int fromBox, int toBox) {
 	MailHeader outMailHdr;
 
 	outPktHdr.to = outMachine;
-	outPktHdr.from = 0;     //TODO: ask about this
 	outMailHdr.to = toBox;
 	outMailHdr.from = fromBox;
 	outMailHdr.length = strlen(msg) + 1;
@@ -948,7 +947,7 @@ void Signal_Syscall(int lock, int CV) {
 #endif // NETWORK
 }
 
-void Broadcast_Syscall(int id, int lockID)
+void Broadcast_Syscall(int lock, int CV)
 // Broadcasts on the kernel condition with the given ID, using the kernel
 //  lock with the given ID. If the current process does not have access
 //  to the condition or the lock or either does not exist, will print
@@ -1079,12 +1078,11 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 	delete[] buf;
 
 	// DEBUG('z', "Thread %s: Successfully created server Lock, ID %d\n", currentThread->getName(), id);
-
 #endif // NETWORK
 	return 0;
 }
 
-void CreateCondition_Syscall(unsigned int vaddr, int len)
+int CreateCondition_Syscall(unsigned int vaddr, int len)
 // Create a kernel condition with the name in the user buffer pointed
 //  to by vaddr, with length len. If the condition is created successfully,
 //  it is placed in the kernel condition table and its index is returned.
@@ -1121,8 +1119,8 @@ void CreateCondition_Syscall(unsigned int vaddr, int len)
 	delete[] buf;
 
 	// DEBUG('z', "Thread %s: Successfully created Condition, ID %d\n", currentThread->getName(), id);
-
 #endif // NETWORK
+	return 0;
 }
 
 void DestroyLock_Syscall(int id)
@@ -1170,10 +1168,9 @@ void DestroyLock_Syscall(int id)
 	 kLock->lock = NULL;
 	 kLock->owner = NULL;
 	 }*/
-
 #endif // NETWORK
 }
-void DestroyCondition_Syscall(int id)
+void DestroyCondition_Syscall(int CV)
 // Destroys the kernel condition with the given ID. If there are threads
 //  waiting on the condition, sets a flag instead. If the current process
 //  does not have access to the condition or the condition does not
@@ -1417,7 +1414,7 @@ void ExceptionHandler(ExceptionType which) {
 			break;
 		case SC_SetMailBoxNum:
 			DEBUG('a', "SetMailBoxNum syscall.\n");
-			SetMyBoxNumber_Syscall();
+			SetMailBoxNum_Syscall();
 			break;
 			/*
 			 case SC_CreateMonitorVariable:

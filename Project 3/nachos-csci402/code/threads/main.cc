@@ -220,8 +220,13 @@ int main(int argc, char **argv) {
 			argCount = 2;
 		}
 
+		if (!strcmp(*argv, "-lock")) {
+			ASSERT(argc > 1);
+			Delay(2);
+		}
+
 		if (!strcmp(*argv,"-server")) {
-			//	RunServer();
+			RunServer();
 		}
 
 #endif // NETWORK
