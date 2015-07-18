@@ -4,7 +4,9 @@
 #define SERVERSYNCH_H
 
 #include "list.h"
+#include "table.h"
 #include "network.h"
+#include "system.h"
 #include "post.h"
 //#include <string>
 //#include <sstream>
@@ -14,6 +16,10 @@
 enum lockState {
 	SL_FREE, SL_BUSY
 };
+
+bool tableItemExist(char* tName, Table* table, int tableType);
+int getTableIndex(char* tName, Table* table, int tableType);
+void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox);
 
 class serverLock {
 public:

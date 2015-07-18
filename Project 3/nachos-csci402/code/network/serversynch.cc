@@ -1,4 +1,70 @@
 #include "serversynch.h"
+#include <sstream>
+#include <string>
+
+using namespace std;
+
+//tableType: 1 for lockTable, 2 for CVTable
+bool tableItemExist(char* tName, Table* table, int tableType) {
+	bool toReturn = false;
+
+	for (int i = 0; i < table->Size(); i++) {
+		if (tableType == 1) {
+			serverLock* tableItem = (serverLock*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = true;
+				break;
+			}
+		} else {
+			serverCV* tableItem = (serverCV*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = true;
+				break;
+			}
+		}
+
+	}
+
+	return toReturn;
+}
+
+//get table item's index by name, 1 for lockTable, 2 for CVTable
+int getTableIndex(char* tName, Table* table, int tableType) {
+	int toReturn = -1;
+
+	for (int i = 0; i < table->Size(); i++) {
+		if (tableType == 1) {
+			serverLock* tableItem = (serverLock*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = i;
+				break;
+			}
+		} else {
+			serverCV* tableItem = (serverCV*) table->Get(i);
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = i;
+				break;
+			}
+		}
+
+	}
+
+	return toReturn;
+}
+
+void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
+	PacketHeader outPktHdr;
+	MailHeader outMailHdr;
+
+	outPktHdr.to = outMachine;
+	outMailHdr.to = outMailbox;
+	outMailHdr.from = fromMailbox;
+	outMailHdr.length = strlen(sMsg) + 1;
+
+	postOffice->Send(outPktHdr, outMailHdr, sMsg);
+
+	delete[] sMsg;
+}
 
 //TODO: owen the lock when I create it?
 serverLock::serverLock(char* dName, int owner, int mailbox) {
@@ -32,7 +98,7 @@ void serverLock::Acquire(int outAddr, int outBox) {
 		ss << outAddr << " " << outBox;
 		toAppend = ss.str();
 		msg = (char*) toAppend.c_str();
-		waitQue->Append((void*) toAppend);
+		waitQue->Append((void*) msg);
 	}
 }
 
@@ -57,8 +123,8 @@ void serverLock::Release(int outAddr, int outBox) {
 		ss >> waitAddr >> waitBox;
 
 		//change owner
-		ownerId = waitAddr;
-		mailboxId = waitBox;
+		ownerID = waitAddr;
+		mailboxID = waitBox;
 
 		waitMsg = "0";
 		ServerReply(waitMsg, waitAddr, waitBox, 0);
@@ -67,7 +133,7 @@ void serverLock::Release(int outAddr, int outBox) {
 	} else {
 		state = SL_FREE;
 		ownerID = -1;
-		mailboxId = -1;
+		mailboxID = -1;
 	}
 
 	//send reply to sender
@@ -92,10 +158,10 @@ void serverCV::Signal(serverLock *sLock, int outAddr, int outBox) {
 
 	//check if lock is valid
 	if (sLock == NULL) {
-		printf("serverCV %d Signal:pass in lock is not valid\n", name);
+		printf("serverCV %s Signal:pass in lock is not valid\n", name);
 		success = false;
 	} else if (waitLock != sLock) {
-		printf("serverCV %d Signal: pass in lock not the same as waiting on\n",
+		printf("serverCV %s Signal: pass in lock not the same as waiting on\n",
 				name);
 		success = false;
 	}
@@ -117,7 +183,7 @@ void serverCV::Signal(serverLock *sLock, int outAddr, int outBox) {
 	}
 
 	//send reply to sender
-	serverReply(msg, outAddr, outBox, 0);
+	ServerReply(msg, outAddr, outBox, 0);
 }
 
 void serverCV::Wait(serverLock *sLock, int outAddr, int outBox) {
@@ -127,21 +193,21 @@ void serverCV::Wait(serverLock *sLock, int outAddr, int outBox) {
 
 	//check if lock is vaild
 	if (sLock == NULL) {
-		printf("serverCV %d Wait:pass in lock is not valid\n", name);
+		printf("serverCV %s Wait:pass in lock is not valid\n", name);
 		success = false;
 	}
 
 	if (waitLock == NULL) {
 		waitLock = sLock;
 	} else if (waitLock != sLock) {
-		printf("serverCV %d Wait: pass in lock not the same as waiting on\n",
+		printf("serverCV %s Wait: pass in lock not the same as waiting on\n",
 				name);
 		success = false;
 	}
 
 	if (!success) {
 		msg = "1";
-		serverReply(msg, outAddr, outBox, 0);
+		ServerReply(msg, outAddr, outBox, 0);
 	} else {
 		waitLock->Release(outAddr, outBox);
 		//append msg to wait queue
@@ -150,7 +216,7 @@ void serverCV::Wait(serverLock *sLock, int outAddr, int outBox) {
 		ss << outAddr << " " << outBox;
 		toAppend = ss.str();
 		msg = (char*) toAppend.c_str();
-		waitQue->Append((void*) toAppend);
+		waitQue->Append((void*) msg);
 	}
 }
 
@@ -162,12 +228,12 @@ void serverCV::Boardcast(serverLock *sLock,int outAddr,int outBox) {
 
 	//check if lock is vaild
 	if (sLock == NULL) {
-		printf("serverCV %d Boardcast:pass in lock is not valid\n", name);
+		printf("serverCV %s Boardcast:pass in lock is not valid\n", name);
 		success = false;
 	}
 
 	if (waitLock != sLock) {
-		printf("serverCV %d Boardcast: pass in lock not the same as waiting on\n",
+		printf("serverCV %s Boardcast: pass in lock not the same as waiting on\n",
 				name);
 		success = false;
 	}
@@ -191,5 +257,5 @@ void serverCV::Boardcast(serverLock *sLock,int outAddr,int outBox) {
 	}
 
 	//send reply to sender
-	serverReply(msg, outAddr, outBox, 0);
+	ServerReply(msg, outAddr, outBox, 0);
 }
