@@ -93,7 +93,6 @@ Initialize(int argc, char **argv)
     int maxNumProc = 64;
     //Create the lock and CV tables
     lockTable = new Table(maxNumLocks);
-    serverLockTable = new Table(maxNumLocks);
     CVTable = new Table(maxNumCV);
     processTable =  new Table(maxNumProc);
     memMap = new BitMap(NumPhysPages);
@@ -134,6 +133,8 @@ Initialize(int argc, char **argv)
     bool format = FALSE;	// format disk
 #endif
 #ifdef NETWORK
+    serverLockTable = new Table(maxNumLocks);
+    serverCVTable = new Table(maxNumCV);
     double rely = 1;		// network reliability
     int netname = 0;		// UNIX socket name
 

@@ -30,8 +30,10 @@
 #include "../network/post.h"
 #include <stdio.h>
 #include <iostream>
+#ifdef NETWORK
 #include <sstream>
 #include "serversynch.h"
+#endif
 
 using namespace std;
 
@@ -56,9 +58,11 @@ struct KernelCondition {
 	bool isToBeDeleted;
 };
 
+#ifdef NETWORK
 Table* serverLockTable;
 Table* serverCVTable;
 int createLockRequests,createCVRequests;
+#endif
 
 
 /*struct ServerLock {
@@ -90,6 +94,7 @@ void DestroyLock_Syscall(int id);
 void DestroyCondition_Syscall(int id);
 int GetMyBoxNumber_Syscall();
 
+#ifdef NETWORK
 //this integrated the receive message part
 void serverResponseValidation() {
 
@@ -132,6 +137,7 @@ void clientRequest(char* msg, int fromBox, int toBox) {
 
 	postOffice->Send(outPktHdr, outMailHdr, msg);
 }
+#endif
 
 int copyin(unsigned int vaddr, int len, char *buf) {
 	// Copy len bytes from the current thread's virtual address vaddr.

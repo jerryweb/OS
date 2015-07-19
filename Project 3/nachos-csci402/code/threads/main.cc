@@ -52,9 +52,11 @@
 
 #include "utility.h"
 #include "system.h"
+#ifdef NETWORK
 #include "serversynch.h"
 #include <sstream>
 #include <string>
+#endif
 
 using namespace std;
 // External functions used by this file
@@ -78,11 +80,13 @@ extern void MainMenu();
 int currentBoxCountPointer;
 Lock* boxCountIndexLock;
 
+#ifdef NETWORK
 void RunServer();
 void createLock(char* lName, Table* sTable, int outAddr,int outBox);
 void destroyLock(char* lName, Table* sTable, int outAddr,int outBox);
 void createCV(char* cName,Table* cTable,int outAddr,int outBox);
 void destroyCV(char* cName,Table* cTable,int outAddr,int outBox);
+#endif
 //bool tableItemExist(char* tName, Table* table, int tableType);
 //int getTableIndex(char* tName, Table* table, int tableType);
 //void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox);
@@ -106,8 +110,11 @@ int main(int argc, char **argv) {
 	// This keeps track of the number of threads that call the create lock function.
 	// Whenever a lock is created, it will increment by 1. Whenevr the destroy lock 
 	// function is called, it will decrement by 1. 
+
+#ifdef NETWORK
 	createLockRequests = 0;
 	createCVRequests = 0;
+#endif
 
 	DEBUG('t', "Entering main");
 	(void) Initialize(argc, argv);
@@ -266,6 +273,7 @@ void RunServer() {
 
 	while (true)
 	{
+		printf("in server while loop\n");
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
@@ -276,6 +284,7 @@ void RunServer() {
 		int index = -1;
 		string arg1,arg2;
 
+		printf("waiting on in mail\n");
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
 		ss << buffer;
 		ss >> request;
@@ -288,6 +297,7 @@ void RunServer() {
 		char* cArg2;
 		int index2;
 
+		printf("before switch request\n");
 		switch (request)
 		{
 			case 1:   //create lock
