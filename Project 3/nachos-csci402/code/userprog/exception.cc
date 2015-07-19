@@ -116,12 +116,45 @@ void serverResponseValidation() {
 	ss << buffer;
 	ss >> responseValidation;
 
-	if (responseValidation == 0) {
+	if (responseValidation == 1) {
 		printf("Response from server was invalid. Terminating Nachos.\n");
 		interrupt->Halt();
 	}
 
+	printf("Response from server was valid. Proceed.\n");
+
 	//fflush(stdout);
+}
+
+int createLockResponse() {
+
+	PacketHeader inPktHdr;
+	MailHeader inMailHdr;
+	char buffer[MaxMailSize];
+
+	// Wait for the first message from the other machine
+	postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+
+	printf("Got \"%s\" from %d, box %d\n", buffer, inPktHdr.from,
+			inMailHdr.from);
+
+	int responseValidation = 0;
+	int location;
+
+	stringstream ss;
+	ss.str("");
+	ss.clear();
+	ss << buffer;
+	ss >> responseValidation;
+	ss >> location;
+
+	if (responseValidation == 1) {
+		printf("Response from server was invalid. Terminating Nachos.\n");
+		interrupt->Halt();
+	}
+
+	printf("Response from server was valid. Proceed.\n");
+	return location;
 }
 
 //routine to send request to server
@@ -1068,7 +1101,8 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 	printf("sending request %s\n",request);
 
 	clientRequest(request,0,0);
-	serverResponseValidation();
+	int lockLocation;
+	lockLocation = createLockResponse();
 	/*/ // Checks to see if the lock already exists
 	 // for(int i = 0; i < lockTable->getCount(); i++){
 	 //     ServerLock* sLockTemp =  new ServerLock;
@@ -1087,6 +1121,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 	 // createLockRequests++;*/
 
 	delete[] buf;
+	return lockLocation;
 
 	// DEBUG('z', "Thread %s: Successfully created server Lock, ID %d\n", currentThread->getName(), id);
 #endif // NETWORK

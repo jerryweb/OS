@@ -377,11 +377,20 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 		serverLock* toPut = new serverLock(lName, -1, -1);
 		location = sTable->Put(toPut);
 		createLockRequests++;
-		msg = "0";
+		string toSend;
+		stringstream sss;
+		sss <<"0 "<<location;
+		toSend = sss.str();
+		msg = (char*) toSend.c_str();
 	}	//This returns the location if the lock already exists of that lock 
 	else {
 		location = getTableIndex(lName,sTable,1);
-		msg = "1";
+		string toSend;
+		stringstream sss;
+		sss <<"0 "<<location;
+		toSend = sss.str();
+		msg = (char*) toSend.c_str();
+		//msg = "1";
 	}
 
 	//TODO:return location?

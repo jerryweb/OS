@@ -333,10 +333,10 @@ V. Testing:  (For each test case, you must show)
 VI. Discussion:
 	+ Experiment expectation
         every matmult returns 7220, every sort returns 1023.
-        [NETWORK]
+        [NETWORK]ServerLock and ServerCV works as required
 	+ Experiment result
         works as intended.
-        [NETWORK]
+        [NETWORK]ServerLock works conditionly, ServerCV hasn't been tested
 	+ Explanation
 
 VIII. Miscellaneous:

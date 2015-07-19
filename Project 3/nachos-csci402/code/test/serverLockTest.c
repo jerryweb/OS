@@ -28,10 +28,14 @@ int main(){
     /*DestroyLock(1);*/
     /* Create with good name string; ID should always be 0 */
     goodLockID = CreateLock("Test1", 5);
+    Printf("Lock Test 1 created\n",20,0,0);
     /* Test syscalls with good lock ID */
     Acquire(goodLockID);
+    Printf("Lock Test 1 acquired\n",21,0,0);
     Release(goodLockID);
+    Printf("Lock Test 1 released\n",21,0,0);
     DestroyLock(goodLockID);
+    Printf("Lock Test 1 destroyed\n",22,0,0);
     /* Test all syscalls with the now-deleted good lock */
     Acquire(goodLockID);
     Release(goodLockID);
@@ -41,6 +45,6 @@ int main(){
     /* Create a new lock, since the old one was deleted; ID should always be 1 */
     goodLockID = CreateLock("Test2", 5);
     /* Fork a new helper thread, then let it run immediately */
-    Fork(LockThreadTest, "thread1", 7);
-    Yield();
+   /* Fork(LockThreadTest, "thread1", 7);*/
+   /* Yield();*/
 }
