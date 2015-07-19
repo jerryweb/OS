@@ -170,14 +170,12 @@ void Broadcast(int lock, int CV);
 /* Create a new kernel lock for the process with the given name.
  * Also pass in the length of the name.
  */
-//int CreateLock(char* name, int len);
-int CreateLock(unsigned int vaddr, int len);
+int CreateLock(char* name, int len);
 
 /* Create a new kernel condition for the process with the given name.
  * Also pass in the length of the name.
  */
-//int CreateCondition(char* name, int len);
-int CreateCondition(unsigned int vaddr, int len);
+int CreateCondition(char* name, int len);
 
 /* Delete the kernel lock with the given id.
  * This process mus own the lock.
