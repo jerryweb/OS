@@ -5,6 +5,7 @@
 using namespace std;
 
 //tableType: 1 for lockTable, 2 for CVTable
+//routine to determine if the item with input name exist
 bool tableItemExist(char* tName, Table* table, int tableType) {
 	bool toReturn = false;
 
@@ -22,7 +23,6 @@ bool tableItemExist(char* tName, Table* table, int tableType) {
 				break;
 			}
 		}
-
 	}
 
 	return toReturn;
@@ -52,6 +52,7 @@ int getTableIndex(char* tName, Table* table, int tableType) {
 	return toReturn;
 }
 
+//routine to send reply to sender from server utlizing postoffice
 void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
 	PacketHeader outPktHdr;
 	MailHeader outMailHdr;
@@ -63,10 +64,9 @@ void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
 
 	postOffice->Send(outPktHdr, outMailHdr, sMsg);
 
-	delete[] sMsg;
+	delete[] sMsg;  //since all the msg used in this function is from "new"
 }
 
-//TODO: owen the lock when I create it?
 serverLock::serverLock(char* dName, int owner, int mailbox) {
 	name = dName;
 	ownerID = owner;
@@ -89,10 +89,11 @@ void serverLock::Acquire(int outAddr, int outBox) {
 		ownerID = outAddr;
 		mailboxID = outBox;
 
+		//encode success msg and send reply
 		msg = "0";
 		ServerReply(msg, outAddr, outBox, 0);
 	} else {
-		//append msg to wait queue
+		//produce and append msg to wait queue
 		string toAppend;
 		stringstream ss;
 		ss << outAddr << " " << outBox;

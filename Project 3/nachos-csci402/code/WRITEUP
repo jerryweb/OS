@@ -80,14 +80,38 @@ III. Design:
 				release(lock)
 				
 			Signal
-			remove 1 reply msg
-			acquire lock for this userprogram
-				acquire will send the reply
-			reply to sender of signal
+				remove 1 reply msg
+				acquire lock for this userprogram
+					acquire will send the reply
+				reply to sender of signal
 			
 			Broadcast
-			Send all the reply msg in waitQ
-			reply to sender of Broadcast			
+				Send all the reply msg in waitQ
+				reply to sender of Broadcast	
+			
+		Geneal Encoding between Server and Client:
+			Client requesting message:	
+			request type:
+			1  -> create lock
+			2  -> destory lock
+			3  -> lock acquire
+			4  -> lock release
+			5  -> create CV
+			6  -> destory CV
+			7  -> CV signal
+			8  -> CV wait
+			
+			requestType(int) space requestObjectName space requestObjectName
+			Example:
+			"1 liaisonLock"
+			"7 liaisonLineCV LiaisonLock"
+		
+			Server response mesage:
+			0 -> successful
+			1 -> error
+		
+			Example:
+			"0" "1" 		
         
 IV. Implementation:
 	+ Files Modified
@@ -120,7 +144,7 @@ IV. Implementation:
         code/test/
             matmultExec.c
             matmultFork.c
-            serverLockTest.c
+            serverLockTest.c  //RPC test for network
         code/userprog/
             translateexec.h
             translateipt.h

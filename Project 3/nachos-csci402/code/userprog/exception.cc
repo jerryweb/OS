@@ -95,7 +95,7 @@ void DestroyCondition_Syscall(int id);
 int GetMyBoxNumber_Syscall();
 
 #ifdef NETWORK
-//this integrated the receive message part
+//this integrated the receive message part of messaging
 void serverResponseValidation() {
 
 	PacketHeader inPktHdr;

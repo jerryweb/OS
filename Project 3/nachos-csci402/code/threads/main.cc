@@ -363,7 +363,8 @@ void RunServer() {
 		}
 	}
 }
-//returns the location of the lock
+
+//perform creatLock syscall on server,update created lock count
 void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 	int location = 0;
@@ -379,10 +380,12 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 		msg = "1";
 	}
 
-	//TODO:return location;
+	//TODO:return location?
 	ServerReply(msg,outAddr,outBox,0);
 }
 
+//perform destoryLock syscall on server
+//the actual destroy actions won't be perfromed until it's the last lock
 void destroyLock(char* lName, Table* sTable, int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 
@@ -409,6 +412,7 @@ void destroyLock(char* lName, Table* sTable, int outAddr,int outBox) {
 
 }
 
+//perform createCV syscall on server
 void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 	int location = -1;
@@ -427,6 +431,7 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	ServerReply(msg,outAddr,outBox,0);
 }
 
+//perform destroyCV syscall on server
 void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 
