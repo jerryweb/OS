@@ -13,6 +13,10 @@ bool tableItemExist(char* tName, Table* table, int tableType) {
 		if (tableType == 1) {
 			serverLock* tableItem = NULL;
 			tableItem = (serverLock*) table->Get(i);
+
+			if (tableItem == NULL) {
+				break;
+			}
 			if (strcmp(tableItem->name, tName) == 0) {
 				toReturn = true;
 				break;
@@ -20,6 +24,10 @@ bool tableItemExist(char* tName, Table* table, int tableType) {
 		} else {
 			serverCV* tableItem = NULL;
 			tableItem = (serverCV*) table->Get(i);
+
+			if (tableItem == NULL) {
+				break;
+			}
 			if (strcmp(tableItem->name, tName) == 0) {
 				toReturn = true;
 				break;
@@ -223,7 +231,7 @@ void serverCV::Wait(serverLock *sLock, int outAddr, int outBox) {
 	}
 }
 
-void serverCV::Boardcast(serverLock *sLock,int outAddr,int outBox) {
+void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox) {
 	char* msg = new char[MaxMailSize];
 	msg = "0";      //default to success
 
@@ -236,7 +244,8 @@ void serverCV::Boardcast(serverLock *sLock,int outAddr,int outBox) {
 	}
 
 	if (waitLock != sLock) {
-		printf("serverCV %s Boardcast: pass in lock not the same as waiting on\n",
+		printf(
+				"serverCV %s Boardcast: pass in lock not the same as waiting on\n",
 				name);
 		success = false;
 	}
