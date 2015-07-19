@@ -43,7 +43,51 @@ III. Design:
                 If the swap file is full, well, tough luck. (Prints an error message, but nothing else for now. This should never happen, because the swap file is much larger than anything we can reliably run anyways.)
             Return the previous physical page number of the evicted page.
     Network:
-        [NETWORK]
+        Nachos has lower level network simulation built up, for this project we use the built in postoffice to achieve message exchange.
+        To implement RPC, all the synchronization related syscalls need to be performed on serverside, the client side only do basic validation and message exchange.
+        Because server never sleeps, lock and condition need to be changed to serverlock/serverCV version which the effect of currentThread->Sleep() will be achieved by server with waiting queue of message.
+        The actual sleep will be performed in client side by lower level network which will call the kernel locks.
+        
+        The pesudo code for server lock/CV are following:
+        
+        ServerLock:
+        	Data:
+			state - avail/busy
+			owner - machineID
+			mailbox number
+			waitQ - reply msg
+			*no process owner
+	
+			Method:
+			Acquire
+				Lock avail - change state to BUSy, send reply
+				Lock not Avail - queue reply msg
+	
+			Release
+				no one waiting - change state to AVAIL, send reply
+				waiting - get reply msg from queue, sned also
+				change owner
+					
+		ServerCV:
+			Data:
+			waitQ
+			lockused - index to lock in server locktable
+			*no process owner
+			
+			Method:
+			Wait
+				queue reply msg
+				release(lock)
+				
+			Signal
+			remove 1 reply msg
+			acquire lock for this userprogram
+				acquire will send the reply
+			reply to sender of signal
+			
+			Broadcast
+			Send all the reply msg in waitQ
+			reply to sender of Broadcast			
         
 IV. Implementation:
 	+ Files Modified
@@ -68,7 +112,6 @@ IV. Implementation:
             exception.cc
             progtest.cc
             syscall.h
-        [NETWORK]
                 
 	+ Files added
         code/network/
@@ -77,15 +120,39 @@ IV. Implementation:
         code/test/
             matmultExec.c
             matmultFork.c
+            serverLockTest.c
         code/userprog/
             translateexec.h
             translateipt.h
-        [NETWORK]
         
 	+ Data Structures added, and the file they were added to.
         (Test files not included)
         code/network/serversynch.h
-            [NETWORK]
+  	    	enum lockState {SL_FREE, SL_BUSY}
+            class serverLock {
+				serverLock(char* dName, int owner, int mailbox);
+				~serverLock();
+				void Acquire(int outAddr, int outBox);
+				void Release(int outAddr, int outBox);
+
+				char* name;
+				lockState state;
+				int ownerID;       //owner machine id
+				int mailboxID;      //owner mailbox number
+				List* waitQue;
+			}
+			
+			class serverCV {
+				serverCV(char* dName);
+				~serverCV();
+				void Signal(serverLock *sLock, int outAddr, int outBox);
+				void Wait(serverLock *sLock, int outAddr, int outBox);
+				void Boardcast(serverLock *sLock, int outAddr, int outBox);
+
+				char* name;
+				serverLock* waitLock;
+				List* waitQue;
+			}
         code/threads/main.cc
             [NETWORK]
         code/threads/system.cc
@@ -96,7 +163,10 @@ IV. Implementation:
             extern Lock* iptLock;
             extern Lock* forkLock;
             extern Lock* execLock;
-            [NETWORK]
+            extern Table* serverLockTable;
+            extern Table* serverCVTable;
+            extern int createLockRequests;    //used for destroy server lock
+            extern int createCVRequests;       //used for destroy server CV
         code/userprog/addrspace.cc
             TranslationEntryIPT* ipt;
             Lock* iptLock;
@@ -109,27 +179,9 @@ IV. Implementation:
             Lock* IPTLock;
         code/userprog/exception.cc
             enum LockState {FREE, BUSY};
-            Table* serverLockTable;
-            struct ServerLock
-            {
-                Lock* lock;
-                LockState serverLockState;
-                int machineID;
-                int mailboxNum;
-                List* LockWaitQueue;
-                bool isToBeDeleted; 
-            };
-            Table* serverCVTable;
-            struct ServerCV
-            {
-                List* CVWaitQueue;
-                int lockUsed;
-                bool isToBeDeleted;  
-            };
             BitMap* memMap;
             Lock* forkLock;
             Lock* execLock;
-            [NETWORK]
         code/userprog/translateexec.h
             enum PageLoc {NEITHER, EXEC, SWAP};
             class TranslationEntryExec : public TranslationEntry {
@@ -155,26 +207,30 @@ IV. Implementation:
                 bool use;
                 bool dirty;
             };
-        [NETWORK]
     
 	+ Data Structures modified, and the file they were added to.
         (Test files not included)
         code/userprog/addrspace.h
             TranslationEntryExec *pageTable;
-        [NETWORK]
     
 	+ Functions added and in which file.
         (Test files not included)
         code/network/serversynch.h:
-            [NETWORK]
+        	bool tableItemExist(char* tName, Table* table, int tableType);   //helper
+			int getTableIndex(char* tName, Table* table, int tableType);     //helper
+			void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox);   //routine for server reply message exchange
         code/threads/main.cc:
-            [NETWORK]
+        	void RunServer();   //server main function
+        	//all these four handle specific syscalls from clients
+			void createLock(char* lName, Table* sTable, int outAddr,int outBox);
+			void destroyLock(char* lName, Table* sTable, int outAddr,int outBox);
+			void createCV(char* cName,Table* cTable,int outAddr,int outBox);
+			void destroyCV(char* cName,Table* cTable,int outAddr,int outBox);
         code/threads/system.h:
             extern void SetEvictionPolicy(bool fifo);
         code/threads/thread.h:
             int getStackLocation();
             void setStackLocation(int stackPage);
-            [NETWORK]
             int getMailBoxNum()
             void SetMailBoxNum()
         code/userprog/addrspace.h:
@@ -186,9 +242,10 @@ IV. Implementation:
         code/userprog/addrspace.cc:
             void SetEvictionPolicy(bool fifo)
         code/userprog/exception.cc:
-            [NETWORK]
             int GetMyBoxNumber_Syscall()
             void SetMailBoxNum()
+            void serverResponseValidation() //this function also includes waiting for message
+            void clientRequest(char* msg, int fromBox, int toBox)  //routine for sending request to server
         code/userprog/syscall.h:
             int CreateMonitorVariable(char* name, int length, int MVArraySize)
             void DestroyMonitorVariable(int MVArrayIndex)
@@ -196,7 +253,6 @@ IV. Implementation:
             void SetMonitorVariable(/*a,*/int indexPosition, int size)
             int GetMyBoxNumber()
             void SetMailBoxNum()
-        [NETWORK]
     
 	+ Functions modified and in which file.
         (Test files not included)
@@ -221,7 +277,6 @@ IV. Implementation:
             void ExceptionHandler(ExceptionType which)
         code/userprog/progtest.cc
             void StartProcess(char *filename)
-        [NETWORK]
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
