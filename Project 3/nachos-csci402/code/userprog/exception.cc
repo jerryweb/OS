@@ -131,6 +131,7 @@ void clientRequest(char* msg, int fromBox, int toBox) {
 	MailHeader outMailHdr;
 
 	outPktHdr.to = 0;
+	outPktHdr.from = 1;
 	outMailHdr.to = toBox;
 	outMailHdr.from = fromBox;
 	outMailHdr.length = strlen(msg) + 1;
@@ -1062,8 +1063,9 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 	string toSend;
 	stringstream ss;
 	ss << "1 " << buf;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
+	printf("sending request %s\n",request);
 
 	clientRequest(request,0,0);
 	serverResponseValidation();

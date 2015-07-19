@@ -11,13 +11,15 @@ bool tableItemExist(char* tName, Table* table, int tableType) {
 
 	for (int i = 0; i < table->Size(); i++) {
 		if (tableType == 1) {
-			serverLock* tableItem = (serverLock*) table->Get(i);
+			serverLock* tableItem = NULL;
+			tableItem = (serverLock*) table->Get(i);
 			if (strcmp(tableItem->name, tName) == 0) {
 				toReturn = true;
 				break;
 			}
 		} else {
-			serverCV* tableItem = (serverCV*) table->Get(i);
+			serverCV* tableItem = NULL;
+			tableItem = (serverCV*) table->Get(i);
 			if (strcmp(tableItem->name, tName) == 0) {
 				toReturn = true;
 				break;

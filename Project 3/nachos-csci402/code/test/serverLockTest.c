@@ -17,15 +17,15 @@ void LockThreadTest()
 int main(){
 
 	/* PART 1: TEST ID FAILURE CONDITIONS */
-    Printf("\nTESTING LOCK ID FAILURE CONDITIONS\n\n", 37, 0, 0);
+    /*Printf("\nTESTING LOCK ID FAILURE CONDITIONS\n\n", 37, 0, 0);*/
     /* Create with bad name string; ID should always be -1 */
-    badLockID = CreateLock((char*)0, -1);
+    /*badLockID = CreateLock((char*)0, -1);*/
     /* Test syscalls with bad lock IDs */
-    Acquire(badLockID);
-    Release(badLockID);
-    Acquire(1);
-    Release(1);
-    DestroyLock(1);
+    /*Acquire(badLockID);*/
+    /*Release(badLockID);*/
+    /*Acquire(1); */
+    /*Release(1);*/
+    /*DestroyLock(1);*/
     /* Create with good name string; ID should always be 0 */
     goodLockID = CreateLock("Test1", 5);
     /* Test syscalls with good lock ID */

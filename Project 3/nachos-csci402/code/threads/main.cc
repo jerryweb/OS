@@ -273,7 +273,7 @@ void RunServer() {
 
 	while (true)
 	{
-		printf("in server while loop\n");
+		//printf("in server while loop\n");
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
@@ -284,10 +284,11 @@ void RunServer() {
 		int index = -1;
 		string arg1,arg2;
 
-		printf("waiting on in mail\n");
+		//printf("waiting on in mail\n");
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
 		ss << buffer;
 		ss >> request;
+		printf("request type is %d\n",request);
 		ss >> arg1;
 		char* cArg1 = (char*) arg1.c_str();
 
@@ -360,6 +361,9 @@ void RunServer() {
 
 			default:
 			printf("invalid request type\n");
+			char* eMsg = new char[MaxMailSize];
+			eMsg = "1";
+			ServerReply(eMsg,1,0,0);
 		}
 	}
 }

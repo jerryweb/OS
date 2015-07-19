@@ -341,3 +341,6 @@ VI. Discussion:
 
 VIII. Miscellaneous:
 - Whatever else you want the grader know about your development.  You can create your own subsections headings here.
+
+	when testing network, please comment out line 71 and line 76-79 in machine.cc
+	otherwise the TLB will not be instatniated, the reason is not clear for now
