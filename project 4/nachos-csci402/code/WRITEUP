@@ -1,0 +1,346 @@
+Title:  Writeup for Project 3, Summer 2015
+ Date:  07/15/15
+ Group:	Name		Email				Student ID#
+		Jerry Webb	jerryweb@usc.edu	1288504108
+		Andrew Lee	lee533@usc.edu		7540910244
+		Hao Cui		hcui@usc.edu		1454367516
+
+I. Requirements:
+    Part 1/2: Implement virtual memory in nachos, using TLB and swap file, and random and FIFO page replacement policies. Show that multiple large programs in different threads and/or processes run to completion correctly using the virtual memory.
+    Part 3: Implement remote procedure calls for locks, condition variables, and monitor variables.
+
+II. Assumptions:
+    We are assuming that each client is single threaded within the network. This means that there will only be one mailbox for each thread in the Post Office (mailbox 0). There is also only one server for this test with machine ID 0. 
+    For virtual memory, we are assuming that the program will never run out of swap file spaces for each evicted page. 
+
+III. Design:
+    Virtual memory:
+        Each process maintains its own page table, however there is now a translation lookaside buffer (TLB, default size 4) and inverted page table (IPT, default size 32) shared between all processes. The TLB contains the most recently used pages for the current process, and is cleared on a switch to another process, propagating the dirty bits of any valid entries. The IPT is indexed by physical page number, and contains the translations from physical to virtual pages.
+        The TLB, IPT, and each process's page table all start out empty, with all entries invalid. Pages will be read in (and entries thus set to valid) on demand, rather than pre-loaded at the beginning of a run as before.
+        A process page faults when it cannot find the page it is looking for in either its own page table or the TLB. The algorithm for a page fault:
+            Acquire the IPT lock, blocking access to all other threads until this one finishes its page fault (simplistic solution to strangely difficult problem, as discussed in class).
+            Check in the IPT for an entry with the given virtual page.
+            If it is not found, handle the miss (below), returning the new physical page number. Otherwise, get the already existing physical page number.
+            Disable interrupts so that no other process can access the TLB (which would invalidate it completely).
+            Propagate the dirty bit of the TLB entry being removed (if it's valid), add the new physical page to the TLB, and increment the TLB counter.
+            Restore interrupts, allowing other processes to access the TLB.
+            Set the IPT use bit to false (it will be set to true in one of the sub-functions).
+            Release the IPT lock, allowing other page faults to run.
+        The algorithm for handling an IPT miss:
+            Look for a free page in the IPT. If there is none, handle this case (below), returning a freed physical page.
+            Acquire the page table's lock, preventing it from changing while it is being used.
+            If the virtual page is a code page, read the code from the executable file. If the virtual page has been relocated to swap, read the contents from the swap file. (Otherwise, there is no need to do anything, but there is a case for a print statement.)
+            Initialize the page entries in the page table and IPT, release the page table lock, add the physical page to the FIFO eviction queue (it will do this regardless of eviction policy; it shouldn't affect anything in RAND), and return the new physical page number. 
+        The algorithm for handling a full IPT:
+            Evict a page. Depending on the user's choice, the page will be selected either at random or based on a FIFO queue; it defaults to FIFO if no choice is made or the choice is invalid. Set the ITP use bit of the page to true.
+            Disable interrupts so that no other process can access the TLB (which would invalidate it completely).
+            Disable interrupts so that no other process can access the TLB (which would invalidate it completely).
+            If the page being evicted belongs to the current process, check if it is in the TLB and if it is valid. If it is, propagate the dirty bit to the IPT, then invalidate the entry.
+            Restore interrupts, allowing other processes to access the TLB.
+            If the page being evicted is dirty:
+                If the page is already in the swap file, acquire the swap lock, write its contents to the previous swap location, and release the swap lock.
+                Otherwise, acquire the swap lock, find a new spot in the swap file, write its contents to the new swap location, and release the swap lock.
+                If the swap file is full, well, tough luck. (Prints an error message, but nothing else for now. This should never happen, because the swap file is much larger than anything we can reliably run anyways.)
+            Return the previous physical page number of the evicted page.
+    Network:
+        Nachos has lower level network simulation built up, for this project we use the built in postoffice to achieve message exchange.
+        To implement RPC, all the synchronization related syscalls need to be performed on serverside, the client side only do basic validation and message exchange.
+        Because server never sleeps, lock and condition need to be changed to serverlock/serverCV version which the effect of currentThread->Sleep() will be achieved by server with waiting queue of message.
+        The actual sleep will be performed in client side by lower level network which will call the kernel locks.
+        
+        The pesudo code for server lock/CV are following:
+        
+        ServerLock:
+        	Data:
+			state - avail/busy
+			owner - machineID
+			mailbox number
+			waitQ - reply msg
+			*no process owner
+	
+			Method:
+			Acquire
+				Lock avail - change state to BUSy, send reply
+				Lock not Avail - queue reply msg
+	
+			Release
+				no one waiting - change state to AVAIL, send reply
+				waiting - get reply msg from queue, sned also
+				change owner
+					
+		ServerCV:
+			Data:
+			waitQ
+			lockused - index to lock in server locktable
+			*no process owner
+			
+			Method:
+			Wait
+				queue reply msg
+				release(lock)
+				
+			Signal
+				remove 1 reply msg
+				acquire lock for this userprogram
+					acquire will send the reply
+				reply to sender of signal
+			
+			Broadcast
+				Send all the reply msg in waitQ
+				reply to sender of Broadcast	
+			
+		Geneal Encoding between Server and Client:
+			Client requesting message:	
+			request type:
+			1  -> create lock
+			2  -> destory lock
+			3  -> lock acquire
+			4  -> lock release
+			5  -> create CV
+			6  -> destory CV
+			7  -> CV signal
+			8  -> CV wait
+			
+			requestType(int) space requestObjectName space requestObjectName
+			Example:
+			"1 liaisonLock"
+			"7 liaisonLineCV LiaisonLock"
+		
+			Server response mesage:
+			0 -> successful
+			1 -> error
+		
+			Example:
+			"0" "1" 		
+        
+IV. Implementation:
+	+ Files Modified
+        code/
+            Makefile.common
+        code/machine/
+            machine.h (reset NumPhysPages to 32)
+        code/test/
+            Makefile
+            forkTest.c
+            start.s
+        code/threads/
+            main.cc
+            swapfile
+            system.cc
+            system.h
+            thread.cc
+            thread.h
+        code/userprog/
+            addrspace.cc
+            addrspace.h
+            exception.cc
+            progtest.cc
+            syscall.h
+                
+	+ Files added
+        code/network/
+            serversynch.cc
+            serversynch.h
+        code/test/
+            matmultExec.c
+            matmultFork.c
+            serverLockTest.c  //RPC test for network
+        code/userprog/
+            translateexec.h
+            translateipt.h
+        
+	+ Data Structures added, and the file they were added to.
+        (Test files not included)
+        code/network/serversynch.h
+  	    	enum lockState {SL_FREE, SL_BUSY}
+            class serverLock {
+				serverLock(char* dName, int owner, int mailbox);
+				~serverLock();
+				void Acquire(int outAddr, int outBox);
+				void Release(int outAddr, int outBox);
+
+				char* name;
+				lockState state;
+				int ownerID;       //owner machine id
+				int mailboxID;      //owner mailbox number
+				List* waitQue;
+			}
+			
+			class serverCV {
+				serverCV(char* dName);
+				~serverCV();
+				void Signal(serverLock *sLock, int outAddr, int outBox);
+				void Wait(serverLock *sLock, int outAddr, int outBox);
+				void Boardcast(serverLock *sLock, int outAddr, int outBox);
+
+				char* name;
+				serverLock* waitLock;
+				List* waitQue;
+			}
+        code/threads/main.cc
+            [NETWORK]
+        code/threads/system.cc
+            extern BitMap* swapFileMap;
+            extern OpenFile* swapFile;
+            extern Lock* swapLock;
+            extern TranslationEntryIPT* ipt;
+            extern Lock* iptLock;
+            extern Lock* forkLock;
+            extern Lock* execLock;
+            extern Table* serverLockTable;
+            extern Table* serverCVTable;
+            extern int createLockRequests;    //used for destroy server lock
+            extern int createCVRequests;       //used for destroy server CV
+        code/userprog/addrspace.cc
+            TranslationEntryIPT* ipt;
+            Lock* iptLock;
+            BitMap* swapFileMap;
+            OpenFile* swapFile;
+            Lock* swapLock;
+        code/userprog/addrspace.h
+            Lock* pageTableLock;
+            OpenFile* exec;List *FIFOEvictionQueue;
+            Lock* IPTLock;
+        code/userprog/exception.cc
+            enum LockState {FREE, BUSY};
+            BitMap* memMap;
+            Lock* forkLock;
+            Lock* execLock;
+        code/userprog/translateexec.h
+            enum PageLoc {NEITHER, EXEC, SWAP};
+            class TranslationEntryExec : public TranslationEntry {
+              public:
+                PageLoc location;
+                int byteOffset;
+                int virtualPage;
+                int physicalPage;
+                bool valid;
+                bool readOnly;
+                bool use;
+                bool dirty;
+            };
+        code/userprog/translateipt.h
+            class TranslationEntryIPT : public TranslationEntry {
+              public:
+                AddrSpace* space;
+                int processID;
+                int virtualPage;
+                int physicalPage;
+                bool valid;
+                bool readOnly
+                bool use;
+                bool dirty;
+            };
+    
+	+ Data Structures modified, and the file they were added to.
+        (Test files not included)
+        code/userprog/addrspace.h
+            TranslationEntryExec *pageTable;
+    
+	+ Functions added and in which file.
+        (Test files not included)
+        code/network/serversynch.h:
+        	bool tableItemExist(char* tName, Table* table, int tableType);   //helper
+			int getTableIndex(char* tName, Table* table, int tableType);     //helper
+			void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox);   //routine for server reply message exchange
+        code/threads/main.cc:
+        	void RunServer();   //server main function
+        	//all these four handle specific syscalls from clients
+			void createLock(char* lName, Table* sTable, int outAddr,int outBox);
+			void destroyLock(char* lName, Table* sTable, int outAddr,int outBox);
+			void createCV(char* cName,Table* cTable,int outAddr,int outBox);
+			void destroyCV(char* cName,Table* cTable,int outAddr,int outBox);
+        code/threads/system.h:
+            extern void SetEvictionPolicy(bool fifo);
+        code/threads/thread.h:
+            int getStackLocation();
+            void setStackLocation(int stackPage);
+            int getMailBoxNum()
+            void SetMailBoxNum()
+        code/userprog/addrspace.h:
+            int HandleIPTMiss(int vpn);
+            void PageFault();
+            int getPPN(int vpn);
+            int getFreePage();
+            int HandleMemoryFull();
+        code/userprog/addrspace.cc:
+            void SetEvictionPolicy(bool fifo)
+        code/userprog/exception.cc:
+            int GetMyBoxNumber_Syscall()
+            void SetMailBoxNum()
+            void serverResponseValidation() //this function also includes waiting for message
+            void clientRequest(char* msg, int fromBox, int toBox)  //routine for sending request to server
+        code/userprog/syscall.h:
+            int CreateMonitorVariable(char* name, int length, int MVArraySize)
+            void DestroyMonitorVariable(int MVArrayIndex)
+            int GetMonitorVariable(int indexPosition)
+            void SetMonitorVariable(/*a,*/int indexPosition, int size)
+            int GetMyBoxNumber()
+            void SetMailBoxNum()
+    
+	+ Functions modified and in which file.
+        (Test files not included)
+        code/threads/system.cc:
+            void Initialize(int argc, char **argv)
+        code/userprog/addrspace.cc:
+            AddrSpace(OpenFile *executable)
+            ~AddrSpace()
+            void setNewPageTable()
+            void RestoreState()
+            TranslationEntryExec* getPageTable()
+        code/userprog/exception.cc:
+            void Acquire_Syscall(int lock)
+            void Release_Syscall(int lock)
+            void Wait_Syscall(int lock, int CV)
+            void Signal_Syscall(int lock, int CV)
+            void Broadcast_Syscall(int id, int lockID)
+            int CreateLock_Syscall(unsigned int vaddr, int len)
+            void CreateCondition_Syscall(unsigned int vaddr, int len)
+            void DestroyLock_Syscall(int id)
+            void DestroyCondition_Syscall(int id)
+            void ExceptionHandler(ExceptionType which)
+        code/userprog/progtest.cc
+            void StartProcess(char *filename)
+
+V. Testing:  (For each test case, you must show)
+	+ How to test
+        nachos -x ../test/<testfile>
+            test files:
+                matmult
+                    basic matmult test
+                matmultFork
+                    forks two matmult threads
+                matmultExec
+                    execs two processes which run 'matmult'
+                sort
+                    basic sort test
+            non-standard optional arguments:
+                -d <flag>
+                    'x' for vm debug statements
+                    'z' for syscall debug statements
+                    'p' for page initialization debug statements
+                -P <FIFO/RAND>
+                    chooses the given eviction policy. defaults to FIFO if not present or not valid.
+        [NETWORK]
+	+ Test Output
+        register 4 prints out at the end of every thread:
+            <thread name>   The contents of register 4 is <number>
+                0 for main thread
+                7220 for every matmult thread
+                1023 for every sort thread
+        [NETWORK]
+
+VI. Discussion:
+	+ Experiment expectation
+        every matmult returns 7220, every sort returns 1023.
+        [NETWORK]ServerLock and ServerCV works as required
+	+ Experiment result
+        works as intended.
+        [NETWORK]ServerLock works conditionly, ServerCV hasn't been tested
+	+ Explanation
+
+VIII. Miscellaneous:
+- Whatever else you want the grader know about your development.  You can create your own subsections headings here.
+
+	when testing network, please comment out line 71 and line 76-79 in machine.cc
+	otherwise the TLB will not be instatniated, the reason is not clear for now
