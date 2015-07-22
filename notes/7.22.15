@@ -1,0 +1,32 @@
+among the 5 servers in the total order, one will have the very last message (time stamp); that will never get processed
+2 choices to fix this:
+	//simplest
+	1. everytime you recieve a forwarded message, send a timestamp message to every server 
+		cost of this is doubling the messages
+		on each forwarded message recieved, send a timestamp message to all servers
+
+	2. heart beat method:
+		every x seconds, send a  timestamp message
+		use the timerclass - runs off of ticks not seconds
+		//look main or system.cc for how nachos handles -rs commands by creating a tick-based timer
+		- pass a function - arithmetic
+		//time_t
+		//problem is that messages are being sent even when there are no messages actaully being sent to or by the server 
+
+	For both of these, we do not queue the timestamp messages because it is not a client request, however, they both run through the forwarding algorithm
+
+
+For Final:
+	Proj 3 & 4
+		- networking  //know how and to send and recieve messages 
+			study stringstream //will make the exam very easy
+		- virtual memory - 4 steps //will ask for the code for one of the steps
+			know what to do for each step //will need to give the data structures used (example is the IPT) 
+			//do not need to include anything not related to the step
+//this will be 50/50 
+	Virtual Memory - Demand Page Virtual memory 	//pretty good sized question
+	Protection Systems  
+	Fault Tolerance 								//short questions
+	Distributed Mutual Exclusion - 3 approaches 	//should be around 10 points
+	Deadlock - 4 conditions
+	Election Algorithms

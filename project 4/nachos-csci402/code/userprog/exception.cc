@@ -65,23 +65,6 @@ int createLockRequests,createCVRequests;
 #endif
 
 
-/*struct ServerLock {
-	Lock* lock;
-	LockState serverLockState;  //state of server lock
-	int machineID;
-	int mailboxNum;
-	List* LockWaitQueue;            //for reply messages
-	bool isToBeDeleted;
-};
-
-struct ServerCV {
-	List* CVWaitQueue;
-	int lockUsed;               //index to the lock in the serverLock table
-	//cannot use lock pointers
-	bool isToBeDeleted;
-};*/
-
-
 //table for processes
 Table* processTable;
 
