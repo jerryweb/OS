@@ -306,68 +306,68 @@ void RunServer() {
 		switch (request)
 		{
 			case 1:   //create lock
-			ss >> arg1;
-			char* cArg1 = (char*) arg1.c_str();
-			createLock(cArg1, serverLockTable, inPktHdr.from,0);
-			break;
+				ss >> arg1;
+				char* cArg1 = (char*) arg1.c_str();
+				createLock(cArg1, serverLockTable, inPktHdr.from,0);
+				break;
 
 			case 2://destory lock
-			destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
-			break;
+				destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
+				break;
 
 			case 3://acquire lock
-			ss >> index;
-			//cArg2 = (char*)arg2.c_str();
+				ss >> index;
+				//cArg2 = (char*)arg2.c_str();
 
-			//index = getTableIndex(cArg2,serverLockTable,1);
-			sLock = (serverLock*)serverLockTable->Get(index);
-			sLock->Acquire(inPktHdr.from,0);
-			break;
+				//index = getTableIndex(cArg2,serverLockTable,1);
+				sLock = (serverLock*)serverLockTable->Get(index);
+				sLock->Acquire(inPktHdr.from,0);
+				break;
 
 			case 4://release lock
-			ss >> index;
-			//index = getTableIndex(cArg1,serverLockTable,1);
-			sLock = (serverLock*)serverLockTable->Get(index);
-			sLock->Release(inPktHdr.from,0);
-			break;
+				ss >> index;
+				//index = getTableIndex(cArg1,serverLockTable,1);
+				sLock = (serverLock*)serverLockTable->Get(index);
+				sLock->Release(inPktHdr.from,0);
+				break;
 
 			case 5://create CV
-			createCV(cArg1,serverCVTable,inPktHdr.from,0);
-			break;
+				createCV(cArg1,serverCVTable,inPktHdr.from,0);
+				break;
 
 			case 6://destroy CV
-			destroyCV(cArg1,serverCVTable,inPktHdr.from,0);
-			break;
+				destroyCV(cArg1,serverCVTable,inPktHdr.from,0);
+				break;
 
 			case 7://CV Signal
-			ss>>arg2;
-			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverCVTable,2);
-			index2 = getTableIndex(cArg2,serverLockTable,1);
-			sCV = (serverCV*)serverCVTable->Get(index);
-			sLock = (serverLock*)serverLockTable->Get(index2);
-			sCV->Signal(sLock,inPktHdr.from,0);
-			break;
+				ss>>arg2;
+				cArg2 = (char*) arg2.c_str();
+				index = getTableIndex(cArg1,serverCVTable,2);
+				index2 = getTableIndex(cArg2,serverLockTable,1);
+				sCV = (serverCV*)serverCVTable->Get(index);
+				sLock = (serverLock*)serverLockTable->Get(index2);
+				sCV->Signal(sLock,inPktHdr.from,0);
+				break;
 
 			case 8://CV Wait
-			ss>>arg2;
-			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverCVTable,2);
-			index2 = getTableIndex(cArg2,serverLockTable,1);
-			sCV = (serverCV*)serverCVTable->Get(index);
-			sLock = (serverLock*)serverLockTable->Get(index2);
-			sCV->Wait(sLock,inPktHdr.from,0);
-			break;
+				ss>>arg2;
+				cArg2 = (char*) arg2.c_str();
+				index = getTableIndex(cArg1,serverCVTable,2);
+				index2 = getTableIndex(cArg2,serverLockTable,1);
+				sCV = (serverCV*)serverCVTable->Get(index);
+				sLock = (serverLock*)serverLockTable->Get(index2);
+				sCV->Wait(sLock,inPktHdr.from,0);
+				break;
 
 			case 9://CV Broadcast
-			ss>>arg2;
-			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverCVTable,2);
-			index2 = getTableIndex(cArg2,serverLockTable,1);
-			sCV = (serverCV*)serverCVTable->Get(index);
-			sLock = (serverLock*)serverLockTable->Get(index2);
-			sCV->Boardcast(sLock,inPktHdr.from,0);
-			break;
+				ss>>arg2;
+				cArg2 = (char*) arg2.c_str();
+				index = getTableIndex(cArg1,serverCVTable,2);
+				index2 = getTableIndex(cArg2,serverLockTable,1);
+				sCV = (serverCV*)serverCVTable->Get(index);
+				sLock = (serverLock*)serverLockTable->Get(index2);
+				sCV->Boardcast(sLock,inPktHdr.from,0);
+				break;
 
 			case 10: //MV Create, NOT COMPLETE
 				ss>> arg2;
@@ -378,11 +378,20 @@ void RunServer() {
 			case 11:
 				destroyMV(cArg1, MVTable, inPktHdr.from,0);
 				break;
-
+			/* THIS NEEDS TO BE FIXED
 			case 12:
 				ss >> arg2;
-				index = getTableIndex(cArg1, MVTable, 0)
+				index = getTableIndex(cArg1, MVTable, 0);
+				break;
 
+			case 13: //set the monitor variable
+				ss >> arg2;
+				index = getTableIndex(cArg1, MVTable, 0);
+				MonitorVariable* MV = (MonitorVariable*) MVTable->Get(i);
+				MV->value = 
+				MV->index = 
+				break;
+			*/
 			default:
 			printf("invalid request type\n");
 			char* eMsg = new char[MaxMailSize];
