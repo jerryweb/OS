@@ -16,8 +16,5 @@ int main()
     	Exec("../test/airportCheckin", 22);
 	}
     Printf("Initializing Manager\n", 27, 0, 0);
-    for (i = 0; i < 5; i++)
-    {
-    	Exec("../test/airportManager", 22);
-	}
+    Exec("../test/airportManager", 22);
 }

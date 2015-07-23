@@ -61,13 +61,14 @@ struct KernelCondition {
 #ifdef NETWORK
 Table* serverLockTable;
 Table* serverCVTable;
-int createLockRequests,createCVRequests;
+int createLockRequests, createCVRequests;
 #endif
 
 
 //table for processes
 Table* processTable;
 Table* MVTable;
+int createMVRequests;
 
 BitMap* memMap;
 

@@ -1,5 +1,5 @@
 /* Networked airport simulation.
- *  Initializes a single passenger.
+ *  Initializes a single check-in staff.
  */
 
 #include "syscall.h"
@@ -96,13 +96,6 @@ int cargoManagerCVList; /* mv size 5, int (CV) */
 int cargoLockList; /* mv size 5, int (lock) */
 int cargoStateList; /* mv size 5, CargoState */
 int requestingCargoDataList; /* mv size 5, bool */
-
-/* Manager variables */
-
-int manager; /* mv size 1, Manager* */
-int clearAirline; /* mv size 3, bool */
-int counter; /* mv size 1, int */
-int clearAirlineCount; /* mv size 1, int */
 
 void CreateVariables()
 {
@@ -257,16 +250,9 @@ void CreateVariables()
         SetMonitorVariable(cargoCVList, i, CreateCondition("cargoCV", 7));
         SetMonitorVariable(cargoLockList, i, CreateLock("cargoLock", 9));
     }
-
-    /* Manager variables */
-    
-    manager = CreateMonitorVariable("manager", 7, 1);
-    clearAirline = CreateMonitorVariable("clearAirline", 12, 3);
-    counter = CreateMonitorVariable("counter", 7, 1);
-    clearAirlineCount = CreateMonitorVariable("clearAirlineCount", 17, 1);
 }
 
-/* Removes the first element from an array of 21 passengers and moves all other elements down */
+/* Removes the first element from an array of 21 ints and moves all other elements down */
 void RemoveFromQueue(int array)
 {
     for (i = 1; i < 21; i++)
@@ -276,12 +262,12 @@ void RemoveFromQueue(int array)
     SetMonitorVariable(array, 20, 0);
 }
 
-/* Finds the number of elements in an array of 21 passengers */
+/* Finds the number of elements in an array */
 int findArrayElementCount(int array)
 {
 	int elementCount = 0;
     
-	while((Passenger*)GetMonitorVariable(array, elementCount) != NULL)
+	while(GetMonitorVariable(array, elementCount) != 0)
         elementCount++;
     
 	return elementCount;

@@ -12,6 +12,106 @@ Process of running exec for an entity:
   run CreateVariables
   Create an empty struct, add pointer to mv, fill in data based on index
 
+============================================================================
+  
+/* Networked airport simulation.
+ *  Initializes X
+ */
+
+#include "syscall.h"
+#include "airportStructs.h"
+
+#define NULL (void*)0
+
+/* Personal variables */
+
+
+
+/* General variables */
+
+int numAirlines; /* const (never changes) */
+int airlineList; /* mv size 3, Airline* */
+int airlineLockList; /* mv size 3, int (lock) */
+int conveyor; /* mv size 53, Luggage* */
+int conveyorLock; /* lock */
+int conveyorSize; /* mv size 1, int */
+int aircraftList; /* mv size 3, Luggage** */
+int aircraft1; /* mv size 21, Luggage* */
+int aircraft2; /* mv size 21, Luggage* */
+int aircraft3; /* mv size 21, Luggage* */
+int aircraftCountList; /* mv size 3, int */
+int boardingQueueList; /* mv size 3, int (MV) */
+int boardingQueue1; /* mv size 21, Passenger* */
+int boardingQueue2; /* mv size 21, Passenger* */
+int boardingQueue3; /* mv size 21, Passenger* */
+int boardingCVList; /* mv size 3, int (CV) */
+int boardingLockList; /* mv size 3, int (lock) */
+
+/* Passenger variables */
+
+int passengerList; /* mv size 21, Passenger* */
+int passengerListLock; /* lock */
+
+/* Liaison variables */
+
+int liaisonList; /* mv size 5, Liaison* */
+int liaisonListLock; /* lock */
+int liaisonLineList; /* mv size 5, int (MV) */
+int liaisonLine1; /* mv size 21, Passenger* */
+int liaisonLine2; /* mv size 21, Passenger* */
+int liaisonLine3; /* mv size 21, Passenger* */
+int liaisonLine4; /* mv size 21, Passenger* */
+int liaisonLine5; /* mv size 21, Passenger* */
+int liaisonManagerLock; /* lock */
+int liaisonManagerCV; /* CV */
+int liaisonLineLock; /* lock */
+int liaisonLineCVList; /* mv size 5, int (CV) */
+int liaisonLockList; /* mv size 5, int (lock) */
+int liaisonCVList; /* mv size 5, int (CV) */
+int liaisonStateList; /* mv size 5, LiaisonState */
+int requestingLiaisonDataList; /* mv size 5, bool */
+
+/* Check-in variables */
+
+int checkinList; /* mv size 12, Checkin* */
+int checkinListLock; /* lock */
+int checkinLineList; /* mv size 12, int (MV) */
+int checkinLine1; /* mv size 21, Passenger* */
+int checkinLine2; /* mv size 21, Passenger* */
+int checkinLine3; /* mv size 21, Passenger* */
+int checkinLine4; /* mv size 21, Passenger* */
+int checkinLine5; /* mv size 21, Passenger* */
+int checkinLine6; /* mv size 21, Passenger* */
+int checkinLine7; /* mv size 21, Passenger* */
+int checkinLine8; /* mv size 21, Passenger* */
+int checkinLine9; /* mv size 21, Passenger* */
+int checkinLine10; /* mv size 21, Passenger* */
+int checkinLine11; /* mv size 21, Passenger* */
+int checkinLine12; /* mv size 21, Passenger* */
+int checkinLineLockList, /* mv size 3, int (lock) */
+int checkinLineCVList; /* mv size 12, int (CV) */
+int checkinCVList; /* mv size 12, int (CV) */
+int checkinLockList; /* mv size 12, int (lock) */
+int checkinBreakCVList; /* mv size 12, int (CV) */
+int checkinManagerLock; /* lock */
+int checkinManagerCV; /* CV */
+int checkinStateList; /* mv size 12, CheckinState */
+int finalCheckinList; /* mv size 12, bool */
+int requestingCheckinDataList; /* mv size 12, bool */
+
+/* Cargo variables */
+
+int cargoListLock; /* lock */
+int cargoList; /* mv size 5, Cargo* */
+int cargoCVList; /* mv size 5, int (CV) */
+int cargoDataCVList; /* mv size 5, int (CV) */
+int cargoDataLockList; /* mv size 5, int (lock) */
+int cargoManagerLock; /* lock */
+int cargoManagerCVList; /* mv size 5, int (CV) */
+int cargoLockList; /* mv size 5, int (lock) */
+int cargoStateList; /* mv size 5, CargoState */
+int requestingCargoDataList; /* mv size 5, bool */
+
 void CreateVariables()
 {
     int i;
@@ -165,11 +265,4 @@ void CreateVariables()
         SetMonitorVariable(cargoCVList, i, CreateCondition("cargoCV", 7));
         SetMonitorVariable(cargoLockList, i, CreateLock("cargoLock", 9));
     }
-
-    /* Manager variables */
-    
-    manager = CreateMonitorVariable("manager", 7, 1);
-    clearAirline = CreateMonitorVariable("clearAirline", 12, 3);
-    counter = CreateMonitorVariable("counter", 7, 1);
-    clearAirlineCount = CreateMonitorVariable("clearAirlineCount", 17, 1);
 }

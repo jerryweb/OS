@@ -32,7 +32,7 @@ INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
 
-all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest airportSimSim matmultFork matmultExec serverLockTest
+all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest airportSimSim matmultFork matmultExec serverLockTest airportPass airportLiaison airportCheckin airportCargo airportManager airportPassInit airportLCargoInit airportMCheckinInit
 	
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -147,7 +147,55 @@ serverLockTest: serverLockTest.o start.o
 	$(LD) $(LDFLAGS) start.o serverLockTest.o -o serverLockTest.coff
 	../bin/coff2noff serverLockTest.coff serverLockTest
 
+airportPass.o: airportPass.c
+	$(CC) $(CFLAGS) -c airportPass.c
+airportPass: airportPass.o start.o
+	$(LD) $(LDFLAGS) start.o airportPass.o -o airportPass.coff
+	../bin/coff2noff airportPass.coff airportPass
+
+airportLiaison.o: airportLiaison.c
+	$(CC) $(CFLAGS) -c airportLiaison.c
+airportLiaison: airportLiaison.o start.o
+	$(LD) $(LDFLAGS) start.o airportLiaison.o -o airportLiaison.coff
+	../bin/coff2noff airportLiaison.coff airportLiaison
+
+airportCheckin.o: airportCheckin.c
+	$(CC) $(CFLAGS) -c airportCheckin.c
+airportCheckin: airportCheckin.o start.o
+	$(LD) $(LDFLAGS) start.o airportCheckin.o -o airportCheckin.coff
+	../bin/coff2noff airportCheckin.coff airportCheckin
+
+airportCargo.o: airportCargo.c
+	$(CC) $(CFLAGS) -c airportCargo.c
+airportCargo: airportCargo.o start.o
+	$(LD) $(LDFLAGS) start.o airportCargo.o -o airportCargo.coff
+	../bin/coff2noff airportCargo.coff airportCargo
+
+airportManager.o: airportManager.c
+	$(CC) $(CFLAGS) -c airportManager.c
+airportManager: airportManager.o start.o
+	$(LD) $(LDFLAGS) start.o airportManager.o -o airportManager.coff
+	../bin/coff2noff airportManager.coff airportManager
+
+airportPassInit.o: airportPassInit.c
+	$(CC) $(CFLAGS) -c airportPassInit.c
+airportPassInit: airportPassInit.o start.o
+	$(LD) $(LDFLAGS) start.o airportPassInit.o -o airportPassInit.coff
+	../bin/coff2noff airportPassInit.coff airportPassInit
+
+airportLCargoInit.o: airportLCargoInit.c
+	$(CC) $(CFLAGS) -c airportLCargoInit.c
+airportLCargoInit: airportLCargoInit.o start.o
+	$(LD) $(LDFLAGS) start.o airportLCargoInit.o -o airportLCargoInit.coff
+	../bin/coff2noff airportLCargoInit.coff airportLCargoInit
+
+airportMCheckinInit.o: airportMCheckinInit.c
+	$(CC) $(CFLAGS) -c airportMCheckinInit.c
+airportMCheckinInit: airportMCheckinInit.o start.o
+	$(LD) $(LDFLAGS) start.o airportMCheckinInit.o -o airportMCheckinInit.coff
+	../bin/coff2noff airportMCheckinInit.coff airportMCheckinInit
+
 clean:
 	rm -f *.o *.coff
-	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest matmultFork matmultExec serverLockTest
+	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest matmultFork matmultExec serverLockTest airportPass airportLiaison airportCheckin airportCargo airportManager airportPassInit airportLCargoInit airportMCheckinInit
 	rm *~
