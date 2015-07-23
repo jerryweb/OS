@@ -126,6 +126,7 @@ void serverLock::Acquire(int outAddr, int outBox) {
 }
 
 void serverLock::Release(int outAddr, int outBox) {
+	printf("*********in serverLock::Release\n");
 
 	char* msg = new char[MaxMailSize];
 	msg = "0"; //default to success

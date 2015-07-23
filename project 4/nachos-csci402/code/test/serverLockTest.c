@@ -30,11 +30,13 @@ int main(){
 
     goodLockID = CreateLock("Test1", 5);
     Printf("Lock Test 1 created\n",20,0,0);
+    cvID = CreateCondition("TestCV1",7);
+    Printf("CV Test 1 created\n",18,0,0);
+    DestroyCondition(cvID);
+    Printf("CV Test 1 destroyed\n",20,0,0);
     /* Test syscalls with good lock ID */
     Acquire(goodLockID);
     Printf("Lock Test 1 acquired\n",21,0,0);
-    cvID = CreateCondition("TestCV1",7);
-    Printf("CV Test 1 created\n",18,0,0);
     Release(goodLockID);
     Printf("Lock Test 1 released\n",21,0,0);
     DestroyLock(goodLockID);

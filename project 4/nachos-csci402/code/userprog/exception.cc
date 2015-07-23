@@ -762,6 +762,7 @@ void Release_Syscall(int lock)
 		// lockTable->lockRelease();
 		return;
 	}*/
+	printf("*********in exception.cc Release\n");
 
 	char* request;
 	string toSend;

@@ -293,6 +293,7 @@ void RunServer() {
 		string arg1,arg2,arg3;
 
 		//printf("waiting on in mail\n");
+		printf("\n************in mainc.cc before receive\n");
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
 		ss << buffer;
 		ss >> request;
@@ -329,6 +330,7 @@ void RunServer() {
 				//index = getTableIndex(cArg2,serverLockTable,1);
 				sLock = (serverLock*)serverLockTable->Get(index);
 				sLock->Acquire(inPktHdr.from,0);
+				//printf("***********in main.cc fater acquire lock\n");
 				break;
 
 			case 4://release lock
