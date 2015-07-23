@@ -1359,7 +1359,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "1 " << buf;
+	ss << "10 " << buf;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 	printf("sending request %s\n",request);
@@ -1375,7 +1375,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 
 //THIS NEEDS TO BE CONFIRMED 
 void DestroyMonitorVariable_Syscall(int id){
-	/*int monVar = (int*) MVTable->Get(id);
+	/*MonitorVariable monVar = (MonitorVariable*) MVTable->Get(id);
 
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
 	{   // Check if MV has been created (or not yet destroyed).
@@ -1386,7 +1386,7 @@ void DestroyMonitorVariable_Syscall(int id){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "2 " << monVar->name;
+	ss << "11 " << monVar->name;
 	toSend == ss.str();
 	request = (char*)toSend.c_str();
 
@@ -1395,7 +1395,8 @@ void DestroyMonitorVariable_Syscall(int id){
 }
 
 int GetMonitorVariable_Syscall(int indexPosition, int pos){
-	int monVar = (int) MVTable->Get(id);
+	MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
+	int location;
 	/*
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
 	{   // Check if MV has been created (or not yet destroyed).
@@ -1406,20 +1407,20 @@ int GetMonitorVariable_Syscall(int indexPosition, int pos){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "2 " << monVar->name;
+	ss << "12 " << monVar->name;
 	toSend == ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
 	serverResponseValidation();
 	*/
-	return monVar;	//this should be whatever value the server sends back
+	return location;	//this should be whatever value the server sends back
 }
 
 
 //TODO: modify the string to send the correct information
 void SetMonitorVariable_Syscall(int indexPosition, int pos, int value){
-	/*int monVar = (int*) MVTable->Get(id);
+	/*MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
 
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
 	{   // Check if MV has been created (or not yet destroyed).
@@ -1430,7 +1431,7 @@ void SetMonitorVariable_Syscall(int indexPosition, int pos, int value){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "2 " << monVar->name;
+	ss << "13 " << monVar->name;
 	toSend == ss.str();
 	request = (char*)toSend.c_str();
 

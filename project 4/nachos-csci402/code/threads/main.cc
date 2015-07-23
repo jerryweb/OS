@@ -114,6 +114,7 @@ int main(int argc, char **argv) {
 #ifdef NETWORK
 	createLockRequests = 0;
 	createCVRequests = 0;
+	createMVRequests = 0;
 #endif
 
 	DEBUG('t', "Entering main");
@@ -265,6 +266,11 @@ int main(int argc, char **argv) {
 // 6  -> destory CV
 // 7  -> CV signal
 // 8  -> CV wait
+// 9  -> CV Broadcast
+// 10 -> create Monitor Variable
+// 11 -> destory Monitor Variable
+// 12 -> get MV
+// 13 -> set MV
 //need to add Broadcast
 void RunServer() {
 	//TODO:build lock and CV table here
@@ -362,6 +368,16 @@ void RunServer() {
 			sCV->Boardcast(sLock,inPktHdr.from,0);
 			break;
 
+			case 10: //MV Create, NOT COMPLETE
+				ss>> arg2;
+				cArg2 = (char*) arg2.c_str();
+				createMV(cArg1, MVTable, inPktHdr.from,0);
+				break;
+
+			case 11:
+				//destroyMV(cArg1, MVTable, inPktHdr.from,0);
+				break;
+
 			default:
 			printf("invalid request type\n");
 			char* eMsg = new char[MaxMailSize];
@@ -433,7 +449,7 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 	int location = -1;
 
-	if (!tableItemExist(cName,cTable,2)) {
+	if (!tableItemExist(cName,cTable,0)) {
 		serverCV* toPut = new serverCV(cName);
 		location = cTable->Put(toPut);
 		createCVRequests++;   //TODO: where to put this?
@@ -452,7 +468,7 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 
 	if(createCVRequests == 0) {
-		if (!tableItemExist(cName, cTable, 2)) {
+		if (!tableItemExist(cName, cTable, 0)) {
 			msg = "1";
 		}
 		else { //Delete all the CVs from the. This should only run at the end of the program
@@ -471,6 +487,58 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	}
 
 	ServerReply(msg,outAddr,outBox,0);
+}
+
+void createMV(char* lname, Table* mTable, int outAddr, int outBox){
+	char* msg = new char[MaxMailSize];
+	int location = 0;
+
+	if(!tableItemExist(lname, mTable, 2)){
+		MonitorVariable* toPut = new MonitorVariable(lname, -1, -1);
+		location =  mTable->Put(toPut);
+		createMVRequests++;
+		string toSend;
+		stringstream sss;
+		sss <<"10 "<<location;
+		toSend = sss.str();
+		msg = (char*) toSend.c_str();
+	}
+	else{
+		location = getTableIndex(lName,mTable,0);
+		string toSend;
+		stringstream sss;
+		sss <<"10 "<< location;
+		toSend = sss.str();
+		msg = (char*) toSend.c_str();
+	}
+
+	//ServerReply(msg,outAddr,outBox,0);
+}
+
+void destroyMV(char* mName, Table* mTable, int outAddr,int outBox) {
+	char* msg = new char[MaxMailSize];
+
+	if(createMVRequests == 0) {
+		if (!tableItemExist(mName, mTable, 0)) {
+			msg = "1";
+		}
+		else {//Delete all the MVs from the. This should only run at the end of the program
+			int toRemove = mTable->Size();
+			toRemove--;
+			while(mTable->getCount() != 0) {
+				MonitorVariable* tItem = (MonitorVariable*) (mTable->Remove(toRemove));
+				toRemove--;
+				delete tItem;
+				msg = "0";
+			}
+		}
+	}
+	else {
+		createMVRequests--;
+	}
+
+	ServerReply(msg,outAddr,outBox,0);
+
 }
 
 #endif // NETWORK

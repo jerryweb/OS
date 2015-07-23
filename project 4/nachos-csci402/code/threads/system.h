@@ -78,6 +78,7 @@ extern SynchDisk   *synchDisk;
 extern PostOffice* postOffice;
 extern int createLockRequests;
 extern int createCVRequests;
+extern int createMVRequests;
 extern Table* serverLockTable;
 extern Table* serverCVTable;
 #endif

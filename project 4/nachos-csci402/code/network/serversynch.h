@@ -51,4 +51,14 @@ public:
 	List* waitQue;
 };
 
+class MonitorVariable {
+public:
+	MonitorVariable(char* mName, int index, int MYvalue);
+	~MonitorVariable();
+
+	char* name;
+	int indexPosition;
+	int value;
+};
+
 #endif
