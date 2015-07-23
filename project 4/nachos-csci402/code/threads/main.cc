@@ -314,12 +314,13 @@ void RunServer() {
 			//cArg2 = (char*)arg2.c_str();
 
 			//index = getTableIndex(cArg2,serverLockTable,1);
-			sLock = (serverLock*)serverLockTable->Get();
+			sLock = (serverLock*)serverLockTable->Get(index);
 			sLock->Acquire(inPktHdr.from,0);
 			break;
 
 			case 4://release lock
-			index = getTableIndex(cArg1,serverLockTable,1);
+			ss >> index;
+			//index = getTableIndex(cArg1,serverLockTable,1);
 			sLock = (serverLock*)serverLockTable->Get(index);
 			sLock->Release(inPktHdr.from,0);
 			break;

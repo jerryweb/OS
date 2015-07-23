@@ -748,7 +748,7 @@ void Release_Syscall(int lock)
 #ifdef NETWORK    
 	// lockTable->lockAcquire();
 
-	serverLock* sLock = (serverLock*) serverLockTable->Get(lock);
+	/*serverLock* sLock = (serverLock*) serverLockTable->Get(lock);
 	//if (sLock == NULL|| sLock->ownerID != netAddr)
 	if (sLock == NULL)
 	{   // Check if lock has been created (or not yet destroyed).
@@ -761,12 +761,12 @@ void Release_Syscall(int lock)
 		DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
 		// lockTable->lockRelease();
 		return;
-	}
+	}*/
 
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "4 " << sLock->name;
+	ss << "4 " << lock;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
@@ -1165,18 +1165,18 @@ void DestroyLock_Syscall(int id)
 		{
 #ifdef NETWORK
 
-	serverLock* sLock = (serverLock*) lockTable->Get(id);
+	/*serverLock* sLock = (serverLock*) lockTable->Get(id);
 
 	if (sLock == NULL || sLock->name == NULL) //|| sLock->machineID != currentThread->get)
 	{   // Check if lock has been created (or not yet destroyed).
 		DEBUG('z', "Thread %s: Trying to destroy invalid KernelLock, ID %d\n", currentThread->getName(), id);
 		return;
-	}
+	}*/
 
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "2 " << sLock->name;
+	ss << "2 " << id;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 

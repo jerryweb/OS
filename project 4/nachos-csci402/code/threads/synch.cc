@@ -156,7 +156,7 @@ void Lock::Release() {
     
     if(!isHeldByCurrentThread()){           //prints an error message if currentThread 
                                             //not the lockOwner
-        printf("Lock::Release: This thread is not the current lockOwner of lock %s\n", name);
+        printf("Lock::Release: This thread is not the current lockOwner of lock %s by thread %s, lock owner is %s\n", name,currentThread->getName(),getOwner()->getName());
         (void) interrupt->SetLevel(oldLevel);
         return;
     }
@@ -220,7 +220,7 @@ void Condition::Wait(Lock* conditionLock)
     conditionLock->Release();
     waitList->Append(currentThread);
     currentThread->Sleep();
-    // conditionLock->Acquire();
+    conditionLock->Acquire();
     interrupt->SetLevel(old);
 }
 
