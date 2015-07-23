@@ -40,10 +40,10 @@ typedef struct {
 	int location;	/*used to return the shortest line location*/
 	int minValue;
 	int myLine;		/*the current line the passenger is in*/
-	bool CISline;	/*if true, passenger will find shortest checkin staff line*/
 	Ticket* ticket;
 	Luggage* bags[3];
 	BoardingPass* boardingPass;
+	bool CISline;	/*if true, passenger will find shortest checkin staff line*/
 } Passenger;
 
 typedef struct {
@@ -79,6 +79,6 @@ typedef struct {
     int liaisonPassengerCount[3];	
     int checkinPassengerCount[3];
     int securityInspectorPassengerCount[3];
-    bool clearAirline;
     int clearAirlineCount;
+    bool clearAirline;
 } Manager;

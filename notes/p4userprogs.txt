@@ -1,0 +1,193 @@
+CreateVariables()
+  init all the mvs, locks, cvs, etc.
+
+Exec airportPassInit
+  CreateVariables
+  Exec 21 passengers
+Exec airportLCargoInit
+  CreateVariables
+  Exec 5 liaisons and 5 cargo
+Exec airportMCheckinInit
+  CreateVariables
+  Exec manager and 9 checkins
+  
+Process of running exec for an entity:
+  Create an empty struct, add pointer to mv, fill in data based on index
+  
+CreateVariables:
+
+void CreateVariables()
+{
+    int i, j;
+    /* General variables */
+    numAirlines = 3;
+    airlineList = CreateMonitorVariable("AirlineList", 11, 3);
+    airlineLockList = CreateMonitorVariable("AirlineLockList", 15, 3);
+    conveyorLock = CreateLock("ConveyorLock", 12);
+    conveyorSize = 0;
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraft1 = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraft2 = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraft3 = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    aircraftList = CreateMonitorVariable("AirlineList", 11, 3);
+    for (i = 0; i < 3; i++)
+    {
+        Airline al;
+        al.id = i;
+        al.seatsAssigned = 0;
+        al.ticketsIssued = 7;
+        al.totalBagCount = al.ticketsIssued * 3;
+        al.totalBagWeight = al.totalBagCount * 30;
+        airlines[i] = &al;
+        airlineLock[i] = CreateLock("AirlineLock", 11);
+        boardingCV[i] = CreateCondition("BoardingCV", 10);
+        boardingLock[i] = CreateLock("BoardingLock", 12);
+        aircraftCount[i] = 0;
+        for (j = 0; j < 21; j++)
+        {
+            boardingQueue[i][j] = NULL;
+            /*conveyor[(i+1)*(j+1)-1] = NULL;*/
+            aircraft[i][j] = NULL;
+        }
+    }
+    for(i = 0; i < 63; i++)
+    	conveyor[i] = NULL;
+    /* Passenger variables */
+    passengerCount = 0;
+    passengerArrayLock = CreateLock("PassengerArrayLock", 18);
+
+	passengerArray[0] = &p0;
+	passengerArray[1] = &p1;
+	passengerArray[2] = &p2;
+	passengerArray[3] = &p3;
+	passengerArray[4] = &p4;
+	passengerArray[5] = &p5;
+	passengerArray[6] = &p6;
+	passengerArray[7] = &p7;
+	passengerArray[8] = &p8;
+	passengerArray[9] = &p9;
+	passengerArray[10] = &p10;
+	passengerArray[11] = &p11;
+	passengerArray[12] = &p12;
+	passengerArray[13] = &p13;
+	passengerArray[14] = &p14;
+	passengerArray[15] = &p15;
+	passengerArray[16] = &p16;
+	passengerArray[17] = &p17;
+	passengerArray[18] = &p18;
+	passengerArray[19] = &p19;
+	passengerArray[20] = &p20;
+	passengerArray[21] = &p21;
+
+	/*for(i = 5; i<21; i++)
+		passengerArray[i] = NULL;*/
+
+    for(i = 0; i < 6; i++){
+    	for (j = 0; j < 21; j++)
+    		passengerLiaisonInteractionOrder[i][j] = NULL;
+    }
+      /*  	passengerCheckinInteractionOrder[i] = NULL;*/
+
+
+    /* Liaison variables */
+    liaisonCount = 0;
+    liaisonArrayLock = CreateLock("LiaisonArrayLock", 16);
+    liaisonManagerLock = CreateLock("LiaisonManagerLock", 18);
+    liaisonManagerCV = CreateCondition("LiaisonManagerCV", 16);
+    liaisonLineLock = CreateLock("LiaisonLineLock", 15);
+    /*must be statically declared*/
+    liaisonArray[0] = &l0;
+    liaisonArray[1] = &l1;
+    liaisonArray[2] = &l2;
+    liaisonArray[3] = &l3;
+    liaisonArray[4] = &l4;
+    for (i = 0; i < 5; i++)
+    {
+        /*liaisonArray[i] = NULL;*/
+        liaisonPassengerInteractionOrder[i] = NULL;
+        liaisonManagerInteractionOrder[i] = NULL;
+        liaisonWaitOrder[i] = NULL;
+        liaisonLineCV[i] = CreateCondition("LiaisonLineCV", 13);
+        liaisonLock[i] = CreateLock("LiaisonLock", 11);
+        liaisonCV[i] = CreateCondition("LiaisonCV", 9);
+        liaisonState[i] = L_BUSY;
+        requestingLiaisonData[i] = false;
+        for (j = 0; j < 21; j++)
+        {
+            liaisonLine[i][j] = NULL;
+    		passengerLiaisonInteractionOrder[i][j] = NULL;
+        }
+    }
+    /* Check-in variables */
+    checkinCount = 0;
+    checkinArrayLock = CreateLock("CheckinArrayLock", 16);
+    checkinManagerLock = CreateLock("CheckinManagerLock", 18);
+    checkinManagerCV = CreateCondition("CheckinManagerCV", 16);
+    /*must be statically declared*/
+    checkinArray[1] = &ci1;
+    checkinArray[2] = &ci2;
+    checkinArray[3] = &ci3;
+    checkinArray[5] = &ci5;
+    checkinArray[6] = &ci6;
+    checkinArray[7] = &ci7;
+    checkinArray[9] = &ci9;
+    checkinArray[10] = &ci10;
+    checkinArray[11] = &ci11;
+    for (i = 0; i < 12; i++)
+    {
+        if (i%4 == 0) /* 0, 4, 8 */
+        {
+            checkinLineLock[i/4] = CreateLock("CheckinLineLock", 15);
+            checkinState[i] = CI_NONE;
+        }
+        else checkinState[i] = CI_BUSY;
+        checkinBreakOrder[i] = NULL;
+        checkinManagerInteractionOrder[i] = NULL;
+        checkinLineCV[i] = CreateCondition("CheckinLineCV", 13);
+        checkinCV[i] = CreateCondition("CheckinCV", 9);
+        checkinLock[i] = CreateLock("CheckinLock", 11);
+        checkinBreakCV[i] = CreateCondition("CheckinBreakCV", 14);
+        finalCheckin[i] = false;
+        requestingCheckinData[i] = false;;
+        for (j = 0; j < 21; j++)
+        {
+    		if (i == 0) passengerCheckinInteractionOrder[j] = NULL;
+            checkinLine[i][j] = NULL;
+        }
+    }
+    /* Cargo variables */
+    cargoCount = 0;
+    cargoArrayLock = CreateLock("CargoArrayLock", 14);
+    cargoManagerLock = CreateLock("CargoManagerLock", 16);
+    /*must be statically declared*/
+    cargoArray[0] = &c0;
+    cargoArray[1] = &c1;
+    cargoArray[2] = &c2;
+    cargoArray[3] = &c3;
+    cargoArray[4] = &c4;
+    cargoArray[5] = &c5;
+    for (i = 0; i < 6; i++)
+    {
+    	for(j = 0; j <2; j++)
+    		cargoManagerInteractionOrder[j][i] = NULL;
+
+        cargoDataCV[i] = CreateCondition("CargoDataCV", 11);
+        cargoDataLock[i] = CreateLock("CargoDataLock", 13);
+        cargoManagerCV[i] = CreateCondition("CargoManagerCV", 14);
+        cargoCV[i] = CreateCondition("CargoCV", 7);
+        cargoLock[i] = CreateLock("CargoLock", 9);
+        cargoState[i] = C_BUSY;
+        requestingCargoData[i] = false;
+    }
+
+    /* Manager variables */
+    for(i = 0; i < 3; i++)
+    	clearAirline[i] = false;
+    
+}

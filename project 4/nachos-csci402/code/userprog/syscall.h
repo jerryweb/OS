@@ -214,9 +214,9 @@ int CreateMonitorVariable(char* name, int length, int MVArraySize);
 */
 void DestroyMonitorVariable(int MVArrayIndex);
 
-int GetMonitorVariable(int indexPosition);
+int GetMonitorVariable(int indexPosition, int pos);
 
-void SetMonitorVariable(/*a,*/int indexPosition, int size);
+void SetMonitorVariable(int indexPosition, int size, int value);
 
 
 
