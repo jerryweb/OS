@@ -653,24 +653,24 @@ void Acquire_Syscall(int lock)
 
 #ifdef NETWORK
 	//lockTable->lockAcquire();
-	serverLock* sLock = (serverLock*) serverLockTable->Get(lock);
+	/*serverLock* sLock = (serverLock*) serverLockTable->Get(lock);
 	if (sLock == NULL|| sLock->ownerID != -1)//currentThread->getThreadID())
 	{   // Check if lock has been created (or not yet destroyed).
-		DEBUG('z', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
+		DEBUG('n', "Thread %s: Trying to acquire invalid ServerLock, lock %d\n", currentThread->getName(), lock);
 		//lockTable->lockRelease();
 		return;
 	}
 
 	if(sLock->name == NULL) {
-		DEBUG('z', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
+		DEBUG('n', "Thread %s: Trying to acquire invalid Lock, ID %d\n", currentThread->getName(), lock);
 		//lockTable->lockRelease();
 		return;
-	}
+	}*/
 
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "3 " << sLock->name;
+	ss << "3 " << lock << " ";
 	toSend == ss.str();
 	request = (char*)toSend.c_str();
 
@@ -1058,17 +1058,19 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 		{
 #ifdef NETWORK
 
+	DEBUG('n',"in CreateLock_Syscall\n");
+
 	char *buf = new char[len+1];	// Kernel buffer: name
 
 	if (! buf)
 	{
-		DEBUG('z', "Thread %s: Can't allocate kernel buffer in CreateLock, ID -1\n", currentThread->getName());
+		DEBUG('n', "Thread %s: Can't allocate kernel buffer in CreateLock, ID -1\n", currentThread->getName());
 		return -1;
 	}
 
 	if( copyin(vaddr, len, buf) == -1 )
 	{
-		DEBUG('z', "Thread %s: Bad pointer %d passed to CreateLock, ID -1\n", currentThread->getName(), vaddr);
+		DEBUG('n', "Thread %s: Bad pointer %d passed to CreateLock, ID -1\n", currentThread->getName(), vaddr);
 		delete[] buf;
 		return -1;
 	}
@@ -1086,6 +1088,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 	clientRequest(request,0,0);
 	int lockLocation;
 	lockLocation = createLockResponse();
+	DEBUG('n',"Successfully created server Lock index %d \n",lockLocation);
 	/*/ // Checks to see if the lock already exists
 	 // for(int i = 0; i < lockTable->getCount(); i++){
 	 //     ServerLock* sLockTemp =  new ServerLock;

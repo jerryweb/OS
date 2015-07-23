@@ -282,7 +282,7 @@ void RunServer() {
 		ss.clear();
 		int request = -1;
 		int index = -1;
-		string arg1,arg2;
+		string arg1,arg2,arg3;
 
 		//printf("waiting on in mail\n");
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
@@ -295,10 +295,10 @@ void RunServer() {
 		//declare these used for switch block
 		serverLock* sLock;
 		serverCV* sCV;
-		char* cArg2;
+		char* cArg2,cArg3;
 		int index2;
 
-		printf("before switch request\n");
+		//printf("before switch request\n");
 		switch (request)
 		{
 			case 1:   //create lock
@@ -310,7 +310,10 @@ void RunServer() {
 			break;
 
 			case 3://acquire lock
-			index = getTableIndex(cArg1,serverLockTable,1);
+			ss >> index;
+			//cArg2 = (char*)arg2.c_str();
+
+			//index = getTableIndex(cArg2,serverLockTable,1);
 			sLock = (serverLock*)serverLockTable->Get(index);
 			sLock->Acquire(inPktHdr.from,0);
 			break;
