@@ -306,10 +306,10 @@ void RunServer() {
 		switch (request)
 		{
 			case 1:   //create lock
-			ss >> arg1;
-			char* cArg1 = (char*) arg1.c_str();
-			createLock(cArg1, serverLockTable, inPktHdr.from,0);
-			break;
+				ss >> arg1;
+				char* cArg1 = (char*) arg1.c_str();
+				createLock(cArg1, serverLockTable, inPktHdr.from,0);
+				break;
 
 			case 2://destory lock
 			ss >> arg1;
@@ -317,21 +317,22 @@ void RunServer() {
 			destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
 			break;
 
-			case 3://acquire lock
-			ss >> index;
-			//cArg2 = (char*)arg2.c_str();
 
-			//index = getTableIndex(cArg2,serverLockTable,1);
-			sLock = (serverLock*)serverLockTable->Get(index);
-			sLock->Acquire(inPktHdr.from,0);
-			break;
+			case 3://acquire lock
+				ss >> index;
+				//cArg2 = (char*)arg2.c_str();
+
+				//index = getTableIndex(cArg2,serverLockTable,1);
+				sLock = (serverLock*)serverLockTable->Get(index);
+				sLock->Acquire(inPktHdr.from,0);
+				break;
 
 			case 4://release lock
-			ss >> index;
-			//index = getTableIndex(cArg1,serverLockTable,1);
-			sLock = (serverLock*)serverLockTable->Get(index);
-			sLock->Release(inPktHdr.from,0);
-			break;
+				ss >> index;
+				//index = getTableIndex(cArg1,serverLockTable,1);
+				sLock = (serverLock*)serverLockTable->Get(index);
+				sLock->Release(inPktHdr.from,0);
+				break;
 
 			case 5://create CV
 			ss >> arg1;
@@ -390,11 +391,20 @@ void RunServer() {
 			case 11:
 				destroyMV(cArg1, MVTable, inPktHdr.from,0);
 				break;
-
+			/* THIS NEEDS TO BE FIXED
 			case 12:
 				ss >> arg2;
-				index = getTableIndex(cArg1, MVTable, 0)
+				index = getTableIndex(cArg1, MVTable, 0);
+				break;
 
+			case 13: //set the monitor variable
+				ss >> arg2;
+				index = getTableIndex(cArg1, MVTable, 0);
+				MonitorVariable* MV = (MonitorVariable*) MVTable->Get(i);
+				MV->value = 
+				MV->index = 
+				break;
+			*/
 			default:
 			printf("invalid request type\n");
 			char* eMsg = new char[MaxMailSize];

@@ -1375,7 +1375,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 
 //THIS NEEDS TO BE CONFIRMED 
 void DestroyMonitorVariable_Syscall(int id){
-	/*MonitorVariable monVar = (MonitorVariable*) MVTable->Get(id);
+	*MonitorVariable monVar = (MonitorVariable*) MVTable->Get(id);
 
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
 	{   // Check if MV has been created (or not yet destroyed).
@@ -1391,7 +1391,7 @@ void DestroyMonitorVariable_Syscall(int id){
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
-	serverResponseValidation();*/
+	serverResponseValidation();
 }
 
 int GetMonitorVariable_Syscall(int indexPosition, int pos){
