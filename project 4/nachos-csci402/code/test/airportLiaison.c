@@ -278,15 +278,14 @@ void RemoveFromQueue(int array)
 
 void RunLiaison()
 {
-    int i, liaisonLine, liaisonLineCV, liaisonState, elementCount;
+    int i, elementCount;
+    int liaisonLine, liaisonLineCV, liaisonCV, liaisonLock;
     Passenger* p;
     
     liaisonLine = GetMonitorVariable(liaisonLineList, id);
     liaisonLineCV = GetMonitorVariable(liaisonLineCVList, id);
     liaisonCV = GetMonitorVariable(liaisonCVList, id);
     liaisonLock = GetMonitorVariable(liaisonLockList, id);
-    liaisonState = GetMonitorVariable(liaisonStateList, id);
-    requestingLiaisonData = GetMonitorVariable(requestingLiaisonDataList, id);
     
     while(true)
     {
@@ -300,11 +299,11 @@ void RunLiaison()
             
 			Signal(liaisonLineCV, liaisonLineLock);
             
-            liaisonState = L_BUSY;
+            SetMonitorVariable(liaisonStateList, id, L_BUSY);
         }
         else
         {
-            liaisonState = L_FREE;
+            SetMonitorVariable(liaisonStateList, id, L_FREE);
         }
         
         Acquire(liaisonLock);
@@ -333,26 +332,24 @@ void RunLiaison()
         
         Release(liaisonLock);
         
-        if (requestingLiaisonData[lCount])
+        if (GetMonitorVariable(requestingLiaisonDataList, id))
         {
             Acquire(liaisonManagerLock);
-            Acquire(liaisonLock[lCount]);
+            
+            Acquire(liaisonLock);
+            
             Signal(liaisonManagerCV, liaisonManagerLock);
+            
             Release(liaisonManagerLock);
-            Wait(liaisonCV[lCount], liaisonLock[lCount]);
+            
+            Wait(liaisonCV, liaisonLock);
             /* Wait for manager to signal that all the data has been collected*/
 
-            lCount = liaisonManagerInteractionOrder[0]->id;
-		    for (o = 1; o < 5; o++)
-		        liaisonManagerInteractionOrder[o-1] = liaisonManagerInteractionOrder[o];
-
-		    liaisonManagerInteractionOrder[4] = NULL;
-
-            /* manager interaction queue */
-            requestingLiaisonData[lCount] = false;
+            SetMonitorVariable(requestingLiaisonDataList, id, false);
+            
+            Release(liaisonLock);
         }
     }
-    Exit(0);
 }
 
 int CreateLiaison()
@@ -386,4 +383,5 @@ int main()
     CreateVariables();
     id = CreateLiaison();
     RunLiaison();
+    Exit(0);
 }
