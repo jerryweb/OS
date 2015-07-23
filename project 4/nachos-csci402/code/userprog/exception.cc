@@ -67,6 +67,7 @@ int createLockRequests,createCVRequests;
 
 //table for processes
 Table* processTable;
+Table* MVTable;
 
 BitMap* memMap;
 
@@ -1358,7 +1359,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "1 " << buf;
+	ss << "10 " << buf;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 	printf("sending request %s\n",request);
@@ -1374,7 +1375,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 
 //THIS NEEDS TO BE CONFIRMED 
 void DestroyMonitorVariable_Syscall(int id){
-	/*MV* monVar = (MV*) MVTable->Get(id);
+	/*MonitorVariable monVar = (MonitorVariable*) MVTable->Get(id);
 
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
 	{   // Check if MV has been created (or not yet destroyed).
@@ -1385,13 +1386,59 @@ void DestroyMonitorVariable_Syscall(int id){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "2 " << monVar->name;
+	ss << "11 " << monVar->name;
 	toSend == ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
 	serverResponseValidation();*/
 }
+
+int GetMonitorVariable_Syscall(int indexPosition, int pos){
+	MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
+	int location;
+	/*
+	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
+	{   // Check if MV has been created (or not yet destroyed).
+		DEBUG('z', "Thread %s: Trying to destroy invalid Monitor Variable, ID %d\n", currentThread->getName(), id);
+		return;
+	}
+
+	char* request;
+	string toSend;
+	stringstream ss;
+	ss << "12 " << monVar->name;
+	toSend == ss.str();
+	request = (char*)toSend.c_str();
+
+	clientRequest(request,0,0);
+	serverResponseValidation();
+	*/
+	return location;	//this should be whatever value the server sends back
+}
+
+
+//TODO: modify the string to send the correct information
+void SetMonitorVariable_Syscall(int indexPosition, int pos, int value){
+	/*MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
+
+	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
+	{   // Check if MV has been created (or not yet destroyed).
+		DEBUG('z', "Thread %s: Trying to destroy invalid Monitor Variable, ID %d\n", currentThread->getName(), id);
+		return;
+	}
+
+	char* request;
+	string toSend;
+	stringstream ss;
+	ss << "13 " << monVar->name;
+	toSend == ss.str();
+	request = (char*)toSend.c_str();
+
+	clientRequest(request,0,0);
+	serverResponseValidation();*/
+}
+
 
 void ExceptionHandler(ExceptionType which) {
 	int type = machine->ReadRegister(2); // Which syscall?
@@ -1515,15 +1562,15 @@ void ExceptionHandler(ExceptionType which) {
 			DEBUG('a', "DestroyMonitorVariable syscall.\n");
 			DestroyMonitorVariable_Syscall(machine->ReadRegister(4));
 			break;
-			/* case SC_SetMonitorVariable:
+		case SC_SetMonitorVariable:
 			DEBUG('a', "SetMonitorVariable syscall.\n");
-			SetMonitorVariable_Syscall(machine->ReadRegister(4));
+			SetMonitorVariable_Syscall(machine->ReadRegister(4), machine->ReadRegister(5),
+					machine->ReadRegister(6));
 			break;
-			case SC_GetMonitorVariable:
+		case SC_GetMonitorVariable:
 			DEBUG('a', "GetMonitorVariable syscall.\n");
-			rv = GetMonitorVariable_Syscall(machine->ReadRegister(4));
+			rv = GetMonitorVariable_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
 			break;
-			 */
 		}
 		// Put in the return value and increment the PC
 		machine->WriteRegister(2, rv);

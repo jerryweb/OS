@@ -95,6 +95,7 @@ Initialize(int argc, char **argv)
     lockTable = new Table(maxNumLocks);
     CVTable = new Table(maxNumCV);
     processTable =  new Table(maxNumProc);
+    MVTable = new Table(100);
     memMap = new BitMap(NumPhysPages);
     swapFileMap = new BitMap(5000);
     swapLock = new Lock("swapLock");

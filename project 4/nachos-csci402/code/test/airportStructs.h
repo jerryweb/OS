@@ -1,11 +1,12 @@
 /*This is the struct for all of the public airport data*/
 
-typedef enum  {false,   true   } bool;
-typedef enum  {L_BUSY,  L_FREE } LiaisonState;
-typedef enum  {CI_BUSY, CI_FREE, CI_BREAK, CI_CLOSED, CI_NONE} CheckinState;
-typedef enum  {C_BUSY,  C_BREAK} CargoState;
-typedef enum  {SO_BUSY, SO_FREE} ScreenState;
-typedef enum  {SC_BUSY, SC_FREE} SecurityState;
+typedef enum {false,   true   } bool;
+typedef enum {L_BUSY,  L_FREE } LiaisonState;
+typedef enum {CI_BUSY, CI_FREE, CI_BREAK, CI_CLOSED, CI_NONE} CheckinState;
+typedef enum {C_BUSY,  C_BREAK} CargoState;
+typedef enum {SO_BUSY, SO_FREE} ScreenState;
+typedef enum {SC_BUSY, SC_FREE} SecurityState;
+typedef enum {LIAISON, CHECKIN} LineType;
 
 typedef struct
 {
@@ -37,13 +38,9 @@ typedef struct
 typedef struct {
 	int id;
 	int airline;
-	int location;	/*used to return the shortest line location*/
-	int minValue;
-	int myLine;		/*the current line the passenger is in*/
 	Ticket* ticket;
 	Luggage* bags[3];
 	BoardingPass* boardingPass;
-	bool CISline;	/*if true, passenger will find shortest checkin staff line*/
 } Passenger;
 
 typedef struct {

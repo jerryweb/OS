@@ -4,7 +4,7 @@
 
 using namespace std;
 
-//tableType: 1 for lockTable, 2 for CVTable
+//tableType: 1 for lockTable, 2 for MVTable, and 0 for CVTable
 //routine to determine if the item with input name exist
 bool tableItemExist(char* tName, Table* table, int tableType) {
 	bool toReturn = false;
@@ -21,7 +21,18 @@ bool tableItemExist(char* tName, Table* table, int tableType) {
 				toReturn = true;
 				break;
 			}
-		} else {
+		} 
+		else if(tableType == 2) {
+			MonitorVariable* tableItem = NULL;
+			tableItem = (MonitorVariable*) table->Get(i);
+			if(tableItem == NULL)
+				break;
+			if (strcmp(tableItem->name, tName) == 0) {
+				toReturn = true;
+				break;
+			}
+		} 
+		else{
 			serverCV* tableItem = NULL;
 			tableItem = (serverCV*) table->Get(i);
 
@@ -271,4 +282,14 @@ void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox) {
 
 	//send reply to sender
 	ServerReply(msg, outAddr, outBox, 0);
+}
+
+MonitorVariable::MonitorVariable(char* mName,  int index, int MYvalue) {
+	name = mName;
+	indexPosition = index;
+	value = MYvalue;
+}
+
+MonitorVariable::~MonitorVariable(){
+
 }
