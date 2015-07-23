@@ -300,7 +300,7 @@ void RunServer() {
 		serverLock* sLock;
 		serverCV* sCV;
 		char* cArg2,cArg3;
-		int index2;
+		int index2, index3;
 
 		//printf("before switch request\n");
 		switch (request)
@@ -376,8 +376,12 @@ void RunServer() {
 				break;
 
 			case 11:
-				//destroyMV(cArg1, MVTable, inPktHdr.from,0);
+				destroyMV(cArg1, MVTable, inPktHdr.from,0);
 				break;
+
+			case 12:
+				ss >> arg2;
+				index = getTableIndex(cArg1, MVTable, 0)
 
 			default:
 			printf("invalid request type\n");
@@ -450,7 +454,7 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 	int location = -1;
 
-	if (!tableItemExist(cName,cTable,0)) {
+	if (!tableItemExist(cName,cTable,2)) {
 		serverCV* toPut = new serverCV(cName);
 		location = cTable->Put(toPut);
 		createCVRequests++;   //TODO: where to put this?
@@ -469,7 +473,7 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	char* msg = new char[MaxMailSize];
 
 	if(createCVRequests == 0) {
-		if (!tableItemExist(cName, cTable, 0)) {
+		if (!tableItemExist(cName, cTable, 2)) {
 			msg = "1";
 		}
 		else { //Delete all the CVs from the. This should only run at the end of the program
@@ -494,7 +498,7 @@ void createMV(char* lname, Table* mTable, int outAddr, int outBox){
 	char* msg = new char[MaxMailSize];
 	int location = 0;
 
-	if(!tableItemExist(lname, mTable, 2)){
+	if(!tableItemExist(lname, mTable, 0)){
 		MonitorVariable* toPut = new MonitorVariable(lname, -1, -1);
 		location =  mTable->Put(toPut);
 		createMVRequests++;

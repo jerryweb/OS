@@ -22,7 +22,7 @@ bool tableItemExist(char* tName, Table* table, int tableType) {
 				break;
 			}
 		} 
-		else if(tableType == 2) {
+		else if(tableType == 0) {
 			MonitorVariable* tableItem = NULL;
 			tableItem = (MonitorVariable*) table->Get(i);
 			if(tableItem == NULL)
