@@ -1361,7 +1361,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 	clientRequest(request,0,0);
 	int MVLocation;
 	//TODO: either make a seperate createMVRequests or modify this name to keep consistancy
-	MVLocation = createLockRequests();
+	MVLocation = createLockResponse();
 
 	delete[] buf;
 	return MVLocation;
@@ -1511,13 +1511,13 @@ void ExceptionHandler(ExceptionType which) {
 			DestroyMonitorVariable_Syscall(machine->ReadRegister(4));
 			break;
 			/* case SC_SetMonitorVariable:
-			 DEBUG('a', "SetMonitorVariable syscall.\n");
-			 SetMonitorVariable_Syscall(machine->ReadRegister(4));
-			 break;
-			 case SC_GetMonitorVariable:
-			 DEBUG('a', "GetMonitorVariable syscall.\n");
-			 rv = GetMonitorVariable_Syscall(machine->ReadRegister(4));
-			 break;
+			DEBUG('a', "SetMonitorVariable syscall.\n");
+			SetMonitorVariable_Syscall(machine->ReadRegister(4));
+			break;
+			case SC_GetMonitorVariable:
+			DEBUG('a', "GetMonitorVariable syscall.\n");
+			rv = GetMonitorVariable_Syscall(machine->ReadRegister(4));
+			break;
 			 */
 		}
 		// Put in the return value and increment the PC

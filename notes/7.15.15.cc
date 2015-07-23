@@ -65,7 +65,7 @@ Project 4: Distributed Airport - Part 1
 	Arrays of Locks/CVs/MVs?
 	 2 choices
 		1. Create new Creates that create arrays 
-		2. Create an array of ints in th entity 
+		2. Create an array of ints in the entity 
 			* use a for loop to do creates 
 			// 5 CVs for the LiaisonLineCV
 			* LiaisonLineCV & append for loop index
