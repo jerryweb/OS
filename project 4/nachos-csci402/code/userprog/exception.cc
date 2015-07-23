@@ -464,7 +464,7 @@ int Exec_Syscall(unsigned int vaddr, int len)
 // Creates a new process and its kernel thread, and returns
 //  the id of the process in the global processTable. Returns
 //  -1 if the file name given is invalid.
-		{
+{
 	execLock->Acquire();
 
 	char *buf = new char[len + 1];	// Kernel buffer: filename
@@ -521,7 +521,7 @@ void Exit_Syscall(int status)
 // Exits the current running thread, accounting for the
 //  number of remaining threads and processes. Parameter
 //  is ignored for now.
-		{
+{
 	processTable->lockAcquire();
 
 	AddrSpace* AddSP = currentThread->space;
@@ -1264,7 +1264,7 @@ void Printf_Syscall(unsigned int vaddr, int len, int numParams, int params)
 // Output the string in the user buffer pointed to by vaddr, with length len,
 //  using DEBUG('z', ). Can take 0-4 parameters, separated by a factor of 100
 //  in params.
-		{
+{
 	if (numParams < 0 || numParams > 4) {
 		DEBUG('z', "Thread %s: Invalid number of parameters in Printf\n",
 				currentThread->getName());
@@ -1332,6 +1332,63 @@ int GetMyBoxNumber_Syscall() {
 
 void SetMailBoxNum_Syscall() {
 	currentThread->SetMailBoxNum();
+}
+
+//THIS NEEDS TO BE CONFIRMED 
+int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
+	char *buf = new char[len+1];
+
+	if (! buf)
+	{
+		DEBUG('z', "Thread %s: Can't allocate kernel buffer in CreateMonitorVariable, ID -1\n", currentThread->getName());
+		return -1;
+	}
+
+	if( copyin(vaddr, len, buf) == -1 )
+	{
+		DEBUG('z', "Thread %s: Bad pointer %d passed to CreateMonitorVariable, ID -1\n", currentThread->getName(), vaddr);
+		delete[] buf;
+		return -1;
+	}
+
+	buf[len]='\0';
+
+	char* request;
+	string toSend;
+	stringstream ss;
+	ss << "1 " << buf;
+	toSend = ss.str();
+	request = (char*)toSend.c_str();
+	printf("sending request %s\n",request);
+
+	clientRequest(request,0,0);
+	int MVLocation;
+	//TODO: either make a seperate createMVRequests or modify this name to keep consistancy
+	MVLocation = createLockRequests();
+
+	delete[] buf;
+	return MVLocation;
+}
+
+//THIS NEEDS TO BE CONFIRMED 
+void DestroyMonitorVariable_Syscall(int id){
+	/*MV* monVar = (MV*) MVTable->Get(id);
+
+	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
+	{   // Check if MV has been created (or not yet destroyed).
+		DEBUG('z', "Thread %s: Trying to destroy invalid Monitor Variable, ID %d\n", currentThread->getName(), id);
+		return;
+	}
+
+	char* request;
+	string toSend;
+	stringstream ss;
+	ss << "2 " << monVar->name;
+	toSend == ss.str();
+	request = (char*)toSend.c_str();
+
+	clientRequest(request,0,0);
+	serverResponseValidation();*/
 }
 
 void ExceptionHandler(ExceptionType which) {
@@ -1447,17 +1504,16 @@ void ExceptionHandler(ExceptionType which) {
 		case SC_SetMailBoxNum:
 			DEBUG('a', "SetMailBoxNum syscall.\n");
 			SetMailBoxNum_Syscall();
+			break;	
+		case SC_CreateMonitorVariable:
+			DEBUG('a', "CreateMonitorVariable syscall.\n");
+			rv = CreateMonitorVariable_Syscall(machine->ReadRegister(4), machine->ReadRegister(5));
 			break;
-			/*
-			 case SC_CreateMonitorVariable:
-			 DEBUG('a', "CreateMonitorVariable syscall.\n");
-			 rv = CreateMonitorVariable_Syscall(machine->ReadRegister(4));
-			 break;
-			 case SC_DestroyMonitorVariable:
-			 DEBUG('a', "DestroyMonitorVariable syscall.\n");
-			 DestroyMonitorVariable_Syscall(machine->ReadRegister(4));
-			 break;
-			 case SC_SetMonitorVariable:
+		case SC_DestroyMonitorVariable:
+			DEBUG('a', "DestroyMonitorVariable syscall.\n");
+			DestroyMonitorVariable_Syscall(machine->ReadRegister(4));
+			break;
+			/* case SC_SetMonitorVariable:
 			 DEBUG('a', "SetMonitorVariable syscall.\n");
 			 SetMonitorVariable_Syscall(machine->ReadRegister(4));
 			 break;

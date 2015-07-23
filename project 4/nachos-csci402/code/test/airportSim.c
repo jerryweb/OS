@@ -486,7 +486,7 @@ void forkPassenger(){
 	
 	for(i = 0; i < 3; i++){
 		passengerArray[pCount]->bags[i]->airlineCode = 0;
-		passengerArray[pCount]->bags[i]->weight = 30 + i;
+		passengerArray[pCount]->bags[i]->weight = 30;
 	}
 
 	passengerArray[pCount]->boardingPass->gate = 0;

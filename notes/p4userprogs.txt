@@ -1,0 +1,179 @@
+CreateVariables()
+  init all the mvs, locks, cvs, etc.
+
+Exec airportPassInit
+  Exec 21 passengers
+Exec airportLCargoInit
+  Exec 5 liaisons and 5 cargo
+Exec airportMCheckinInit
+  Exec manager and 9 checkins
+  
+Process of running exec for an entity:
+  run CreateVariables
+  Create an empty struct, add pointer to mv, fill in data based on index
+
+void CreateVariables()
+{
+    int i;
+    
+    /* General variables */
+    
+    numAirlines = 3;
+    airlineList = CreateMonitorVariable("airlineList", 11, 3);
+    airlineLockList = CreateMonitorVariable("airlineLockList", 15, 3);
+    conveyor = CreateMonitorVariable("conveyor", 8, 63);
+    conveyorLock = CreateLock("conveyorLock", 12);
+    conveyorSize = CreateMonitorVariable("conveyor", 12, 1);
+    aircraftList = CreateMonitorVariable("aircraftList", 12, 3);
+    aircraft1 = CreateMonitorVariable("aircraft1", 9, 21);
+    aircraft2 = CreateMonitorVariable("aircraft2", 9, 21);
+    aircraft3 = CreateMonitorVariable("aircraft3", 9, 21);
+    SetMonitorVariable(aircraftList, 0, aircraft1);
+    SetMonitorVariable(aircraftList, 1, aircraft2);
+    SetMonitorVariable(aircraftList, 2, aircraft3);
+    aircraftCountList = CreateMonitorVariable("aircraftCountList", 17, 3);
+    boardingQueueList = CreateMonitorVariable("boardingQueueList", 17, 3);
+    boardingQueue1 = CreateMonitorVariable("boardingQueue1", 14, 21);
+    boardingQueue2 = CreateMonitorVariable("boardingQueue2", 14, 21);
+    boardingQueue3 = CreateMonitorVariable("boardingQueue3", 14, 21);
+    SetMonitorVariable(boardingQueueList, 0, boardingQueue1);
+    SetMonitorVariable(boardingQueueList, 1, boardingQueue2);
+    SetMonitorVariable(boardingQueueList, 2, boardingQueue3);
+    boardingCVList = CreateMonitorVariable("boardingCVList", 14, 3);
+    boardingLockList = CreateMonitorVariable("boardingLockList", 16, 3);
+    for (i = 0; i < 3; i++)
+    {
+        if (! GetMonitorVariable(airlineList, i))
+        {
+            Airline al;
+            al.id = i;
+            al.seatsAssigned = 0;
+            al.ticketsIssued = 7;
+            al.totalBagCount = al.ticketsIssued * 3;
+            al.totalBagWeight = al.totalBagCount * 30;
+            SetMonitorVariable(airlineList, i, &al);
+        }
+        SetMonitorVariable(airlineLockList, i, CreateLock("airlineLock", 11));
+        SetMonitorVariable(boardingCVList, i, CreateCondition("boardingCV", 10));
+        SetMonitorVariable(boardingLockList, i, CreateLock("boardingLock", 12));
+    }
+    
+    /* Passenger variables */
+    
+    passengerListLock = CreateLock("passengerListLock", 17);
+    passengerList = CreateMonitorVariable("passengerList", 13, 21);
+    passengerLiaisonInteractionOrderList = CreateMonitorVariable("passengerLiaisonInteractionOrderList", 41, 5);
+    SetMonitorVariable(passengerLiaisonInteractionOrderList, 0, passengerLiaisonInteractionOrder1);
+    SetMonitorVariable(passengerLiaisonInteractionOrderList, 1, passengerLiaisonInteractionOrder2);
+    SetMonitorVariable(passengerLiaisonInteractionOrderList, 2, passengerLiaisonInteractionOrder3);
+    SetMonitorVariable(passengerLiaisonInteractionOrderList, 3, passengerLiaisonInteractionOrder4);
+    SetMonitorVariable(passengerLiaisonInteractionOrderList, 4, passengerLiaisonInteractionOrder5);
+
+    /* Liaison variables */
+    
+    liaisonList = CreateMonitorVariable("liaisonList", 11, 5);
+    liaisonListLock = CreateLock("liaisonListLock", 16);
+    liaisonPassengerInteractionOrder = CreateMonitorVariable("liaisonPassengerInteractionOrder", 32, 5);
+    liaisonManagerInteractionOrder = CreateMonitorVariable("liaisonManagerInteractionOrder", 30, 5);
+    liaisonWaitOrder = CreateMonitorVariable("liaisonWaitOrder", 16, 5);
+    liaisonLineList = CreateMonitorVariable("liaisonLineList", 15, 5);
+    liaisonLine1 = CreateMonitorVariable("liaisonLine1", 12, 21);
+    liaisonLine2 = CreateMonitorVariable("liaisonLine2", 12, 21);
+    liaisonLine3 = CreateMonitorVariable("liaisonLine3", 12, 21);
+    liaisonLine4 = CreateMonitorVariable("liaisonLine4", 12, 21);
+    liaisonLine5 = CreateMonitorVariable("liaisonLine5", 12, 21);
+    SetMonitorVariable(liaisonLineList, 0, liaisonLine1);
+    SetMonitorVariable(liaisonLineList, 1, liaisonLine2);
+    SetMonitorVariable(liaisonLineList, 2, liaisonLine3);
+    SetMonitorVariable(liaisonLineList, 3, liaisonLine4);
+    SetMonitorVariable(liaisonLineList, 4, liaisonLine5);
+    liaisonManagerLock = CreateLock("liaisonManagerLock", 18);
+    liaisonManagerCV = CreateCondition("liaisonManagerCV", 16);
+    liaisonLineLock = CreateLock("liaisonLineLock", 15);
+    liaisonLineCVList = CreateMonitorVariable("requestingLiaisonDataList", 17, 5);
+    liaisonLockList = CreateMonitorVariable("liaisonLockList", 15, 5);
+    liaisonCVList = CreateMonitorVariable("liaisonCVList", 13, 5);
+    liaisonStateList = CreateMonitorVariable("liaisonStateList", 16, 5);
+    requestingLiaisonDataList = CreateMonitorVariable("requestingLiaisonDataList", 25, 5);
+    for (i = 0; i < 5; i++)
+    {
+        SetMonitorVariable(liaisonLineCVList, i, CreateCondition("liaisonLineCV", 13));
+        SetMonitorVariable(liaisonLockList, i, CreateLock("liaisonLock", 11));
+        SetMonitorVariable(liaisonCVList, i, CreateCondition("liaisonCV", 9));
+    }
+    
+    /* Check-in variables */
+    
+    checkinList = CreateMonitorVariable("checkinList", 11, 12);
+    checkinListLock = CreateLock("checkinListLock", 15);
+    checkinBreakOrder = CreateMonitorVariable("checkinBreakOrder", 17, 12);
+    checkinManagerInteractionOrder = CreateMonitorVariable("checkinManagerInteractionOrder", 30, 12);
+    checkinLineList = CreateMonitorVariable("checkinLineList", 15, 12);
+    checkinLine1 = CreateMonitorVariable("checkinLine1", 12, 21);
+    checkinLine2 = CreateMonitorVariable("checkinLine2", 12, 21);
+    checkinLine3 = CreateMonitorVariable("checkinLine3", 12, 21);
+    checkinLine4 = CreateMonitorVariable("checkinLine4", 12, 21);
+    checkinLine5 = CreateMonitorVariable("checkinLine5", 12, 21);
+    checkinLine6 = CreateMonitorVariable("checkinLine6", 12, 21);
+    checkinLine7 = CreateMonitorVariable("checkinLine7", 12, 21);
+    checkinLine8 = CreateMonitorVariable("checkinLine8", 12, 21);
+    checkinLine9 = CreateMonitorVariable("checkinLine9", 12, 21);
+    checkinLine10 = CreateMonitorVariable("checkinLine10", 12, 21);
+    checkinLine11 = CreateMonitorVariable("checkinLine11", 12, 21);
+    checkinLine12 = CreateMonitorVariable("checkinLine12", 12, 21);
+    checkinLineLockList = CreateMonitorVariable("checkinLineLockList", 19, 3);
+    checkinLineCVList = CreateMonitorVariable("checkinLineCVList", 17, 12);
+    checkinCVList = CreateMonitorVariable("checkinCVList", 13, 12);
+    checkinLockList = CreateMonitorVariable("checkinLockList", 15, 12);
+    checkinBreakCVList = CreateMonitorVariable("checkinBreakCVList", 18, 12);
+    checkinManagerLock = CreateLock("checkinManagerLock", 18);
+    checkinManagerCV = CreateCondition("checkinManagerCV", 16);
+    checkinStateList = CreateMonitorVariable("checkinStateList", 16, 12);
+    finalCheckinList = CreateMonitorVariable("finalCheckinList", 16, 12);
+    requestingCheckinDataList = CreateMonitorVariable("requestingCheckinDataList", 25, 12);
+    for (i = 0; i < 12; i++)
+    {
+        if (i%4 == 0) /* 0, 4, 8 */
+        {
+            SetMonitorVariable(checkinLineLock, i/4, CreateLock("checkinLineLock", 15));
+            SetMonitorVariable(checkinStateList, i, CI_NONE);
+        }
+        SetMonitorVariable(checkinLineCVList, i, CreateCondition("checkinLineCV", 13));
+        SetMonitorVariable(checkinCVList, i, CreateCondition("checkinCV", 9));
+        SetMonitorVariable(checkinLockList, i, CreateLock("checkinLock", 11));
+        SetMonitorVariable(checkinBreakCVList, i, CreateCondition("checkinBreakCV", 14));
+    }
+    
+    /* Cargo variables */
+    
+    cargoList = CreateMonitorVariable("cargoList", 9, 5);
+    cargoListLock = CreateLock("cargoListLock", 13);
+    cargoManagerInteractionOrderList = CreateMonitorVariable("cargoManagerInteractionOrderList", 32, 2);
+    cargoManagerInteractionOrder1 = CreateMonitorVariable("cargoManagerInteractionOrder1", 29, 5);
+    cargoManagerInteractionOrder2 = CreateMonitorVariable("cargoManagerInteractionOrder2", 29, 5);
+    SetMonitorVariable(cargoManagerInteractionOrderList, 0, cargoManagerInteractionOrder1);
+    SetMonitorVariable(cargoManagerInteractionOrderList, 1, cargoManagerInteractionOrder2);
+    cargoCVList = CreateMonitorVariable("cargoCVList", 11, 5);
+    cargoDataCVList = CreateMonitorVariable("cargoDataCVList", 15, 5);
+    cargoDataLockList = CreateMonitorVariable("cargoDataLockList", 17, 5);
+    cargoManagerLock = CreateLock("cargoManagerLock", 16);
+    cargoManagerCVList = CreateMonitorVariable("cargoManagerCVList", 18, 5);
+    cargoLockList = CreateMonitorVariable("cargoLockList", 13, 5);
+    cargoStateList = CreateMonitorVariable("cargoStateList", 14, 5);
+    requestingCargoDataList = CreateMonitorVariable("requestingCargoDataList", 23, 5);
+    for (i = 0; i < 5; i++)
+    {
+        SetMonitorVariable(cargoDataCVList, i, CreateCondition("cargoDataCV", 11));
+        SetMonitorVariable(cargoDataLockList, i, CreateLock("cargoDataLock", 13));
+        SetMonitorVariable(cargoManagerCVList, i, CreateCondition("cargoManagerCV", 14));
+        SetMonitorVariable(cargoCVList, i, CreateCondition("cargoCV", 7));
+        SetMonitorVariable(cargoLockList, i, CreateLock("cargoLock", 9));
+    }
+
+    /* Manager variables */
+    
+    manager = CreateMonitorVariable("manager", 7, 1);
+    clearAirline = CreateMonitorVariable("clearAirline", 12, 3);
+    counter = CreateMonitorVariable("counter", 7, 1);
+    clearAirlineCount = CreateMonitorVariable("clearAirlineCount", 17, 1);
+}
