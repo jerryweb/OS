@@ -40,6 +40,7 @@ extern Table* CVTable;
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes
 extern Table* MVTable;
+extern Table* LastTimeRecievedTable;
 extern BitMap* memMap;
 extern BitMap* swapFileMap;
 extern OpenFile* swapFile;
