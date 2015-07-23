@@ -66,15 +66,12 @@ typedef struct {
 
 typedef struct {
 	/*Baggage Data*/
-	Luggage* airlineLuggage[3];
 	int liaisonBaggageCount[3];
+	int cargoHandlersBaggageCount[3];
 	int cargoHandlersBaggageWeight[3];
 	int checkinBaggageWeight[3];
-	int cargoHandlersBaggageCount[3];
 	/*Passenger Data*/
     int liaisonPassengerCount[3];	
     int checkinPassengerCount[3];
     int securityInspectorPassengerCount[3];
-    int clearAirlineCount;
-    bool clearAirline;
 } Manager;

@@ -1,5 +1,5 @@
 /* Networked airport simulation.
- *  Initializes a single passenger.
+ *  Initializes a single cargo handler.
  */
 
 #include "syscall.h"
@@ -96,13 +96,6 @@ int cargoManagerCVList; /* mv size 5, int (CV) */
 int cargoLockList; /* mv size 5, int (lock) */
 int cargoStateList; /* mv size 5, CargoState */
 int requestingCargoDataList; /* mv size 5, bool */
-
-/* Manager variables */
-
-int manager; /* mv size 1, Manager* */
-int clearAirline; /* mv size 3, bool */
-int counter; /* mv size 1, int */
-int clearAirlineCount; /* mv size 1, int */
 
 void CreateVariables()
 {
@@ -257,13 +250,6 @@ void CreateVariables()
         SetMonitorVariable(cargoCVList, i, CreateCondition("cargoCV", 7));
         SetMonitorVariable(cargoLockList, i, CreateLock("cargoLock", 9));
     }
-
-    /* Manager variables */
-    
-    manager = CreateMonitorVariable("manager", 7, 1);
-    clearAirline = CreateMonitorVariable("clearAirline", 12, 3);
-    counter = CreateMonitorVariable("counter", 7, 1);
-    clearAirlineCount = CreateMonitorVariable("clearAirlineCount", 17, 1);
 }
 
 void RunCargo()
