@@ -220,7 +220,7 @@ void Condition::Wait(Lock* conditionLock)
     conditionLock->Release();
     waitList->Append(currentThread);
     currentThread->Sleep();
-    // conditionLock->Acquire();
+    conditionLock->Acquire();
     interrupt->SetLevel(old);
 }
 

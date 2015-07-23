@@ -7,6 +7,12 @@
 
 #define NULL (void*)0
 
+/* Personal variables */
+
+int id;
+int myLine;
+Passenger p;
+
 /* General variables */
 
 int numAirlines; /* const (never changes) */
@@ -31,30 +37,11 @@ int boardingLockList; /* mv size 3, int (lock) */
 
 int passengerList; /* mv size 21, Passenger* */
 int passengerListLock; /* lock */
-/*Used as a FIFO queue of the order of interactions between passengers and liaisons.
-For example, if liaison 0 is the first to execute and wait for passenger 0, then 
-passenger 0 is put in the FIFO in the first position. Liaison 1 would then put 
-passenger 1 in the queue next behind passenger 0.
-This prevents overwriting of Passenger variables. 2D array: first dimension
-is the number of interactions between one passenger and one liaison. These 
-are usually before the wait functions. For passenger, there are currently 2
-separate occasions where one passenger and one liaison will communicate with
-each other. */
-int passengerLiaisonInteractionOrderList; /* mv size 5, int (MV) */
-int passengerLiaisonInteractionOrder1; /* mv size 21, Passenger* */
-int passengerLiaisonInteractionOrder2; /* mv size 21, Passenger* */
-int passengerLiaisonInteractionOrder3; /* mv size 21, Passenger* */
-int passengerLiaisonInteractionOrder4; /* mv size 21, Passenger* */
-int passengerLiaisonInteractionOrder5; /* mv size 21, Passenger* */
-int passengerCheckinInteractionOrderList; /* mv size 21, Passenger* */
 
 /* Liaison variables */
 
 int liaisonList; /* mv size 5, Liaison* */
 int liaisonListLock; /* lock */
-int liaisonPassengerInteractionOrder; /* mv size 5, Liaison* */
-int liaisonManagerInteractionOrder; /* mv size 5, Liaison* */
-int liaisonWaitOrder; /* mv size 5, Liaison* */
 int liaisonLineList; /* mv size 5, int (MV) */
 int liaisonLine1; /* mv size 21, Passenger* */
 int liaisonLine2; /* mv size 21, Passenger* */
@@ -74,8 +61,6 @@ int requestingLiaisonDataList; /* mv size 5, bool */
 
 int checkinList; /* mv size 12, Checkin* */
 int checkinListLock; /* lock */
-int checkinBreakOrder; /* mv size 12, Checkin* */
-int checkinManagerInteractionOrder; /* mv size 12, Checkin* */
 int checkinLineList; /* mv size 12, int (MV) */
 int checkinLine1; /* mv size 21, Passenger* */
 int checkinLine2; /* mv size 21, Passenger* */
@@ -104,9 +89,6 @@ int requestingCheckinDataList; /* mv size 12, bool */
 
 int cargoListLock; /* lock */
 int cargoList; /* mv size 5, Cargo* */
-int cargoManagerInteractionOrderList; /* mv size 2, int (MV) */
-int cargoManagerInteractionOrder1; /* mv size 5, Cargo* */
-int cargoManagerInteractionOrder2; /* mv size 5, Cargo* */
 int cargoCVList; /* mv size 5, int (CV) */
 int cargoDataCVList; /* mv size 5, int (CV) */
 int cargoDataLockList; /* mv size 5, int (lock) */
@@ -173,20 +155,11 @@ void CreateVariables()
     
     passengerListLock = CreateLock("passengerListLock", 17);
     passengerList = CreateMonitorVariable("passengerList", 13, 21);
-    passengerLiaisonInteractionOrderList = CreateMonitorVariable("passengerLiaisonInteractionOrderList", 41, 5);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 0, passengerLiaisonInteractionOrder1);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 1, passengerLiaisonInteractionOrder2);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 2, passengerLiaisonInteractionOrder3);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 3, passengerLiaisonInteractionOrder4);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 4, passengerLiaisonInteractionOrder5);
 
     /* Liaison variables */
     
     liaisonList = CreateMonitorVariable("liaisonList", 11, 5);
     liaisonListLock = CreateLock("liaisonListLock", 16);
-    liaisonPassengerInteractionOrder = CreateMonitorVariable("liaisonPassengerInteractionOrder", 32, 5);
-    liaisonManagerInteractionOrder = CreateMonitorVariable("liaisonManagerInteractionOrder", 30, 5);
-    liaisonWaitOrder = CreateMonitorVariable("liaisonWaitOrder", 16, 5);
     liaisonLineList = CreateMonitorVariable("liaisonLineList", 15, 5);
     liaisonLine1 = CreateMonitorVariable("liaisonLine1", 12, 21);
     liaisonLine2 = CreateMonitorVariable("liaisonLine2", 12, 21);
@@ -217,21 +190,31 @@ void CreateVariables()
     
     checkinList = CreateMonitorVariable("checkinList", 11, 12);
     checkinListLock = CreateLock("checkinListLock", 15);
-    checkinBreakOrder = CreateMonitorVariable("checkinBreakOrder", 17, 12);
-    checkinManagerInteractionOrder = CreateMonitorVariable("checkinManagerInteractionOrder", 30, 12);
     checkinLineList = CreateMonitorVariable("checkinLineList", 15, 12);
-    checkinLine1 = CreateMonitorVariable("checkinLine1", 12, 21);
-    checkinLine2 = CreateMonitorVariable("checkinLine2", 12, 21);
-    checkinLine3 = CreateMonitorVariable("checkinLine3", 12, 21);
-    checkinLine4 = CreateMonitorVariable("checkinLine4", 12, 21);
-    checkinLine5 = CreateMonitorVariable("checkinLine5", 12, 21);
-    checkinLine6 = CreateMonitorVariable("checkinLine6", 12, 21);
-    checkinLine7 = CreateMonitorVariable("checkinLine7", 12, 21);
-    checkinLine8 = CreateMonitorVariable("checkinLine8", 12, 21);
-    checkinLine9 = CreateMonitorVariable("checkinLine9", 12, 21);
+    checkinLine1  = CreateMonitorVariable("checkinLine1",  12, 21);
+    checkinLine2  = CreateMonitorVariable("checkinLine2",  12, 21);
+    checkinLine3  = CreateMonitorVariable("checkinLine3",  12, 21);
+    checkinLine4  = CreateMonitorVariable("checkinLine4",  12, 21);
+    checkinLine5  = CreateMonitorVariable("checkinLine5",  12, 21);
+    checkinLine6  = CreateMonitorVariable("checkinLine6",  12, 21);
+    checkinLine7  = CreateMonitorVariable("checkinLine7",  12, 21);
+    checkinLine8  = CreateMonitorVariable("checkinLine8",  12, 21);
+    checkinLine9  = CreateMonitorVariable("checkinLine9",  12, 21);
     checkinLine10 = CreateMonitorVariable("checkinLine10", 12, 21);
     checkinLine11 = CreateMonitorVariable("checkinLine11", 12, 21);
     checkinLine12 = CreateMonitorVariable("checkinLine12", 12, 21);
+    SetMonitorVariable(checkinLineList, 0,  checkinLine1);
+    SetMonitorVariable(checkinLineList, 1,  checkinLine2);
+    SetMonitorVariable(checkinLineList, 2,  checkinLine3);
+    SetMonitorVariable(checkinLineList, 3,  checkinLine4);
+    SetMonitorVariable(checkinLineList, 4,  checkinLine5);
+    SetMonitorVariable(checkinLineList, 5,  checkinLine6);
+    SetMonitorVariable(checkinLineList, 6,  checkinLine7);
+    SetMonitorVariable(checkinLineList, 7,  checkinLine8);
+    SetMonitorVariable(checkinLineList, 8,  checkinLine9);
+    SetMonitorVariable(checkinLineList, 9,  checkinLine10);
+    SetMonitorVariable(checkinLineList, 10, checkinLine11);
+    SetMonitorVariable(checkinLineList, 11, checkinLine12);
     checkinLineLockList = CreateMonitorVariable("checkinLineLockList", 19, 3);
     checkinLineCVList = CreateMonitorVariable("checkinLineCVList", 17, 12);
     checkinCVList = CreateMonitorVariable("checkinCVList", 13, 12);
@@ -259,11 +242,6 @@ void CreateVariables()
     
     cargoList = CreateMonitorVariable("cargoList", 9, 5);
     cargoListLock = CreateLock("cargoListLock", 13);
-    cargoManagerInteractionOrderList = CreateMonitorVariable("cargoManagerInteractionOrderList", 32, 2);
-    cargoManagerInteractionOrder1 = CreateMonitorVariable("cargoManagerInteractionOrder1", 29, 5);
-    cargoManagerInteractionOrder2 = CreateMonitorVariable("cargoManagerInteractionOrder2", 29, 5);
-    SetMonitorVariable(cargoManagerInteractionOrderList, 0, cargoManagerInteractionOrder1);
-    SetMonitorVariable(cargoManagerInteractionOrderList, 1, cargoManagerInteractionOrder2);
     cargoCVList = CreateMonitorVariable("cargoCVList", 11, 5);
     cargoDataCVList = CreateMonitorVariable("cargoDataCVList", 15, 5);
     cargoDataLockList = CreateMonitorVariable("cargoDataLockList", 17, 5);
@@ -289,205 +267,164 @@ void CreateVariables()
     clearAirlineCount = CreateMonitorVariable("clearAirlineCount", 17, 1);
 }
 
-/* CONVERT
-
-/*Used to find the number of elements in an array
-int findArrayElementCount(Passenger*** array, int pLine){
+/* Finds the number of elements in an array of 21 passengers */
+int findArrayElementCount(int array)
+{
 	int elementCount = 0;
-	int i;
-	for(i = 0; i < 21; i++){
-		if(array[pLine][elementCount] == NULL)
-			break;
-		else
-			elementCount++;
-	}
-
+    
+	while((Passenger*)GetMonitorVariable(array, elementCount) != NULL)
+        elementCount++;
+    
 	return elementCount;
 }
 
-int findShortestLine(bool CISline, int pCount){
-	Passenger p;
-    int i, j, k, elementCount;
-    i = 0;
-    p.location = 0;
-	p.minValue = 21;
+void findShortestLine(LineType type)
+{
+    int i, elementCount, location, minValue, CIS_ID;
+    CheckinState state;
+    location = -1;
+	minValue = 21;
     
-	if(!CISline){
-		for (i = 0; i < 5; i++) {
-
-            elementCount = 0;
-            while(liaisonLine[i][elementCount] != NULL) elementCount++;
-
-			if(elementCount < p.minValue){
-				p.minValue = elementCount;
-				p.location = i;
-			}
-		}
-		return p.location;
-	}
-
-	/*finds the shortest checkin staff line
-	else if(CISline){
-		int CIS_ID = p.airline * 4 + 1;
-		for(i = CIS_ID;  i < CIS_ID + 3; i++){
-			elementCount = 0;
-			while(checkinLine[i][elementCount] != NULL) elementCount++;
-			if((p.minValue < 0 || p.minValue > elementCount) &&
-				(checkinState[i] != CI_CLOSED || checkinState[i] != CI_NONE)){
-					p.minValue = elementCount;
-					p.location = i;
-			}
-		}
-		return p.location;		
-	}
-}
-
-void PassengerFindShortestCISLine(Passenger *p){
-	int i, j, elementCount;
-	int tempID = p->id;
-	passengerArray[tempID]->myLine = passengerArray[tempID]->airline * 4;
-	Acquire(checkinLineLock[passengerArray[tempID]->ticket->airline]);
-
-	if(!passengerArray[tempID]->ticket->executive){
-		passengerArray[tempID]->myLine = findShortestLine(true,passengerArray[tempID]->id);
-        elementCount = 0;
-        while(checkinLine[passengerArray[tempID]->myLine][elementCount] != NULL) elementCount++;
-		Printf("Passenger %d of Airline %d chose Airline Check-In staff %d with line length %d\n",
-			79, 4, passengerArray[tempID]->id*100*100*100 + passengerArray[tempID]->airline*100*100 
-			+ passengerArray[tempID]->myLine*100 + elementCount);
-	}
-	else
-		Printf("Passenger %d of Airline %d is waiting in the executive line\n",
-		 60, 2, passengerArray[tempID]->id*100 + passengerArray[tempID]->airline);
-	
-    elementCount = 0;
-    while(checkinLine[passengerArray[tempID]->myLine][elementCount] != NULL) elementCount++;
-    
-	checkinLine[passengerArray[tempID]->myLine][elementCount] = passengerArray[passengerArray[tempID]->id];
-
-	Wait(checkinLineCV[passengerArray[passengerArray[tempID]->id]->myLine], checkinLineLock[passengerArray[passengerArray[tempID]->id]->airline]);
-    
-	Acquire(passengerArrayLock);
-    p = passengerCheckinInteractionOrder[0];
-    for (i = 1; i < 21; i++)
+	/*finds the shortest liaison staff line*/
+	if (type == LIAISON)
     {
-        passengerCheckinInteractionOrder[i-1] = passengerCheckinInteractionOrder[i];
-    }
-    passengerCheckinInteractionOrder[20] = NULL;
-    Release(passengerArrayLock);
-
-    /*go to next step
-    Exit(0);
+		for (i = 0; i < 5; i++)
+        {
+            elementCount = findArrayElementCount(GetMonitorVariable(liaisonLineList, i));
+            if (elementCount < minValue)
+            {
+                location = i;
+                minValue = elementCount;
+            }
+		}
+	}
+	/*finds the shortest checkin staff line*/
+	else /* if (type == CHECKIN) */
+    {
+		CIS_ID = p.airline * 4 + 1;
+		for(i = CIS_ID; i < CIS_ID + 3; i++)
+        {
+            state = GetMonitorVariable(checkinStateList, i);
+            elementCount = findArrayElementCount(GetMonitorVariable(checkinLineList, i));
+            if ((elementCount < minValue) && (state != CI_CLOSED || state != CI_NONE))
+            {
+                location = i;
+                minValue = elementCount;
+            }
+		}	
+	}
+    
+    myLine = location;;
 }
 
-void PassengerFindShortestLiaisonLine(Passenger *p){
+void GoToCheckin()
+{
+	int i, j, elementCount, checkinLineLock, checkinLineCV;
+    
+	myLine = p.airline * 4;
+    
+    checkinLineLock = GetMonitorVariable(checkinLineLockList, p.airline);
+    
+	Acquire(checkinLineLock);
 
-    int i, elementCount;
+    if (p.ticket->executive)
+    {
+		Printf("Passenger %d of Airline %d is waiting in the executive line\n", 60, 2, id*100 + p.airline);
+    }
+    else
+    {
+        findShortestLine(CHECKIN);
+        
+        checkinLine = GetMonitorVariable(checkinLineList, myLine);
+    
+        elementCount = findArrayElementCount(checkinLine);
+		Printf("Passenger %d of Airline %d chose Airline Check-In staff %d with line length %d\n", 79, 4, id*100*100*100 + p.airline*100*100 + myLine*100 + elementCount);
+    }
+    
+	SetMonitorVariable(checkinLine, elementCount, &p);
+    
+    checkinLineCV = GetMonitorVariable(checkinLineCVList, myLine);
+
+	Wait(checkinLineCV, checkinLineLock);
+    
+    Release(checkinLineLock);
+    
+    /* continue */
+}
+
+void GoToLiaison()
+{
+    int i, elementCount, liaisonLine, liaisonLock, liaisonCV;
+    
 	Acquire(liaisonLineLock);
-	passengerArray[p->id]->myLine = findShortestLine(false, p->id);
-	elementCount = 0;
-
-	for (i = 0; i < 21; i++){
-		if(liaisonLine[passengerArray[p->id]->myLine][i] != NULL)
-			elementCount++;	
-		else
-			break;		
-	}
-
-	Printf("Passenger %d chose liaison %d with a line length of %d\n",
-	 55, 3, passengerArray[p->id]->id*100*100 + passengerArray[p->id]->myLine*100 + elementCount);
-
-	liaisonLine[p->myLine][elementCount] = passengerArray[p->id];
-
-	if(liaisonState[passengerArray[p->id]->myLine] == L_BUSY){
-		/*Wait for an available liaison
-
-		Wait(liaisonLineCV[passengerArray[p->id]->myLine], liaisonLineLock);
-
-	}
-	else
-		Release(liaisonLineLock);
-
-	Acquire(passengerArrayLock);
-    p = passengerLiaisonInteractionOrder[0][0];
-    for (i = 1; i < 21; i++)
-    {
-        passengerLiaisonInteractionOrder[0][i-1] = passengerLiaisonInteractionOrder[0][i];
-    }
-    passengerLiaisonInteractionOrder[0][20] = NULL;
-    Release(passengerArrayLock);
     
-	Acquire(liaisonLock[passengerArray[p->id]->myLine]);
-		/*wait for liaison confirmation
-	
-    Acquire(liaisonArrayLock);		/*prevent alteration while calculating the # of elements in
-    								  the array
-
-    elementCount = 0;
-    for (i = 0; i < 5; i++){
-		if(liaisonPassengerInteractionOrder[i] != NULL){
-			elementCount++;
-		}
-	}
-	/*add passenger to the end of the array
-    liaisonPassengerInteractionOrder[elementCount] = liaisonArray[p->myLine];
-	/*Give liaison information
-	Signal(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
-
-    Release(liaisonArrayLock);
-	
-	Wait(liaisonCV[passengerArray[p->id]->myLine], liaisonLock[passengerArray[p->id]->myLine]);
-
-	Acquire(passengerArrayLock);
-    p = passengerLiaisonInteractionOrder[1][0];
-    for (i = 1; i < 21; i++)
+	findShortestLine(LIAISON);
+    
+    liaisonLine = GetMonitorVariable(liaisonLineList, myLine);
+    
+    elementCount = findArrayElementCount(liaisonLine);
+	Printf("Passenger %d chose liaison %d with a line length of %d\n", 55, 3, id*100*100 + myLine*100 + elementCount);
+    
+	SetMonitorVariable(liaisonLine, elementCount, &p);
+    
+	if(GetMonitorVariable(liaisonStateList, myLine) == L_BUSY)
     {
-        passengerLiaisonInteractionOrder[1][i-1] = passengerLiaisonInteractionOrder[1][i];
-    }
-    passengerLiaisonInteractionOrder[1][20] = NULL;
-	Release(passengerArrayLock);
+		/*Wait for an available liaison*/
+		Wait(GetMonitorVariable(liaisonLineCVList, myLine), liaisonLineLock);
+	}
+    
+	Release(liaisonLineLock);
+    
+    liaisonLock = GetMonitorVariable(liaisonLockList, myLine);
+    liaisonCV = GetMonitorVariable(liaisonCVList, myLine);
+    
+	Acquire(liaisonLock);
+    
+	/*Give liaison information*/
+    
+	Signal(liaisonCV, liaisonLock);
+    
+	Wait(liaisonCV, liaisonLock);
 
-	Printf("Passenger %d of Airline %d is directed to the airline counter.\n",
-		63, 2, passengerArray[p->id]->id*100 + passengerArray[p->id]->airline);
-
-	/*move to the designated checkin counter
-	PassengerFindShortestCISLine(passengerArray[p->id]);	
+	Printf("Passenger %d of Airline %d is directed to the airline counter.\n", 63, 2, id*100 + p.airline);
+    
+    Release(liaisonLock);
 }
 
-*/
-
-void CreatePassenger()
+int CreatePassenger()
 {
     int i, j;
-    Passenger pass;
+    
+    p.ticket->executive = false;
+    for (j = 0; j < 3; j++)
+    {
+        p.bags[j]->airlineCode = 0;
+        p.bags[j]->weight = 30;
+    }
+    p.boardingPass->gate = 0;
+    p.boardingPass->seatNum = 0;
     
     Acquire(passengerListLock);
     for (i = 0; i < 21; i++)
     {
-        Passenger* p = (Passenger*) GetMonitorVariable(passengerList, i);
-        if (! p)
+        Passenger* pass = (Passenger*) GetMonitorVariable(passengerList, i);
+        if (! pass)
         {
-            pass.id = i;
-            pass.ticket->airline = i%3;
-            pass.ticket->airline = false;
-            pass.myLine = 0;
-            pass.CISline = false;
-            for (j = 0; j < 3; j++)
-            {
-                pass.bags[j]->airlineCode = 0;
-                pass.bags[j]->weight = 30;
-            }
-            pass.boardingPass->gate = 0;
-            pass.boardingPass->seatNum = 0;
-            SetMonitorVariable(passengerList, i, &pass);
+            p.id = i;
+            p.ticket->airline = i%3;
+            SetMonitorVariable(passengerList, i, &p);
             break;
         }
     }
     Release(passengerListLock);
+    return i;
 }
 
 int main()
 {
     CreateVariables();
-    CreatePassenger();
+    id = CreatePassenger();
+    GoToLiaison();
+    GoToCheckin();
+    /* ??? */
 }
