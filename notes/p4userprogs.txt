@@ -62,20 +62,11 @@ void CreateVariables()
     
     passengerListLock = CreateLock("passengerListLock", 17);
     passengerList = CreateMonitorVariable("passengerList", 13, 21);
-    passengerLiaisonInteractionOrderList = CreateMonitorVariable("passengerLiaisonInteractionOrderList", 41, 5);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 0, passengerLiaisonInteractionOrder1);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 1, passengerLiaisonInteractionOrder2);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 2, passengerLiaisonInteractionOrder3);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 3, passengerLiaisonInteractionOrder4);
-    SetMonitorVariable(passengerLiaisonInteractionOrderList, 4, passengerLiaisonInteractionOrder5);
 
     /* Liaison variables */
     
     liaisonList = CreateMonitorVariable("liaisonList", 11, 5);
     liaisonListLock = CreateLock("liaisonListLock", 16);
-    liaisonPassengerInteractionOrder = CreateMonitorVariable("liaisonPassengerInteractionOrder", 32, 5);
-    liaisonManagerInteractionOrder = CreateMonitorVariable("liaisonManagerInteractionOrder", 30, 5);
-    liaisonWaitOrder = CreateMonitorVariable("liaisonWaitOrder", 16, 5);
     liaisonLineList = CreateMonitorVariable("liaisonLineList", 15, 5);
     liaisonLine1 = CreateMonitorVariable("liaisonLine1", 12, 21);
     liaisonLine2 = CreateMonitorVariable("liaisonLine2", 12, 21);
@@ -106,21 +97,31 @@ void CreateVariables()
     
     checkinList = CreateMonitorVariable("checkinList", 11, 12);
     checkinListLock = CreateLock("checkinListLock", 15);
-    checkinBreakOrder = CreateMonitorVariable("checkinBreakOrder", 17, 12);
-    checkinManagerInteractionOrder = CreateMonitorVariable("checkinManagerInteractionOrder", 30, 12);
     checkinLineList = CreateMonitorVariable("checkinLineList", 15, 12);
-    checkinLine1 = CreateMonitorVariable("checkinLine1", 12, 21);
-    checkinLine2 = CreateMonitorVariable("checkinLine2", 12, 21);
-    checkinLine3 = CreateMonitorVariable("checkinLine3", 12, 21);
-    checkinLine4 = CreateMonitorVariable("checkinLine4", 12, 21);
-    checkinLine5 = CreateMonitorVariable("checkinLine5", 12, 21);
-    checkinLine6 = CreateMonitorVariable("checkinLine6", 12, 21);
-    checkinLine7 = CreateMonitorVariable("checkinLine7", 12, 21);
-    checkinLine8 = CreateMonitorVariable("checkinLine8", 12, 21);
-    checkinLine9 = CreateMonitorVariable("checkinLine9", 12, 21);
+    checkinLine1  = CreateMonitorVariable("checkinLine1",  12, 21);
+    checkinLine2  = CreateMonitorVariable("checkinLine2",  12, 21);
+    checkinLine3  = CreateMonitorVariable("checkinLine3",  12, 21);
+    checkinLine4  = CreateMonitorVariable("checkinLine4",  12, 21);
+    checkinLine5  = CreateMonitorVariable("checkinLine5",  12, 21);
+    checkinLine6  = CreateMonitorVariable("checkinLine6",  12, 21);
+    checkinLine7  = CreateMonitorVariable("checkinLine7",  12, 21);
+    checkinLine8  = CreateMonitorVariable("checkinLine8",  12, 21);
+    checkinLine9  = CreateMonitorVariable("checkinLine9",  12, 21);
     checkinLine10 = CreateMonitorVariable("checkinLine10", 12, 21);
     checkinLine11 = CreateMonitorVariable("checkinLine11", 12, 21);
     checkinLine12 = CreateMonitorVariable("checkinLine12", 12, 21);
+    SetMonitorVariable(checkinLineList, 0,  checkinLine1);
+    SetMonitorVariable(checkinLineList, 1,  checkinLine2);
+    SetMonitorVariable(checkinLineList, 2,  checkinLine3);
+    SetMonitorVariable(checkinLineList, 3,  checkinLine4);
+    SetMonitorVariable(checkinLineList, 4,  checkinLine5);
+    SetMonitorVariable(checkinLineList, 5,  checkinLine6);
+    SetMonitorVariable(checkinLineList, 6,  checkinLine7);
+    SetMonitorVariable(checkinLineList, 7,  checkinLine8);
+    SetMonitorVariable(checkinLineList, 8,  checkinLine9);
+    SetMonitorVariable(checkinLineList, 9,  checkinLine10);
+    SetMonitorVariable(checkinLineList, 10, checkinLine11);
+    SetMonitorVariable(checkinLineList, 11, checkinLine12);
     checkinLineLockList = CreateMonitorVariable("checkinLineLockList", 19, 3);
     checkinLineCVList = CreateMonitorVariable("checkinLineCVList", 17, 12);
     checkinCVList = CreateMonitorVariable("checkinCVList", 13, 12);
@@ -148,11 +149,6 @@ void CreateVariables()
     
     cargoList = CreateMonitorVariable("cargoList", 9, 5);
     cargoListLock = CreateLock("cargoListLock", 13);
-    cargoManagerInteractionOrderList = CreateMonitorVariable("cargoManagerInteractionOrderList", 32, 2);
-    cargoManagerInteractionOrder1 = CreateMonitorVariable("cargoManagerInteractionOrder1", 29, 5);
-    cargoManagerInteractionOrder2 = CreateMonitorVariable("cargoManagerInteractionOrder2", 29, 5);
-    SetMonitorVariable(cargoManagerInteractionOrderList, 0, cargoManagerInteractionOrder1);
-    SetMonitorVariable(cargoManagerInteractionOrderList, 1, cargoManagerInteractionOrder2);
     cargoCVList = CreateMonitorVariable("cargoCVList", 11, 5);
     cargoDataCVList = CreateMonitorVariable("cargoDataCVList", 15, 5);
     cargoDataLockList = CreateMonitorVariable("cargoDataLockList", 17, 5);
