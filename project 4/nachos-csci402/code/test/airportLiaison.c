@@ -10,8 +10,7 @@
 /* Personal variables */
 
 int id;
-int myLine;
-Passenger p;
+Liaison l;
 
 /* General variables */
 
@@ -267,124 +266,73 @@ void CreateVariables()
     clearAirlineCount = CreateMonitorVariable("clearAirlineCount", 17, 1);
 }
 
+/* Removes the first element from an array of 21 passengers and moves all other elements down */
+void RemoveFromQueue(int array)
+{
+    for (i = 1; i < 21; i++)
+    {
+        SetMonitorVariable(array, i-1, GetMonitorVariable(array, i));
+    }
+    SetMonitorVariable(array, 20, 0);
+}
+
 void RunLiaison()
 {
-    int i, elementCount,
-
+    int i, liaisonLine, liaisonLineCV, liaisonState, elementCount;
     Passenger* p;
     
-    Acquire(liaisonArrayLock);
-    lCount = liaisonCount;
-    liaisonArray[lCount]->id = liaisonCount;
-    liaisonCount++;
-    for (i = 0; i < 3; i++)
-    {
-        liaisonArray[lCount]->passengers[i] = 0;
-        liaisonArray[lCount]->luggage[i] = 0;
-        liaisonArray[lCount]->weight[i] = 0;
-    }    
-    for(i = 0; i <10; i++)
-    	var[i] = 0;
-
-    order =0;
-    Release(liaisonArrayLock);
-        
+    liaisonLine = GetMonitorVariable(liaisonLineList, id);
+    liaisonLineCV = GetMonitorVariable(liaisonLineCVList, id);
+    liaisonCV = GetMonitorVariable(liaisonCVList, id);
+    liaisonLock = GetMonitorVariable(liaisonLockList, id);
+    liaisonState = GetMonitorVariable(liaisonStateList, id);
+    requestingLiaisonData = GetMonitorVariable(requestingLiaisonDataList, id);
+    
     while(true)
     {
         Acquire(liaisonLineLock);
-        tempPassengerID = 0;
-        P = liaisonLine[lCount][0];
-        if (P != NULL){
-        	tempPassengerID = P->id;
-
-        	liaisonArray[lCount]->myPassengerID = P->id;
-
-
-            for (i = 1; i < 21; i++)
-            {
-                liaisonLine[lCount][i-1] = liaisonLine[lCount][i];
-            }
-		
+        
+        p = (Passenger*)GetMonitorVariable(liaisonLine, 0);
+        
+        if (p != NULL)
+        {
+            RemoveFromQueue(liaisonLine);
             
-            liaisonLine[lCount][20] = NULL;
-			Signal(liaisonLineCV[lCount], liaisonLineLock);
-            liaisonState[lCount] = L_BUSY;
-
-            passengerArray[tempPassengerID]->airline = passengerArray[tempPassengerID]->ticket->airline;
-            Acquire(passengerArrayLock);
-            var[1] = 0;
-            for (i = 0; i < 21; i++){
-				if(passengerLiaisonInteractionOrder[0][i] != NULL){
-					var[1]++;				
-				}
-			}
-			/*add passenger to the end of the array*/
-            passengerLiaisonInteractionOrder[0][var[1]] = passengerArray[tempPassengerID];
-            Release(passengerArrayLock);
-            Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3,
-                    liaisonArray[lCount]->id*100*100 + liaisonArray[lCount]->myPassengerID*100 + passengerArray[tempPassengerID]->airline);
+			Signal(liaisonLineCV, liaisonLineLock);
+            
+            liaisonState = L_BUSY;
         }
         else
         {
-            liaisonState[lCount] = L_FREE;
+            liaisonState = L_FREE;
         }
-        Acquire(liaisonLock[lCount]);
+        
+        Acquire(liaisonLock);
+        
         Release(liaisonLineLock);
-        if (P != NULL)
+        
+        Wait(liaisonCV, liaisonLock);
+        
+        if (p != NULL)
         {
-            Wait(liaisonCV[lCount], liaisonLock[lCount]);
-            Acquire(liaisonArrayLock);
-
-            lCount = liaisonPassengerInteractionOrder[0]->id;
-		    for (i = 1; i < 5; i++)
-		    {
-		        liaisonPassengerInteractionOrder[i-1] = liaisonPassengerInteractionOrder[i];
-		    }
-		    liaisonPassengerInteractionOrder[4] = NULL;
-			Release(liaisonArrayLock);
-
-            Acquire(liaisonLock[lCount]);
-            order = liaisonArray[lCount]->myPassengerID;
-            liaisonArray[lCount]->passengers[passengerArray[order]->airline]++;
-            for (q = 0; q < 3; q++)
+            p->airline = p->ticket->airline;
+            
+            Printf("Airport Liaison %d directed passenger %d of airline %d\n", 55, 3, id*100*100 + p->id*100 + p->airline);
+            
+            l.passengers[p->airline]++;
+            for (i = 0; i < 3; i++)
             {
-                liaisonArray[lCount]->luggage[passengerArray[order]->airline]++;
-                liaisonArray[lCount]->weight[passengerArray[order]->airline] += passengerArray[order]->bags[q]->weight;
+                l.luggage[p->airline]++;
+                l.weight[p->airline] += p->bags[i]->weight;
             }
-                       
 
-            Acquire(passengerArrayLock);
-            var[2] = 0;
-            for (i = 0; i < 21; i++){
-				if(passengerLiaisonInteractionOrder[1][i] != NULL){
-					var[2]++;				
-				}
-				else break;
-			}  
+            Signal(liaisonCV, liaisonLock);
 
-			/*add passenger to the end of the array*/
-            passengerLiaisonInteractionOrder[1][var[2]] = passengerArray[order];
-
-            Signal(liaisonCV[lCount], liaisonLock[lCount]);
-
-			Release(passengerArrayLock);
-
-            P = NULL;
-            Release(liaisonLock[lCount]);
-
+            p = NULL;
         }
-        else
-        {
-            Wait(liaisonCV[lCount], liaisonLock[lCount]);
-            Acquire(liaisonArrayLock);
-            lCount = liaisonWaitOrder[0]->id;
-		    for (i = 1; i < 5; i++)
-		    {
-		        liaisonWaitOrder[i-1] = liaisonWaitOrder[i];
-		    }
-		    liaisonWaitOrder[4] = NULL;
-			Release(liaisonArrayLock);
-        }
+        
+        Release(liaisonLock);
+        
         if (requestingLiaisonData[lCount])
         {
             Acquire(liaisonManagerLock);
@@ -409,38 +357,33 @@ void RunLiaison()
 
 int CreateLiaison()
 {
-    int i, j;
+    int i;
     
-    p.ticket->executive = false;
-    for (j = 0; j < 3; j++)
+    for (i = 0; i < 3; i++)
     {
-        p.bags[j]->airlineCode = 0;
-        p.bags[j]->weight = 30;
+        l.passengers[i] = 0;
+        l.luggage[i] = 0;
+        l.weight[i] = 0;
     }
-    p.boardingPass->gate = 0;
-    p.boardingPass->seatNum = 0;
     
     Acquire(liaisonListLock);
-    for (i = 0; i < 21; i++)
+    for (i = 0; i < 5; i++)
     {
-        Passenger* pass = (Passenger*) GetMonitorVariable(passengerList, i);
-        if (! pass)
+        Liaison* liaison = (Liaison*) GetMonitorVariable(liaisonList, i);
+        if (! liaison)
         {
-            p.id = i;
-            p.ticket->airline = i%3;
-            SetMonitorVariable(passengerList, i, &p);
+            l.id = i;
+            SetMonitorVariable(liaisonList, i, &l);
             break;
         }
     }
-    Release(passengerListLock);
+    Release(liaisonListLock);
     return i;
 }
 
 int main()
 {
     CreateVariables();
-    id = CreatePassenger();
-    GoToLiaison();
-    GoToCheckin();
-    /* ??? */
+    id = CreateLiaison();
+    RunLiaison();
 }

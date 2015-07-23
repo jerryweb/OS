@@ -45,7 +45,6 @@ typedef struct {
 
 typedef struct {
 	int id;
-	int myPassengerID;
 	int passengers[3];
     int luggage[3];
     int weight[3];

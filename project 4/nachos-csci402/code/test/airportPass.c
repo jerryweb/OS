@@ -280,7 +280,7 @@ int findArrayElementCount(int array)
 
 void findShortestLine(LineType type)
 {
-    int i, elementCount, location, minValue, CIS_ID;
+    int i, elementCount, location, minValue, cisID;
     CheckinState state;
     location = -1;
 	minValue = 21;
@@ -301,8 +301,8 @@ void findShortestLine(LineType type)
 	/*finds the shortest checkin staff line*/
 	else /* if (type == CHECKIN) */
     {
-		CIS_ID = p.airline * 4 + 1;
-		for(i = CIS_ID; i < CIS_ID + 3; i++)
+		cisID = p.airline * 4 + 1;
+		for(i = cisID; i < cisID + 3; i++)
         {
             state = GetMonitorVariable(checkinStateList, i);
             elementCount = findArrayElementCount(GetMonitorVariable(checkinLineList, i));
@@ -393,13 +393,13 @@ void GoToLiaison()
 
 int CreatePassenger()
 {
-    int i, j;
+    int i;
     
     p.ticket->executive = false;
-    for (j = 0; j < 3; j++)
+    for (i = 0; i < 3; i++)
     {
-        p.bags[j]->airlineCode = 0;
-        p.bags[j]->weight = 30;
+        p.bags[i]->airlineCode = 0;
+        p.bags[i]->weight = 30;
     }
     p.boardingPass->gate = 0;
     p.boardingPass->seatNum = 0;
@@ -412,6 +412,8 @@ int CreatePassenger()
         {
             p.id = i;
             p.ticket->airline = i%3;
+            if (i%7 == 6)
+                p.ticket->executive = true;
             SetMonitorVariable(passengerList, i, &p);
             break;
         }
