@@ -1,9 +1,9 @@
 /*This is the struct for all of the public airport data*/
 
-typedef enum  {false, true} bool;
-typedef enum  {L_FREE, L_BUSY, L_NONE} LiaisonState;
-typedef enum  {CI_NONE, CI_FREE, CI_BUSY, CI_BREAK, CI_CLOSED} CheckinState;
-typedef enum  {C_BUSY, C_BREAK} CargoState;
+typedef enum  {false,   true   } bool;
+typedef enum  {L_BUSY,  L_FREE } LiaisonState;
+typedef enum  {CI_BUSY, CI_FREE, CI_BREAK, CI_CLOSED, CI_NONE} CheckinState;
+typedef enum  {C_BUSY,  C_BREAK} CargoState;
 typedef enum  {SO_BUSY, SO_FREE} ScreenState;
 typedef enum  {SC_BUSY, SC_FREE} SecurityState;
 

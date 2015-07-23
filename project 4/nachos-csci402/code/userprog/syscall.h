@@ -216,7 +216,7 @@ void DestroyMonitorVariable(int MVArrayIndex);
 
 int GetMonitorVariable(int indexPosition, int pos);
 
-void SetMonitorVariable(int indexPosition, int size, int value);
+void SetMonitorVariable(int indexPosition, int pos, int value);
 
 
 
