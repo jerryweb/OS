@@ -289,8 +289,6 @@ void RunServer() {
 		ss << buffer;
 		ss >> request;
 		printf("request type is %d\n",request);
-		ss >> arg1;
-		char* cArg1 = (char*) arg1.c_str();
 
 		//declare these used for switch block
 		serverLock* sLock;
@@ -302,6 +300,8 @@ void RunServer() {
 		switch (request)
 		{
 			case 1:   //create lock
+			ss >> arg1;
+			char* cArg1 = (char*) arg1.c_str();
 			createLock(cArg1, serverLockTable, inPktHdr.from,0);
 			break;
 
@@ -314,7 +314,7 @@ void RunServer() {
 			//cArg2 = (char*)arg2.c_str();
 
 			//index = getTableIndex(cArg2,serverLockTable,1);
-			sLock = (serverLock*)serverLockTable->Get(index);
+			sLock = (serverLock*)serverLockTable->Get();
 			sLock->Acquire(inPktHdr.from,0);
 			break;
 
@@ -455,7 +455,7 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 		if (!tableItemExist(cName, cTable, 2)) {
 			msg = "1";
 		}
-		else {//Delete all the CVs from the. This should only run at the end of the program
+		else { //Delete all the CVs from the. This should only run at the end of the program
 			int toRemove = cTable->Size();
 			toRemove--;
 			while(cTable->getCount() != 0) {

@@ -671,8 +671,10 @@ void Acquire_Syscall(int lock)
 	string toSend;
 	stringstream ss;
 	ss << "3 " << lock << " ";
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
+
+	printf("Acquire_Syscall:sending %s to server\n",request);
 
 	clientRequest(request,0,0);
 	serverResponseValidation();
@@ -765,7 +767,7 @@ void Release_Syscall(int lock)
 	string toSend;
 	stringstream ss;
 	ss << "4 " << sLock->name;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
@@ -851,7 +853,7 @@ void Wait_Syscall(int lock, int CV)
 	string toSend;
 	stringstream ss;
 	ss << "8 " << sCond->name << " " <<sLock->name;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
@@ -935,7 +937,7 @@ void Signal_Syscall(int lock, int CV) {
 	string toSend;
 	stringstream ss;
 	ss << "7 " << sCond->name << " " << sLock->name;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
@@ -1010,7 +1012,7 @@ void Broadcast_Syscall(int lock, int CV)
 	string toSend;
 	stringstream ss;
 	ss << "9 " << sCond->name << " "<<sLock->name;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
@@ -1143,7 +1145,7 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 	string toSend;
 	stringstream ss;
 	ss << "5 " << buf;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
@@ -1175,7 +1177,7 @@ void DestroyLock_Syscall(int id)
 	string toSend;
 	stringstream ss;
 	ss << "2 " << sLock->name;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
@@ -1220,7 +1222,7 @@ void DestroyCondition_Syscall(int CV)
 	string toSend;
 	stringstream ss;
 	ss << "6 " << sCond->name;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	clientRequest(request,0,0);
