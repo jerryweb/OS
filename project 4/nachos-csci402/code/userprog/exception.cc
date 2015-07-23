@@ -61,7 +61,8 @@ struct KernelCondition {
 #ifdef NETWORK
 Table* serverLockTable;
 Table* serverCVTable;
-int createLockRequests,createCVRequests;
+Table* MVTable;
+int createLockRequests,createCVRequests,createMVRequests;
 #endif
 
 
@@ -69,7 +70,6 @@ int createLockRequests,createCVRequests;
 Table* processTable;
 Table* MVTable;
 Table* LastTimeRecievedTable;
-
 BitMap* memMap;
 
 Lock* forkLock;
@@ -1101,7 +1101,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 
 //THIS NEEDS TO BE CONFIRMED 
 void DestroyMonitorVariable_Syscall(int id){
-	*MonitorVariable monVar = (MonitorVariable*) MVTable->Get(id);
+	MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
 
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
 	{   // Check if MV has been created (or not yet destroyed).
@@ -1121,7 +1121,7 @@ void DestroyMonitorVariable_Syscall(int id){
 }
 
 int GetMonitorVariable_Syscall(int indexPosition, int pos){
-	MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
+	MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(pos);
 	int location;
 	/*
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)

@@ -10,8 +10,7 @@
 /* Personal variables */
 
 int id;
-int myLine;
-Passenger p;
+Cargo c;
 
 /* General variables */
 
@@ -267,167 +266,113 @@ void CreateVariables()
     clearAirlineCount = CreateMonitorVariable("clearAirlineCount", 17, 1);
 }
 
-/* Finds the number of elements in an array of 21 passengers */
-int findArrayElementCount(int array)
+void RunCargo()
 {
-	int elementCount = 0;
+    int i, bagIndex;
+    int cargoLock, cargoDataCV, cargoDataLock, cargoManagerCV;
+    Luggage* bag;
     
-	while((Passenger*)GetMonitorVariable(array, elementCount) != NULL)
-        elementCount++;
+    cargoLock = GetMonitorVariable(cargoLockList, id);
+    cargoDataCV = GetMonitorVariable(cargoDataCVList, id);
+    cargoDataLock = GetMonitorVariable(cargoDataLockList, id);
+    cargoManagerCV = GetMonitorVariable(cargoManagerCVList, id);
     
-	return elementCount;
-}
-
-void findShortestLine(LineType type)
-{
-    int i, elementCount, location, minValue, cisID;
-    CheckinState state;
-    location = -1;
-	minValue = 21;
-    
-	/*finds the shortest liaison staff line*/
-	if (type == LIAISON)
+    while (true)
     {
-		for (i = 0; i < 5; i++)
-        {
-            elementCount = findArrayElementCount(GetMonitorVariable(liaisonLineList, i));
-            if (elementCount < minValue)
-            {
-                location = i;
-                minValue = elementCount;
-            }
-		}
-	}
-	/*finds the shortest checkin staff line*/
-	else /* if (type == CHECKIN) */
-    {
-		cisID = p.airline * 4 + 1;
-		for(i = cisID; i < cisID + 3; i++)
-        {
-            state = GetMonitorVariable(checkinStateList, i);
-            elementCount = findArrayElementCount(GetMonitorVariable(checkinLineList, i));
-            if ((elementCount < minValue) && (state != CI_CLOSED || state != CI_NONE))
-            {
-                location = i;
-                minValue = elementCount;
-            }
-		}	
-	}
-    
-    myLine = location;
-}
-
-void GoToCheckin()
-{
-	int i, j, elementCount, checkinLineLock, checkinLineCV;
-    
-	myLine = p.airline * 4;
-    
-    checkinLineLock = GetMonitorVariable(checkinLineLockList, p.airline);
-    
-	Acquire(checkinLineLock);
-
-    if (p.ticket->executive)
-    {
-		Printf("Passenger %d of Airline %d is waiting in the executive line\n", 60, 2, id*100 + p.airline);
-    }
-    else
-    {
-        findShortestLine(CHECKIN);
+        Acquire(conveyorLock);
         
-        checkinLine = GetMonitorVariable(checkinLineList, myLine);
-    
-        elementCount = findArrayElementCount(checkinLine);
-		Printf("Passenger %d of Airline %d chose Airline Check-In staff %d with line length %d\n", 79, 4, id*100*100*100 + p.airline*100*100 + myLine*100 + elementCount);
+        if (GetMonitorVariable(conveyorSize, 0) == 0)
+        {
+            Acquire(cargoLock);
+            
+            if (GetMonitorVariable(cargoStateList, id) != C_BREAK)
+            {
+                Printf("Cargo Handler %d is going for a break\n", 38, 1, id);
+                SetMonitorVariable(cargoStateList, id, C_BREAK);
+            }
+            
+            Release(conveyorLock);
+
+            Wait(cargoDataCV, cargoLock);
+
+            Acquire(conveyorLock);
+            
+            Release(cargoLock);
+            
+            if (GetMonitorVariable(conveyorSize, 0) > 0)
+            {
+                Printf("Cargo Handler %d returned from break\n", 37, 1, id);
+                SetMonitorVariable(cargoStateList, id, C_BUSY);
+            }
+        }
+        else if (GetMonitorVariable(cargoStateList, id) == C_BUSY)
+        {
+            bagIndex = GetMonitorVariable(conveyorSize, 0) - 1;
+            bag = (Luggage*)GetMonitorVariable(conveyor, bagIndex);
+            
+            SetMonitorVariable(conveyor, bagIndex, 0);
+            SetMonitorVariable(conveyorSize, 0, bagIndex);
+            
+            Printf("Cargo Handler %d picked bag of airline %d weighing %d lbs\n", 58, 3, id*100*100 + bag->airlineCode*100 + bag->weight);
+            
+            bagIndex = GetMonitorVariable(aircraftCountList, bag->airlineCode);
+            
+            SetMonitorVariable(GetMonitorVariable(aircraft, bag->airlineCode), bagIndex, (int)bag);
+            SetMonitorVariable(aircraftCountList, bag->airlineCode, bagIndex + 1);
+            
+            c.luggage[bag->airlineCode]++;
+            c.weight[bag->airlineCode] += bag->weight;
+        }
+        Release(conveyorLock);
+        
+        if (GetMonitorVariable(requestingCargoDataList, id))
+        {
+            Acquire(cargoManagerLock);
+            
+            Acquire(cargoDataLock);
+            
+            Signal(cargoManagerCV, cargoManagerLock);
+            
+            Release(cargoManagerLock);
+            
+            Wait(cargoCV, cargoDataLock);
+
+            SetMonitorVariable(requestingCargoDataList, id, false);
+            
+            Release(cargoDataLock);
+        }
     }
-    
-	SetMonitorVariable(checkinLine, elementCount, &p);
-    
-    checkinLineCV = GetMonitorVariable(checkinLineCVList, myLine);
-
-	Wait(checkinLineCV, checkinLineLock);
-    
-    Release(checkinLineLock);
-    
-    /* continue */
 }
 
-void GoToLiaison()
-{
-    int i, elementCount, liaisonLine, liaisonLock, liaisonCV;
-    
-	Acquire(liaisonLineLock);
-    
-	findShortestLine(LIAISON);
-    
-    liaisonLine = GetMonitorVariable(liaisonLineList, myLine);
-    
-    elementCount = findArrayElementCount(liaisonLine);
-	Printf("Passenger %d chose liaison %d with a line length of %d\n", 55, 3, id*100*100 + myLine*100 + elementCount);
-    
-	SetMonitorVariable(liaisonLine, elementCount, &p);
-    
-	if(GetMonitorVariable(liaisonStateList, myLine) == L_BUSY)
-    {
-		/*Wait for an available liaison*/
-		Wait(GetMonitorVariable(liaisonLineCVList, myLine), liaisonLineLock);
-	}
-    
-	Release(liaisonLineLock);
-    
-    liaisonLock = GetMonitorVariable(liaisonLockList, myLine);
-    liaisonCV = GetMonitorVariable(liaisonCVList, myLine);
-    
-	Acquire(liaisonLock);
-    
-	/*Give liaison information*/
-    
-	Signal(liaisonCV, liaisonLock);
-    
-	Wait(liaisonCV, liaisonLock);
-
-	Printf("Passenger %d of Airline %d is directed to the airline counter.\n", 63, 2, id*100 + p.airline);
-    
-    Release(liaisonLock);
-}
-
-int CreatePassenger()
+int CreateCargo()
 {
     int i;
     
-    p.ticket->executive = false;
     for (i = 0; i < 3; i++)
     {
-        p.bags[i]->airlineCode = 0;
-        p.bags[i]->weight = 30;
+        c.luggage[i] = 0;
+        c.weight[i] = 0;
     }
-    p.boardingPass->gate = 0;
-    p.boardingPass->seatNum = 0;
     
-    Acquire(passengerListLock);
-    for (i = 0; i < 21; i++)
+    Acquire(cargoListLock);
+    for (i = 0; i < 5; i++)
     {
-        Passenger* pass = (Passenger*) GetMonitorVariable(passengerList, i);
-        if (! pass)
+        Cargo* cargo = (Cargo*) GetMonitorVariable(cargoList, i);
+        if (! cargo)
         {
-            p.id = i;
-            p.ticket->airline = i%3;
-            if (i%7 == 6)
-                p.ticket->executive = true;
-            SetMonitorVariable(passengerList, i, &p);
+            c.id = i;
+            SetMonitorVariable(cargoList, i, &c);
             break;
         }
     }
-    Release(passengerListLock);
+    Release(cargoListLock);
     return i;
 }
 
 int main()
 {
     CreateVariables();
-    id = CreatePassenger();
-    GoToLiaison();
-    GoToCheckin();
-    /* ??? */
+    id = CreateCargo();
+    RunCargo();
     Exit(0);
 }

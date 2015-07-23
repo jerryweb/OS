@@ -86,6 +86,8 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox);
 void destroyLock(char* lName, Table* sTable, int outAddr,int outBox);
 void createCV(char* cName,Table* cTable,int outAddr,int outBox);
 void destroyCV(char* cName,Table* cTable,int outAddr,int outBox);
+void createMV(char* lname, Table* mTable, int outAddr, int outBox);
+void destroyMV(char* mName, Table* mTable, int outAddr,int outBox);
 #endif
 //bool tableItemExist(char* tName, Table* table, int tableType);
 //int getTableIndex(char* tName, Table* table, int tableType);
@@ -299,7 +301,9 @@ void RunServer() {
 		//declare these used for switch block
 		serverLock* sLock;
 		serverCV* sCV;
-		char* cArg2,cArg3;
+		char* cArg1;
+		char* cArg2;
+		char* cArg3;
 		int index2, index3;
 
 		//printf("before switch request\n");
@@ -307,13 +311,16 @@ void RunServer() {
 		{
 			case 1:   //create lock
 				ss >> arg1;
-				char* cArg1 = (char*) arg1.c_str();
+				cArg1 = (char*) arg1.c_str();
 				createLock(cArg1, serverLockTable, inPktHdr.from,0);
 				break;
 
 			case 2://destory lock
-				destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
-				break;
+			ss >> arg1;
+			cArg1 = (char*) arg1.c_str();
+			destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
+			break;
+
 
 			case 3://acquire lock
 				ss >> index;
@@ -332,42 +339,52 @@ void RunServer() {
 				break;
 
 			case 5://create CV
-				createCV(cArg1,serverCVTable,inPktHdr.from,0);
-				break;
+			ss >> arg1;
+			cArg1 = (char*) arg1.c_str();
+			createCV(cArg1,serverCVTable,inPktHdr.from,0);
+			break;
 
 			case 6://destroy CV
-				destroyCV(cArg1,serverCVTable,inPktHdr.from,0);
-				break;
+			ss >> arg1;
+			cArg1 = (char*) arg1.c_str();
+			destroyCV(cArg1,serverCVTable,inPktHdr.from,0);
+			break;
 
 			case 7://CV Signal
-				ss>>arg2;
-				cArg2 = (char*) arg2.c_str();
-				index = getTableIndex(cArg1,serverCVTable,2);
-				index2 = getTableIndex(cArg2,serverLockTable,1);
-				sCV = (serverCV*)serverCVTable->Get(index);
-				sLock = (serverLock*)serverLockTable->Get(index2);
-				sCV->Signal(sLock,inPktHdr.from,0);
-				break;
+			ss >> arg1;
+			cArg1 = (char*) arg1.c_str();
+			ss >> arg2;
+			cArg2 = (char*) arg2.c_str();
+			index = getTableIndex(cArg1,serverCVTable,2);
+			index2 = getTableIndex(cArg2,serverLockTable,1);
+			sCV = (serverCV*)serverCVTable->Get(index);
+			sLock = (serverLock*)serverLockTable->Get(index2);
+			sCV->Signal(sLock,inPktHdr.from,0);
+			break;
 
 			case 8://CV Wait
-				ss>>arg2;
-				cArg2 = (char*) arg2.c_str();
-				index = getTableIndex(cArg1,serverCVTable,2);
-				index2 = getTableIndex(cArg2,serverLockTable,1);
-				sCV = (serverCV*)serverCVTable->Get(index);
-				sLock = (serverLock*)serverLockTable->Get(index2);
-				sCV->Wait(sLock,inPktHdr.from,0);
-				break;
+			ss >> arg1;
+			cArg1 = (char*) arg1.c_str();
+			ss>>arg2;
+			cArg2 = (char*) arg2.c_str();
+			index = getTableIndex(cArg1,serverCVTable,2);
+			index2 = getTableIndex(cArg2,serverLockTable,1);
+			sCV = (serverCV*)serverCVTable->Get(index);
+			sLock = (serverLock*)serverLockTable->Get(index2);
+			sCV->Wait(sLock,inPktHdr.from,0);
+			break;
 
 			case 9://CV Broadcast
-				ss>>arg2;
-				cArg2 = (char*) arg2.c_str();
-				index = getTableIndex(cArg1,serverCVTable,2);
-				index2 = getTableIndex(cArg2,serverLockTable,1);
-				sCV = (serverCV*)serverCVTable->Get(index);
-				sLock = (serverLock*)serverLockTable->Get(index2);
-				sCV->Boardcast(sLock,inPktHdr.from,0);
-				break;
+			ss >> arg1;
+			cArg1 = (char*) arg1.c_str();
+			ss>>arg2;
+			cArg2 = (char*) arg2.c_str();
+			index = getTableIndex(cArg1,serverCVTable,2);
+			index2 = getTableIndex(cArg2,serverLockTable,1);
+			sCV = (serverCV*)serverCVTable->Get(index);
+			sLock = (serverLock*)serverLockTable->Get(index2);
+			sCV->Boardcast(sLock,inPktHdr.from,0);
+			break;
 
 			case 10: //MV Create, NOT COMPLETE
 				ss>> arg2;
@@ -426,7 +443,6 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 		//msg = "1";
 	}
 
-	//TODO:return location?
 	ServerReply(msg,outAddr,outBox,0);
 }
 
@@ -466,14 +482,13 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	if (!tableItemExist(cName,cTable,2)) {
 		serverCV* toPut = new serverCV(cName);
 		location = cTable->Put(toPut);
-		createCVRequests++;   //TODO: where to put this?
+		createCVRequests++;
 		msg = "0";
 	} else {
 		location = getTableIndex(cName,cTable,2);
 		msg = "1";
 	}
 
-	//TODO: return location?
 	ServerReply(msg,outAddr,outBox,0);
 }
 
@@ -518,7 +533,7 @@ void createMV(char* lname, Table* mTable, int outAddr, int outBox){
 		msg = (char*) toSend.c_str();
 	}
 	else{
-		location = getTableIndex(lName,mTable,0);
+		location = getTableIndex(lname,mTable,0);
 		string toSend;
 		stringstream sss;
 		sss <<"10 "<< location;
