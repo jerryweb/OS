@@ -312,6 +312,8 @@ void RunServer() {
 			break;
 
 			case 2://destory lock
+			ss >> arg1;
+			char* cArg1 = (char*) arg1.c_str();
 			destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
 			break;
 
@@ -332,14 +334,20 @@ void RunServer() {
 			break;
 
 			case 5://create CV
+			ss >> arg1;
+			char* cArg1 = (char*) arg1.c_str();
 			createCV(cArg1,serverCVTable,inPktHdr.from,0);
 			break;
 
 			case 6://destroy CV
+			ss >> arg1;
+			char* cArg1 = (char*) arg1.c_str();
 			destroyCV(cArg1,serverCVTable,inPktHdr.from,0);
 			break;
 
 			case 7://CV Signal
+			ss >> arg1;
+			char* cArg1 = (char*) arg1.c_str();
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(cArg1,serverCVTable,2);
@@ -350,6 +358,8 @@ void RunServer() {
 			break;
 
 			case 8://CV Wait
+			ss >> arg1;
+			char* cArg1 = (char*) arg1.c_str();
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(cArg1,serverCVTable,2);
@@ -360,6 +370,8 @@ void RunServer() {
 			break;
 
 			case 9://CV Broadcast
+			ss >> arg1;
+			char* cArg1 = (char*) arg1.c_str();
 			ss>>arg2;
 			cArg2 = (char*) arg2.c_str();
 			index = getTableIndex(cArg1,serverCVTable,2);
@@ -417,7 +429,6 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 		//msg = "1";
 	}
 
-	//TODO:return location?
 	ServerReply(msg,outAddr,outBox,0);
 }
 
@@ -457,14 +468,13 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 	if (!tableItemExist(cName,cTable,2)) {
 		serverCV* toPut = new serverCV(cName);
 		location = cTable->Put(toPut);
-		createCVRequests++;   //TODO: where to put this?
+		createCVRequests++;
 		msg = "0";
 	} else {
 		location = getTableIndex(cName,cTable,2);
 		msg = "1";
 	}
 
-	//TODO: return location?
 	ServerReply(msg,outAddr,outBox,0);
 }
 

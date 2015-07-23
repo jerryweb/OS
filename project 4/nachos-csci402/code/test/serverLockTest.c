@@ -27,7 +27,6 @@ int main(){
     /*Release(1);*/
     /*DestroyLock(1);*/
     /* Create with good name string; ID should always be 0 */
-	Printf("what dafuq\n",11,0,0);
     goodLockID = CreateLock("Test1", 5);
     Printf("Lock Test 1 created\n",20,0,0);
     /* Test syscalls with good lock ID */
