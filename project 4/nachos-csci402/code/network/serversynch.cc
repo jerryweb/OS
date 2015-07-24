@@ -119,7 +119,8 @@ void serverLock::Acquire(int outAddr, int outBox, int fromBox) {
 		stringstream ss;
 		ss << outAddr << " " << outBox << " " << fromBox;
 		toAppend = ss.str();
-		msg = (char*) toAppend.c_str();
+		//msg = (char*) toAppend.c_str();
+		strcpy(msg,(char*)toAppend.c_str());
 		waitQue->Append((void*) msg);
 	}
 }
@@ -128,7 +129,8 @@ void serverLock::Release(int outAddr, int outBox, int fromBox) {
 	printf("*********in serverLock::Release\n");
 
 	char* msg = new char[MaxMailSize];
-	msg = "0"; //default to success
+	//msg = "0"; //default to success
+	strcpy(msg,"0");
 
 	//if sender not the owner
 	if (outAddr != ownerID || outBox != mailboxID) {
@@ -138,7 +140,8 @@ void serverLock::Release(int outAddr, int outBox, int fromBox) {
 	} else if (!waitQue->IsEmpty()) {
 		//send reply to waiting userprog
 		char* waitMsg = new char[MaxMailSize];
-		waitMsg = (char*) waitQue->Remove();
+		//waitMsg = (char*) waitQue->Remove();
+		strcpy(waitMsg,(char*)waitQue->Remove());
 
 		int waitAddr, waitOutBox, waitFromBox;
 		stringstream ss;
@@ -197,7 +200,8 @@ void serverCV::Signal(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 	} else {
 		//remove one msg from waitQue
 		char* waitMsg = new char[MaxMailSize];
-		waitMsg = (char*) waitQue->Remove();
+		//waitMsg = (char*) waitQue->Remove();
+		strcpy(waitMsg,(char*)waitQue->Remove());
 
 		int waitAddr, waitOutBox, waitFromBox;
 		stringstream ss;
