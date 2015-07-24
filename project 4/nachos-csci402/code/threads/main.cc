@@ -220,6 +220,8 @@ int main(int argc, char **argv) {
 		//Table* serverCVTable;
 		serverCVTable = new Table(2048);
 		MVTable = new Table(2048);
+		LTRArray = new unsigned int[5];
+		pendingMsg = new List();
 
 		if (!strcmp(*argv, "-o")) {
 			ASSERT(argc > 1);
@@ -274,6 +276,9 @@ int main(int argc, char **argv) {
 //need to add Broadcast
 void RunServer() {
 	//TODO::change syscall.h for MV calls since they need less arguments
+	//TODO::get machine ID
+
+	int myId;
 
 	while (true)
 	{
@@ -305,10 +310,29 @@ void RunServer() {
 		ss >> request;
 		printf("request type is %d\n",request);
 
-		/*handle server forwarded message first
-		if (request == 0) {
+		/*if it's a client message forward it to other servers
+		if (request != 0) {
+			for (int i =0;i<5;i++) {
+				if (i != myId) {
+					stringstream css;
+					string cs;
+					char* cMsg;
+					fMsg = new char[mailMaxSize];
+					css << "0 " <<buffer;
+					cs = fss.str();
+					cMsg = (char*)cs.c_str();
+					ServerReply(cMsg,i,inMailHdr.from,inMailHdr.to);
+				}
+			}
+		//TODO: always do the else //if it's server forwarded
+		} else {
+			unsigned int newTStamp;
+			int newTStampID;
+			ss >> newTStamp >> newTStampID;
 
-		}*/
+		}
+
+		//always append it to the queue */
 
 		//printf("before switch request\n");
 		switch (request)

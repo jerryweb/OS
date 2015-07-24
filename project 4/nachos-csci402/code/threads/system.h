@@ -82,6 +82,8 @@ extern int createMVRequests;
 extern Table* serverLockTable;
 extern Table* serverCVTable;
 extern Table* MVTable;
+extern unsigned int* LTRArray;
+extern List* pendingMsg;
 #endif
 
 #endif // SYSTEM_H

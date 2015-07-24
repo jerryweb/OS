@@ -32,18 +32,6 @@ int main(){
     Printf("Lock Test 1 created\n",20,0,0);
     cvID = CreateCondition("TestCV1",7);
     Printf("CV Test 1 created\n",18,0,0);
-    goodLockID2 = CreateLock("Test2", 5);
-    Printf("Lock Test 2 created\n",20,0,0);
-    goodLockID3 = CreateLock("Test3", 5);
-    Printf("Lock Test 3 created\n",20,0,0);
-    goodLockID4 = CreateLock("Test4", 5);
-    Printf("Lock Test 4 created\n",20,0,0);
-    cvID2 = CreateCondition("TestCV2",7);
-    Printf("CV Test 2 created\n",18,0,0);
-    cvID3 = CreateCondition("TestCV3",7);
-    Printf("CV Test 3 created\n",18,0,0);
-    cvID4 = CreateCondition("TestCV4",7);
-    Printf("CV Test 4 created\n",18,0,0);
 
     DestroyCondition(cvID);
     Printf("CV Test 1 destroyed\n",20,0,0);

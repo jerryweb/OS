@@ -62,6 +62,8 @@ struct KernelCondition {
 Table* serverLockTable;
 Table* serverCVTable;
 Table* MVTable;
+unsigned int* LTRArray;
+List* pendingMsg;
 int createLockRequests,createCVRequests,createMVRequests;
 #endif
 

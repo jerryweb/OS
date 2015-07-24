@@ -84,7 +84,7 @@ void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
 
 	postOffice->Send(outPktHdr, outMailHdr, sMsg);
 
-	delete[] sMsg;  //since all the msg used in this function is from "new"
+	//delete[] sMsg;  //since all the msg used in this function is from "new"
 }
 
 serverLock::serverLock(char* dName, int owner, int mailbox) {
@@ -110,7 +110,8 @@ void serverLock::Acquire(int outAddr, int outBox, int fromBox) {
 		mailboxID = outBox;
 
 		//encode success msg and send reply
-		msg = "0";
+		strcpy(msg,"0");
+		//msg = "0";
 		ServerReply(msg, outAddr, outBox, fromBox);
 	} else {
 		//produce and append msg to wait queue
