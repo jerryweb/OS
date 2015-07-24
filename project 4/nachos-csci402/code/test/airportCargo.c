@@ -73,7 +73,7 @@ int checkinLine9; /* mv size 21, Passenger* */
 int checkinLine10; /* mv size 21, Passenger* */
 int checkinLine11; /* mv size 21, Passenger* */
 int checkinLine12; /* mv size 21, Passenger* */
-int checkinLineLockList, /* mv size 3, int (lock) */
+int checkinLineLockList; /* mv size 3, int (lock) */
 int checkinLineCVList; /* mv size 12, int (CV) */
 int checkinCVList; /* mv size 12, int (CV) */
 int checkinLockList; /* mv size 12, int (lock) */
@@ -136,7 +136,7 @@ void CreateVariables()
             al.ticketsIssued = 7;
             al.totalBagCount = al.ticketsIssued * 3;
             al.totalBagWeight = al.totalBagCount * 30;
-            SetMonitorVariable(airlineList, i, &al);
+            SetMonitorVariable(airlineList, i, (int)&al);
         }
         SetMonitorVariable(airlineLockList, i, CreateLock("airlineLock", 11));
         SetMonitorVariable(boardingCVList, i, CreateCondition("boardingCV", 10));
@@ -221,7 +221,7 @@ void CreateVariables()
     {
         if (i%4 == 0) /* 0, 4, 8 */
         {
-            SetMonitorVariable(checkinLineLock, i/4, CreateLock("checkinLineLock", 15));
+            SetMonitorVariable(checkinLineLockList, i/4, CreateLock("checkinLineLock", 15));
             SetMonitorVariable(checkinStateList, i, CI_NONE);
         }
         SetMonitorVariable(checkinLineCVList, i, CreateCondition("checkinLineCV", 13));
@@ -255,10 +255,11 @@ void CreateVariables()
 void RunCargo()
 {
     int i, bagIndex;
-    int cargoLock, cargoDataCV, cargoDataLock, cargoManagerCV;
+    int cargoLock, cargoCV, cargoDataCV, cargoDataLock, cargoManagerCV;
     Luggage* bag;
     
     cargoLock = GetMonitorVariable(cargoLockList, id);
+    cargoCV = GetMonitorVariable(cargoCVList, id);
     cargoDataCV = GetMonitorVariable(cargoDataCVList, id);
     cargoDataLock = GetMonitorVariable(cargoDataLockList, id);
     cargoManagerCV = GetMonitorVariable(cargoManagerCVList, id);
@@ -303,7 +304,7 @@ void RunCargo()
             
             bagIndex = GetMonitorVariable(aircraftCountList, bag->airlineCode);
             
-            SetMonitorVariable(GetMonitorVariable(aircraft, bag->airlineCode), bagIndex, (int)bag);
+            SetMonitorVariable(GetMonitorVariable(aircraftList, bag->airlineCode), bagIndex, (int)bag);
             SetMonitorVariable(aircraftCountList, bag->airlineCode, bagIndex + 1);
             
             c.luggage[bag->airlineCode]++;
@@ -347,7 +348,7 @@ int CreateCargo()
         if (! cargo)
         {
             c.id = i;
-            SetMonitorVariable(cargoList, i, &c);
+            SetMonitorVariable(cargoList, i, (int)&c);
             break;
         }
     }
