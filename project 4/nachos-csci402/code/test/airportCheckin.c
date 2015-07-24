@@ -108,7 +108,7 @@ void CreateVariables()
     airlineLockList = CreateMonitorVariable("airlineLockList", 15, 3);
     conveyor = CreateMonitorVariable("conveyor", 8, 63);
     conveyorLock = CreateLock("conveyorLock", 12);
-    conveyorSize = CreateMonitorVariable("conveyor", 12, 1);
+    conveyorSize = CreateMonitorVariable("conveyor", 8, 1);
     aircraftList = CreateMonitorVariable("aircraftList", 12, 3);
     aircraft1 = CreateMonitorVariable("aircraft1", 9, 21);
     aircraft2 = CreateMonitorVariable("aircraft2", 9, 21);
@@ -138,10 +138,16 @@ void CreateVariables()
             al.totalBagWeight = al.totalBagCount * 30;
             SetMonitorVariable(airlineList, i, (int)&al);
         }
-        SetMonitorVariable(airlineLockList, i, CreateLock("airlineLock", 11));
-        SetMonitorVariable(boardingCVList, i, CreateCondition("boardingCV", 10));
-        SetMonitorVariable(boardingLockList, i, CreateLock("boardingLock", 12));
     }
+    SetMonitorVariable(airlineLockList, 0, CreateLock("airlineLock1", 12));
+    SetMonitorVariable(airlineLockList, 1, CreateLock("airlineLock2", 12));
+    SetMonitorVariable(airlineLockList, 2, CreateLock("airlineLock3", 12));
+    SetMonitorVariable(boardingCVList, 0, CreateCondition("boardingCV1", 11));
+    SetMonitorVariable(boardingCVList, 1, CreateCondition("boardingCV2", 11));
+    SetMonitorVariable(boardingCVList, 2, CreateCondition("boardingCV3", 11));
+    SetMonitorVariable(boardingLockList, 0, CreateLock("boardingLock1", 13));
+    SetMonitorVariable(boardingLockList, 1, CreateLock("boardingLock2", 13));
+    SetMonitorVariable(boardingLockList, 2, CreateLock("boardingLock3", 13));
     
     /* Passenger variables */
     
@@ -151,7 +157,7 @@ void CreateVariables()
     /* Liaison variables */
     
     liaisonList = CreateMonitorVariable("liaisonList", 11, 5);
-    liaisonListLock = CreateLock("liaisonListLock", 16);
+    liaisonListLock = CreateLock("liaisonListLock", 15);
     liaisonLineList = CreateMonitorVariable("liaisonLineList", 15, 5);
     liaisonLine1 = CreateMonitorVariable("liaisonLine1", 12, 21);
     liaisonLine2 = CreateMonitorVariable("liaisonLine2", 12, 21);
@@ -166,17 +172,26 @@ void CreateVariables()
     liaisonManagerLock = CreateLock("liaisonManagerLock", 18);
     liaisonManagerCV = CreateCondition("liaisonManagerCV", 16);
     liaisonLineLock = CreateLock("liaisonLineLock", 15);
-    liaisonLineCVList = CreateMonitorVariable("requestingLiaisonDataList", 17, 5);
+    liaisonLineCVList = CreateMonitorVariable("requestingLiaisonDataList", 25, 5);
     liaisonLockList = CreateMonitorVariable("liaisonLockList", 15, 5);
     liaisonCVList = CreateMonitorVariable("liaisonCVList", 13, 5);
     liaisonStateList = CreateMonitorVariable("liaisonStateList", 16, 5);
     requestingLiaisonDataList = CreateMonitorVariable("requestingLiaisonDataList", 25, 5);
-    for (i = 0; i < 5; i++)
-    {
-        SetMonitorVariable(liaisonLineCVList, i, CreateCondition("liaisonLineCV", 13));
-        SetMonitorVariable(liaisonLockList, i, CreateLock("liaisonLock", 11));
-        SetMonitorVariable(liaisonCVList, i, CreateCondition("liaisonCV", 9));
-    }
+    SetMonitorVariable(liaisonLockList, 0, CreateLock("liaisonLock1", 12));
+    SetMonitorVariable(liaisonLockList, 1, CreateLock("liaisonLock2", 12));
+    SetMonitorVariable(liaisonLockList, 2, CreateLock("liaisonLock3", 12));
+    SetMonitorVariable(liaisonLockList, 3, CreateLock("liaisonLock4", 12));
+    SetMonitorVariable(liaisonLockList, 4, CreateLock("liaisonLock5", 12));
+    SetMonitorVariable(liaisonCVList, 0, CreateCondition("liaisonCV1", 10));
+    SetMonitorVariable(liaisonCVList, 1, CreateCondition("liaisonCV2", 10));
+    SetMonitorVariable(liaisonCVList, 2, CreateCondition("liaisonCV3", 10));
+    SetMonitorVariable(liaisonCVList, 3, CreateCondition("liaisonCV4", 10));
+    SetMonitorVariable(liaisonCVList, 4, CreateCondition("liaisonCV5", 10));
+    SetMonitorVariable(liaisonLineCVList, 0, CreateCondition("liaisonLineCV1", 14));
+    SetMonitorVariable(liaisonLineCVList, 1, CreateCondition("liaisonLineCV2", 14));
+    SetMonitorVariable(liaisonLineCVList, 2, CreateCondition("liaisonLineCV3", 14));
+    SetMonitorVariable(liaisonLineCVList, 3, CreateCondition("liaisonLineCV4", 14));
+    SetMonitorVariable(liaisonLineCVList, 4, CreateCondition("liaisonLineCV5", 14));
     
     /* Check-in variables */
     
@@ -217,18 +232,61 @@ void CreateVariables()
     checkinStateList = CreateMonitorVariable("checkinStateList", 16, 12);
     finalCheckinList = CreateMonitorVariable("finalCheckinList", 16, 12);
     requestingCheckinDataList = CreateMonitorVariable("requestingCheckinDataList", 25, 12);
-    for (i = 0; i < 12; i++)
+    for (i = 0; i < 3; i++)
     {
-        if (i%4 == 0) /* 0, 4, 8 */
-        {
-            SetMonitorVariable(checkinLineLockList, i/4, CreateLock("checkinLineLock", 15));
-            SetMonitorVariable(checkinStateList, i, CI_NONE);
-        }
-        SetMonitorVariable(checkinLineCVList, i, CreateCondition("checkinLineCV", 13));
-        SetMonitorVariable(checkinCVList, i, CreateCondition("checkinCV", 9));
-        SetMonitorVariable(checkinLockList, i, CreateLock("checkinLock", 11));
-        SetMonitorVariable(checkinBreakCVList, i, CreateCondition("checkinBreakCV", 14));
+        SetMonitorVariable(checkinStateList, i*4, CI_NONE);
     }
+    SetMonitorVariable(checkinLineLockList, 0, CreateLock("checkinLineLock1", 16));
+    SetMonitorVariable(checkinLineLockList, 1, CreateLock("checkinLineLock2", 16));
+    SetMonitorVariable(checkinLineLockList, 2, CreateLock("checkinLineLock3", 16));
+    SetMonitorVariable(checkinLockList, 0, CreateLock("checkinLock1", 12));
+    SetMonitorVariable(checkinLockList, 1, CreateLock("checkinLock2", 12));
+    SetMonitorVariable(checkinLockList, 2, CreateLock("checkinLock3", 12));
+    SetMonitorVariable(checkinLockList, 3, CreateLock("checkinLock4", 12));
+    SetMonitorVariable(checkinLockList, 4, CreateLock("checkinLock5", 12));
+    SetMonitorVariable(checkinLockList, 5, CreateLock("checkinLock6", 12));
+    SetMonitorVariable(checkinLockList, 6, CreateLock("checkinLock7", 12));
+    SetMonitorVariable(checkinLockList, 7, CreateLock("checkinLock8", 12));
+    SetMonitorVariable(checkinLockList, 8, CreateLock("checkinLock9", 12));
+    SetMonitorVariable(checkinLockList, 9, CreateLock("checkinLock10", 13));
+    SetMonitorVariable(checkinLockList, 10, CreateLock("checkinLock11", 13));
+    SetMonitorVariable(checkinLockList, 11, CreateLock("checkinLock12", 13));
+    SetMonitorVariable(checkinCVList, 0, CreateCondition("checkinCV1", 10));
+    SetMonitorVariable(checkinCVList, 1, CreateCondition("checkinCV2", 10));
+    SetMonitorVariable(checkinCVList, 2, CreateCondition("checkinCV3", 10));
+    SetMonitorVariable(checkinCVList, 3, CreateCondition("checkinCV4", 10));
+    SetMonitorVariable(checkinCVList, 4, CreateCondition("checkinCV5", 10));
+    SetMonitorVariable(checkinCVList, 5, CreateCondition("checkinCV6", 10));
+    SetMonitorVariable(checkinCVList, 6, CreateCondition("checkinCV7", 10));
+    SetMonitorVariable(checkinCVList, 7, CreateCondition("checkinCV8", 10));
+    SetMonitorVariable(checkinCVList, 8, CreateCondition("checkinCV9", 10));
+    SetMonitorVariable(checkinCVList, 9, CreateCondition("checkinCV10", 11));
+    SetMonitorVariable(checkinCVList, 10, CreateCondition("checkinCV11", 11));
+    SetMonitorVariable(checkinCVList, 11, CreateCondition("checkinCV12", 11));
+    SetMonitorVariable(checkinLineCVList, 0, CreateCondition("checkinLineCV1", 14));
+    SetMonitorVariable(checkinLineCVList, 1, CreateCondition("checkinLineCV2", 14));
+    SetMonitorVariable(checkinLineCVList, 2, CreateCondition("checkinLineCV3", 14));
+    SetMonitorVariable(checkinLineCVList, 3, CreateCondition("checkinLineCV4", 14));
+    SetMonitorVariable(checkinLineCVList, 4, CreateCondition("checkinLineCV5", 14));
+    SetMonitorVariable(checkinLineCVList, 5, CreateCondition("checkinLineCV6", 14));
+    SetMonitorVariable(checkinLineCVList, 6, CreateCondition("checkinLineCV7", 14));
+    SetMonitorVariable(checkinLineCVList, 7, CreateCondition("checkinLineCV8", 14));
+    SetMonitorVariable(checkinLineCVList, 8, CreateCondition("checkinLineCV9", 14));
+    SetMonitorVariable(checkinLineCVList, 9, CreateCondition("checkinLineCV10", 15));
+    SetMonitorVariable(checkinLineCVList, 10, CreateCondition("checkinLineCV11", 15));
+    SetMonitorVariable(checkinLineCVList, 11, CreateCondition("checkinLineCV12", 15));
+    SetMonitorVariable(checkinBreakCVList, 0, CreateCondition("checkinBreakCV1", 15));
+    SetMonitorVariable(checkinBreakCVList, 1, CreateCondition("checkinBreakCV2", 15));
+    SetMonitorVariable(checkinBreakCVList, 2, CreateCondition("checkinBreakCV3", 15));
+    SetMonitorVariable(checkinBreakCVList, 3, CreateCondition("checkinBreakCV4", 15));
+    SetMonitorVariable(checkinBreakCVList, 4, CreateCondition("checkinBreakCV5", 15));
+    SetMonitorVariable(checkinBreakCVList, 5, CreateCondition("checkinBreakCV6", 15));
+    SetMonitorVariable(checkinBreakCVList, 6, CreateCondition("checkinBreakCV7", 15));
+    SetMonitorVariable(checkinBreakCVList, 7, CreateCondition("checkinBreakCV8", 15));
+    SetMonitorVariable(checkinBreakCVList, 8, CreateCondition("checkinBreakCV9", 15));
+    SetMonitorVariable(checkinBreakCVList, 9, CreateCondition("checkinBreakCV10", 16));
+    SetMonitorVariable(checkinBreakCVList, 10, CreateCondition("checkinBreakCV11", 16));
+    SetMonitorVariable(checkinBreakCVList, 11, CreateCondition("checkinBreakCV12", 16));
     
     /* Cargo variables */
     
@@ -242,14 +300,31 @@ void CreateVariables()
     cargoLockList = CreateMonitorVariable("cargoLockList", 13, 5);
     cargoStateList = CreateMonitorVariable("cargoStateList", 14, 5);
     requestingCargoDataList = CreateMonitorVariable("requestingCargoDataList", 23, 5);
-    for (i = 0; i < 5; i++)
-    {
-        SetMonitorVariable(cargoDataCVList, i, CreateCondition("cargoDataCV", 11));
-        SetMonitorVariable(cargoDataLockList, i, CreateLock("cargoDataLock", 13));
-        SetMonitorVariable(cargoManagerCVList, i, CreateCondition("cargoManagerCV", 14));
-        SetMonitorVariable(cargoCVList, i, CreateCondition("cargoCV", 7));
-        SetMonitorVariable(cargoLockList, i, CreateLock("cargoLock", 9));
-    }
+    SetMonitorVariable(cargoLockList, 0, CreateLock("cargoLock1", 10));
+    SetMonitorVariable(cargoLockList, 1, CreateLock("cargoLock2", 10));
+    SetMonitorVariable(cargoLockList, 2, CreateLock("cargoLock3", 10));
+    SetMonitorVariable(cargoLockList, 3, CreateLock("cargoLock4", 10));
+    SetMonitorVariable(cargoLockList, 4, CreateLock("cargoLock5", 10));
+    SetMonitorVariable(cargoDataLockList, 0, CreateLock("cargoDataLock1", 14));
+    SetMonitorVariable(cargoDataLockList, 1, CreateLock("cargoDataLock2", 14));
+    SetMonitorVariable(cargoDataLockList, 2, CreateLock("cargoDataLock3", 14));
+    SetMonitorVariable(cargoDataLockList, 3, CreateLock("cargoDataLock4", 14));
+    SetMonitorVariable(cargoDataLockList, 4, CreateLock("cargoDataLock5", 14));
+    SetMonitorVariable(cargoCVList, 0, CreateCondition("cargoCV1", 8));
+    SetMonitorVariable(cargoCVList, 1, CreateCondition("cargoCV2", 8));
+    SetMonitorVariable(cargoCVList, 2, CreateCondition("cargoCV3", 8));
+    SetMonitorVariable(cargoCVList, 3, CreateCondition("cargoCV4", 8));
+    SetMonitorVariable(cargoCVList, 4, CreateCondition("cargoCV5", 8));
+    SetMonitorVariable(cargoDataCVList, 0, CreateCondition("cargoDataCV1", 12));
+    SetMonitorVariable(cargoDataCVList, 1, CreateCondition("cargoDataCV2", 12));
+    SetMonitorVariable(cargoDataCVList, 2, CreateCondition("cargoDataCV3", 12));
+    SetMonitorVariable(cargoDataCVList, 3, CreateCondition("cargoDataCV4", 12));
+    SetMonitorVariable(cargoDataCVList, 4, CreateCondition("cargoDataCV5", 12));
+    SetMonitorVariable(cargoManagerCVList, 0, CreateCondition("cargoManagerCV1", 15));
+    SetMonitorVariable(cargoManagerCVList, 1, CreateCondition("cargoManagerCV2", 15));
+    SetMonitorVariable(cargoManagerCVList, 2, CreateCondition("cargoManagerCV3", 15));
+    SetMonitorVariable(cargoManagerCVList, 3, CreateCondition("cargoManagerCV4", 15));
+    SetMonitorVariable(cargoManagerCVList, 4, CreateCondition("cargoManagerCV5", 15));
 }
 
 /* Removes the first element from an array of 21 ints and moves all other elements down */
