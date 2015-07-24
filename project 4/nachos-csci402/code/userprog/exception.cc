@@ -1069,7 +1069,7 @@ void SetMailBoxNum_Syscall() {
 	currentThread->SetMailBoxNum();
 }
 
-int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
+int CreateMonitorVariable_Syscall(unsigned int vaddr, int len, int size){
 	char *buf = new char[len+1];
 
 	if (! buf)
@@ -1091,6 +1091,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len){
 	string toSend;
 	stringstream ss;
 	ss << "10 " << buf;
+    // add size to message
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 	printf("sending request %s\n",request);
@@ -1123,7 +1124,7 @@ void DestroyMonitorVariable_Syscall(int id){
 	serverResponseValidation();
 }
 
-int GetMonitorVariable_Syscall(int id){
+int GetMonitorVariable_Syscall(int id, int pos){
 	/*MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(pos);
 	int location;
 
@@ -1139,6 +1140,7 @@ int GetMonitorVariable_Syscall(int id){
 	string toSend;
 	stringstream ss;
 	ss << "12 " << id;
+    // add pos to message
 	toSend == ss.str();
 	request = (char*)toSend.c_str();
 
@@ -1150,7 +1152,7 @@ int GetMonitorVariable_Syscall(int id){
 
 
 //TODO: modify the string to send the correct information
-void SetMonitorVariable_Syscall(int id, int value){
+void SetMonitorVariable_Syscall(int id, int pos, int value){
 	/*MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
 
 	if (monVar == NULL || monVar->name == NULL) //|| monVar->machineID != currentThread->get)
@@ -1163,6 +1165,7 @@ void SetMonitorVariable_Syscall(int id, int value){
 	string toSend;
 	stringstream ss;
 	ss << "13 " << id << value;
+    // add pos to message
 	toSend == ss.str();
 	request = (char*)toSend.c_str();
 
