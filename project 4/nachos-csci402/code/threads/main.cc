@@ -288,13 +288,6 @@ void RunServer() {
 		int index = -1;
 		string arg1,arg2,arg3;
 
-		//printf("waiting on in mail\n");
-		printf("\n************in mainc.cc before receive\n");
-		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);//TODO:change 0 to inbox
-		ss << buffer;
-		ss >> request;
-		printf("request type is %d\n",request);
-
 		//declare these used for switch block
 		serverLock* sLock;
 		serverCV* sCV;
@@ -304,6 +297,18 @@ void RunServer() {
 		char* cArg3;
 		char* eMsg;
 		int index2, index3,mValue;
+
+		//printf("waiting on in mail\n");
+		printf("\n************in mainc.cc before receive\n");
+		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);//TODO:change 0 to inbox
+		ss << buffer;
+		ss >> request;
+		printf("request type is %d\n",request);
+
+		/*handle server forwarded message first
+		if (request == 0) {
+
+		}*/
 
 		//printf("before switch request\n");
 		switch (request)
