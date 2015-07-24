@@ -305,7 +305,7 @@ void findShortestLine(LineType type)
 
 void GoToBoarding()
 {
-    int i, count, boardingLock, boardingCV, boardingLine;
+    int i, count, boardingLock, boardingCV, boardingQueue;
     
     myLine = p.airline;
     
