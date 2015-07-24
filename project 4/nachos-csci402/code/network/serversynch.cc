@@ -296,15 +296,17 @@ void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox,
 	ServerReply(msg, outAddr, outBox, fromBox);
 }
 
-serverMV::serverMV(char* mName, int initValue) {
+serverMV::serverMV(char* mName, int initSize) {
 	name = mName;
-	value = initValue;
+    len = initSize;
+	array = new int[len]();
 }
 
 serverMV::~serverMV() {
-
+    delete array;
 }
 
+// add location
 void serverMV::Read(int outAddr, int outBox, int fromBox) {
 	char* msg = new char[MaxMailSize];
 	stringstream ss;
@@ -312,6 +314,7 @@ void serverMV::Read(int outAddr, int outBox, int fromBox) {
 	ServerReply(msg, outAddr, outBox, fromBox);
 }
 
+// add location
 void serverMV::Set(int toSet, int outAddr, int outBox, int fromBox) {
 	value = toSet;
 	char* msg = new char[MaxMailSize];

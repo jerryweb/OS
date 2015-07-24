@@ -61,7 +61,8 @@ public:
 
 	char* name;
 	int index;
-	int value;
+	int* array; // array of size len
+    int len;
 };
 
 #endif
