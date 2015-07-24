@@ -10,7 +10,7 @@
 /* Personal variables */
 
 int id;
-Cargo c;
+Checkin ci;
 
 /* General variables */
 
@@ -73,7 +73,7 @@ int checkinLine9; /* mv size 21, Passenger* */
 int checkinLine10; /* mv size 21, Passenger* */
 int checkinLine11; /* mv size 21, Passenger* */
 int checkinLine12; /* mv size 21, Passenger* */
-int checkinLineLockList, /* mv size 3, int (lock) */
+int checkinLineLockList; /* mv size 3, int (lock) */
 int checkinLineCVList; /* mv size 12, int (CV) */
 int checkinCVList; /* mv size 12, int (CV) */
 int checkinLockList; /* mv size 12, int (lock) */
@@ -136,7 +136,7 @@ void CreateVariables()
             al.ticketsIssued = 7;
             al.totalBagCount = al.ticketsIssued * 3;
             al.totalBagWeight = al.totalBagCount * 30;
-            SetMonitorVariable(airlineList, i, &al);
+            SetMonitorVariable(airlineList, i, (int)&al);
         }
         SetMonitorVariable(airlineLockList, i, CreateLock("airlineLock", 11));
         SetMonitorVariable(boardingCVList, i, CreateCondition("boardingCV", 10));
@@ -221,7 +221,7 @@ void CreateVariables()
     {
         if (i%4 == 0) /* 0, 4, 8 */
         {
-            SetMonitorVariable(checkinLineLock, i/4, CreateLock("checkinLineLock", 15));
+            SetMonitorVariable(checkinLineLockList, i/4, CreateLock("checkinLineLock", 15));
             SetMonitorVariable(checkinStateList, i, CI_NONE);
         }
         SetMonitorVariable(checkinLineCVList, i, CreateCondition("checkinLineCV", 13));
@@ -255,6 +255,8 @@ void CreateVariables()
 /* Removes the first element from an array of 21 ints and moves all other elements down */
 void RemoveFromQueue(int array)
 {
+    int i;
+    
     for (i = 1; i < 21; i++)
     {
         SetMonitorVariable(array, i-1, GetMonitorVariable(array, i));
@@ -275,11 +277,13 @@ int findArrayElementCount(int array)
 
 void RunCheckin()
 {
-    int i, j, len;
+    int i, j, len, bagIndex;
     int checkinLine, execLine;
     int checkinLineLock, checkinLineCV, checkinCV, checkinLock, checkinBreakCV, airlineLock;
     Airline* al;
-    Passenger* p, execP, econP;
+    Passenger* p;
+    Passenger* execP;
+    Passenger* econP;
     BoardingPass bp;
     bool exec;
     bool talked = false;
@@ -293,7 +297,7 @@ void RunCheckin()
     checkinLock = GetMonitorVariable(checkinLockList, id);
     checkinBreakCV = GetMonitorVariable(checkinBreakCVList, id);
     airlineLock = GetMonitorVariable(airlineLockList, ci.airline);
-    al = GetMonitorVariable(airlineList, ci.airline);
+    al = (Airline*)GetMonitorVariable(airlineList, ci.airline);
     
     while (true)
     {
@@ -322,7 +326,7 @@ void RunCheckin()
                 
                 RemoveFromQueue(checkinLine);
                 
-                len = fineArrayElementCount(execLine);
+                len = findArrayElementCount(execLine);
                 
                 Printf("Airline check-in staff %d of airline %d serves an economy class passenger and executive class line length = %d\n", 111, 3, id*100*100 + ci.airline*100 + len);
                 
@@ -334,13 +338,13 @@ void RunCheckin()
                 
                 Acquire(checkinLock);
                 
-                SetMonitorVariable(checkinState, id, CI_BREAK);
+                SetMonitorVariable(checkinStateList, id, CI_BREAK);
                 
                 Release(checkinLineLock);
                 
                 Wait(checkinBreakCV, checkinLock);
                 
-                SetMonitorVariable(checkinState, id, CI_BUSY);
+                SetMonitorVariable(checkinStateList, id, CI_BUSY);
                 
                 Acquire(checkinLineLock);
             }
@@ -400,6 +404,8 @@ void RunCheckin()
             Release(conveyorLock);
         }
         
+        Release(checkinLock);
+        
         if (GetMonitorVariable(requestingCheckinDataList, id))
         {
             Acquire(checkinManagerLock);
@@ -450,6 +456,8 @@ void RunCheckin()
 
 int CreateCheckin()
 {
+    int i;
+    
     ci.passengers = 0;
     ci.luggage = 0;
     ci.weight = 0;
@@ -462,7 +470,7 @@ int CreateCheckin()
         {
             ci.id = i;
             ci.airline = i/4;
-            SetMonitorVariable(checkinList, i, &ci);
+            SetMonitorVariable(checkinList, i, (int)&ci);
             break;
         }
     }

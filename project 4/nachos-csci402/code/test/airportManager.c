@@ -74,7 +74,7 @@ int checkinLine9; /* mv size 21, Passenger* */
 int checkinLine10; /* mv size 21, Passenger* */
 int checkinLine11; /* mv size 21, Passenger* */
 int checkinLine12; /* mv size 21, Passenger* */
-int checkinLineLockList, /* mv size 3, int (lock) */
+int checkinLineLockList; /* mv size 3, int (lock) */
 int checkinLineCVList; /* mv size 12, int (CV) */
 int checkinCVList; /* mv size 12, int (CV) */
 int checkinLockList; /* mv size 12, int (lock) */
@@ -137,7 +137,7 @@ void CreateVariables()
             al.ticketsIssued = 7;
             al.totalBagCount = al.ticketsIssued * 3;
             al.totalBagWeight = al.totalBagCount * 30;
-            SetMonitorVariable(airlineList, i, &al);
+            SetMonitorVariable(airlineList, i, (int)&al);
         }
         SetMonitorVariable(airlineLockList, i, CreateLock("airlineLock", 11));
         SetMonitorVariable(boardingCVList, i, CreateCondition("boardingCV", 10));
@@ -222,7 +222,7 @@ void CreateVariables()
     {
         if (i%4 == 0) /* 0, 4, 8 */
         {
-            SetMonitorVariable(checkinLineLock, i/4, CreateLock("checkinLineLock", 15));
+            SetMonitorVariable(checkinLineLockList, i/4, CreateLock("checkinLineLock", 15));
             SetMonitorVariable(checkinStateList, i, CI_NONE);
         }
         SetMonitorVariable(checkinLineCVList, i, CreateCondition("checkinLineCV", 13));
@@ -260,7 +260,8 @@ void ManagerPrint(){
     int totalCheckinPassengers  = 0;
     int totalSecurityPassengers = 0;
 	Printf("\n",1,0,0);
-	for (a = 0; a < 3; a++){
+	for (a = 0; a < 3; a++)
+    {
         totalLiaisonPassengers  += manager.liaisonPassengerCount[a];
         totalCheckinPassengers  += manager.checkinPassengerCount[a];
         totalSecurityPassengers += manager.securityInspectorPassengerCount[a];
@@ -270,11 +271,12 @@ void ManagerPrint(){
     Printf("Passenger count reported by airline check-in staff = %d\n", 56, 1, totalCheckinPassengers);
     Printf("Passenger count reported by security inspector = %d\n", 52, 1, totalSecurityPassengers);
 
-    for(a = 0; a < 3; a++){
-        Printf("From setup: Baggage count of airline %d = %d\n", 45, 2, a*100 + airlines[a]->totalBagCount);
+    for(a = 0; a < 3; a++)
+    {
+        Printf("From setup: Baggage count of airline %d = %d\n", 45, 2, a*100 + ((Airline*)GetMonitorVariable(airlineList, a))->totalBagCount);
         Printf("From airport liaison: Baggage count of airline %d = %d\n", 55, 2, a*100 + manager.liaisonBaggageCount[a]);
         Printf("From cargo handlers: Baggage count of airline %d = %d\n", 54, 2, a*100 + manager.cargoHandlersBaggageCount[a]);
-        Printf("From setup: Baggage weight of airline %d = %d\n", 46, 2, a*100 + airlines[a]->totalBagWeight);
+        Printf("From setup: Baggage weight of airline %d = %d\n", 46, 2, a*100 + ((Airline*)GetMonitorVariable(airlineList, a))->totalBagWeight);
         Printf("From airline check-in staff: Baggage weight of airline %d = %d\n", 63, 2, a*100 + manager.checkinBaggageWeight[a]);
         Printf("From cargo handlers: Baggage weight of airline %d = %d\n", 55, 2, a*100 + manager.cargoHandlersBaggageWeight[a]);    	
     }
@@ -346,7 +348,7 @@ void CheckinDataRequest()
     {
 		if (u%4 != 0) /* not 0, 4, or 8 */
         {
-            if (! GetMonitorVariable(finalCheckin, u))
+            if (! GetMonitorVariable(finalCheckinList, u))
             {
                 checkinBreakCV = GetMonitorVariable(checkinBreakCVList, u);
                 checkinLock = GetMonitorVariable(checkinLockList, u);
@@ -355,7 +357,7 @@ void CheckinDataRequest()
                 
                 Acquire(checkinManagerLock);
                 
-                SetMonitorVariable(requestingCheckinData, u, true);
+                SetMonitorVariable(requestingCheckinDataList, u, true);
                 
                 Signal(checkinBreakCV, checkinLock);
             
@@ -386,7 +388,7 @@ void CheckinDataRequest()
 void CargoDataRequest()
 {
     int i, j, k;
-    int cargoDataCV, cargoDataLock, cargoLock, cargoManagerCV;
+    int cargoDataCV, cargoDataLock, cargoLock, cargoCV, cargoManagerCV;
     Cargo* cargo;
     
 	for (i = 0; i < 3; i++)
@@ -400,6 +402,7 @@ void CargoDataRequest()
         cargoDataCV = GetMonitorVariable(cargoDataCVList, j);
         cargoDataLock = GetMonitorVariable(cargoDataLockList, j);
         cargoLock = GetMonitorVariable(cargoLockList, j);
+        cargoCV = GetMonitorVariable(cargoCVList, j);
         cargoManagerCV = GetMonitorVariable(cargoManagerCVList, j);
         cargo = (Cargo*)GetMonitorVariable(cargoList, j);
         
@@ -423,10 +426,9 @@ void CargoDataRequest()
 
 		Signal(cargoCV, cargoDataLock);
         
-		Release(cargoDataLock[j]);
+		Release(cargoDataLock);
 	}
 }
-
 
 /* Finds the number of elements in an array */
 int findArrayElementCount(int array)
@@ -441,10 +443,11 @@ int findArrayElementCount(int array)
 
 void RunManager()
 {
-	int i,j,k,l;
+	int i, j, k, l, m, counter;
     int newCheckinBaggageWeight[3];
 	int newCheckinPassengerCount[3];
     int airlineLock, boardingLock, boardingCV;
+    Airline* al;
 
 	for(i =0; i < 3; i++)
     {
@@ -501,8 +504,9 @@ void RunManager()
             {
 				Acquire(airlineLock);
                 
-				if(manager.securityInspectorPassengerCount[m] >= airlines[m]->ticketsIssued
-					&& 21 >= airlines[m]->totalBagCount) /* remove inspector? */
+                al = (Airline*)GetMonitorVariable(airlineList, m);
+                
+				if(manager.checkinPassengerCount[m] >= al->ticketsIssued && manager.cargoHandlersBaggageCount[m] >= al->totalBagCount) /* no security inspector */
                 {
 					Printf("Airport manager gives a boarding call to airline %d\n", 53, 1, m);
                     
@@ -535,5 +539,5 @@ int main()
 {
     CreateVariables();
     RunManager();
-    Exit(0);
+    Exit(0); /* should never reach this line */
 }

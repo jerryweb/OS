@@ -74,7 +74,7 @@ int checkinLine9; /* mv size 21, Passenger* */
 int checkinLine10; /* mv size 21, Passenger* */
 int checkinLine11; /* mv size 21, Passenger* */
 int checkinLine12; /* mv size 21, Passenger* */
-int checkinLineLockList, /* mv size 3, int (lock) */
+int checkinLineLockList; /* mv size 3, int (lock) */
 int checkinLineCVList; /* mv size 12, int (CV) */
 int checkinCVList; /* mv size 12, int (CV) */
 int checkinLockList; /* mv size 12, int (lock) */
@@ -137,7 +137,7 @@ void CreateVariables()
             al.ticketsIssued = 7;
             al.totalBagCount = al.ticketsIssued * 3;
             al.totalBagWeight = al.totalBagCount * 30;
-            SetMonitorVariable(airlineList, i, &al);
+            SetMonitorVariable(airlineList, i, (int)&al);
         }
         SetMonitorVariable(airlineLockList, i, CreateLock("airlineLock", 11));
         SetMonitorVariable(boardingCVList, i, CreateCondition("boardingCV", 10));
@@ -222,7 +222,7 @@ void CreateVariables()
     {
         if (i%4 == 0) /* 0, 4, 8 */
         {
-            SetMonitorVariable(checkinLineLock, i/4, CreateLock("checkinLineLock", 15));
+            SetMonitorVariable(checkinLineLockList, i/4, CreateLock("checkinLineLock", 15));
             SetMonitorVariable(checkinStateList, i, CI_NONE);
         }
         SetMonitorVariable(checkinLineCVList, i, CreateCondition("checkinLineCV", 13));
@@ -303,9 +303,31 @@ void findShortestLine(LineType type)
     myLine = location;
 }
 
+void GoToBoarding()
+{
+    int i, count, boardingLock, boardingCV, boardingLine;
+    
+    myLine = p.airline;
+    
+    boardingLock = GetMonitorVariable(boardingLockList, myLine);
+    boardingCV = GetMonitorVariable(boardingCVList, myLine);
+    boardingQueue = GetMonitorVariable(boardingQueueList, myLine);
+    
+    Acquire(boardingLock);
+    
+    count = findArrayElementCount(boardingQueue);
+    
+    SetMonitorVariable(boardingQueue, count, (int)&p);
+    
+    Wait(boardingCV, boardingLock);
+    
+    Release(boardingLock);
+}
+
 void GoToCheckin()
 {
-	int i, j, elementCount, checkinLineLock, checkinLineCV;
+	int i, j, elementCount;
+    int checkinLine, checkinLineLock, checkinLineCV;
     
 	myLine = p.airline * 4;
     
@@ -327,15 +349,13 @@ void GoToCheckin()
 		Printf("Passenger %d of Airline %d chose Airline Check-In staff %d with line length %d\n", 79, 4, id*100*100*100 + p.airline*100*100 + myLine*100 + elementCount);
     }
     
-	SetMonitorVariable(checkinLine, elementCount, &p);
+	SetMonitorVariable(checkinLine, elementCount,(int)&p);
     
     checkinLineCV = GetMonitorVariable(checkinLineCVList, myLine);
 
 	Wait(checkinLineCV, checkinLineLock);
     
     Release(checkinLineLock);
-    
-    /* continue */
 }
 
 void GoToLiaison()
@@ -351,7 +371,7 @@ void GoToLiaison()
     elementCount = findArrayElementCount(liaisonLine);
 	Printf("Passenger %d chose liaison %d with a line length of %d\n", 55, 3, id*100*100 + myLine*100 + elementCount);
     
-	SetMonitorVariable(liaisonLine, elementCount, &p);
+	SetMonitorVariable(liaisonLine, elementCount, (int)&p);
     
 	if(GetMonitorVariable(liaisonStateList, myLine) == L_BUSY)
     {
@@ -400,7 +420,7 @@ int CreatePassenger()
             p.ticket->airline = i%3;
             if (i%7 == 6)
                 p.ticket->executive = true;
-            SetMonitorVariable(passengerList, i, &p);
+            SetMonitorVariable(passengerList, i, (int)&p);
             break;
         }
     }
@@ -414,6 +434,6 @@ int main()
     id = CreatePassenger();
     GoToLiaison();
     GoToCheckin();
-    /* ??? */
+    GoToBoarding();
     Exit(0);
 }

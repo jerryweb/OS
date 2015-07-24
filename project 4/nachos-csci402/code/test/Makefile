@@ -32,7 +32,7 @@ INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
 
-all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest airportSimSim matmultFork matmultExec serverLockTest airportPass airportLiaison airportCheckin airportCargo airportManager airportPassInit airportLCargoInit airportMCheckinInit
+all: halt matmult sort testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest matmultFork matmultExec serverLockTest airportPass airportLiaison airportCheckin airportCargo airportManager airportPassInit airportLCargoInit airportMCheckinInit
 	
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -123,24 +123,6 @@ exitTest: exitTest.o start.o
 	$(LD) $(LDFLAGS) start.o exitTest.o -o exitTest.coff
 	../bin/coff2noff exitTest.coff exitTest
 
-airportSim.o: airportSim.c
-	$(CC) $(CFLAGS) -c airportSim.c
-airportSim: airportSim.o start.o
-	$(LD) $(LDFLAGS) start.o airportSim.o -o airportSim.coff
-	../bin/coff2noff airportSim.coff airportSim
-
-airportTest.o: airportTest.c
-	$(CC) $(CFLAGS) -c airportTest.c
-airportTest: airportTest.o start.o
-	$(LD) $(LDFLAGS) start.o airportTest.o -o airportTest.coff
-	../bin/coff2noff airportTest.coff airportTest
-
-airportSimSim.o: airportSimSim.c
-	$(CC) $(CFLAGS) -c airportSimSim.c
-airportSimSim: airportSimSim.o start.o
-	$(LD) $(LDFLAGS) start.o airportSimSim.o -o airportSimSim.coff
-	../bin/coff2noff airportSimSim.coff airportSimSim
-	
 serverLockTest.o: serverLockTest.c
 	$(CC) $(CFLAGS) -c serverLockTest.c
 serverLockTest: serverLockTest.o start.o
@@ -197,5 +179,5 @@ airportMCheckinInit: airportMCheckinInit.o start.o
 
 clean:
 	rm -f *.o *.coff
-	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest airportSim airportTest matmultFork matmultExec serverLockTest airportPass airportLiaison airportCheckin airportCargo airportManager airportPassInit airportLCargoInit airportMCheckinInit
+	rm halt sort matmult testfiles forkTest printfTest lockTest lockTestHelper condTest condTestHelper execTest exitTest matmultFork matmultExec serverLockTest airportPass airportLiaison airportCheckin airportCargo airportManager airportPassInit airportLCargoInit airportMCheckinInit
 	rm *~

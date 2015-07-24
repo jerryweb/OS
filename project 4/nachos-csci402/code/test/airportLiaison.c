@@ -73,7 +73,7 @@ int checkinLine9; /* mv size 21, Passenger* */
 int checkinLine10; /* mv size 21, Passenger* */
 int checkinLine11; /* mv size 21, Passenger* */
 int checkinLine12; /* mv size 21, Passenger* */
-int checkinLineLockList, /* mv size 3, int (lock) */
+int checkinLineLockList; /* mv size 3, int (lock) */
 int checkinLineCVList; /* mv size 12, int (CV) */
 int checkinCVList; /* mv size 12, int (CV) */
 int checkinLockList; /* mv size 12, int (lock) */
@@ -136,7 +136,7 @@ void CreateVariables()
             al.ticketsIssued = 7;
             al.totalBagCount = al.ticketsIssued * 3;
             al.totalBagWeight = al.totalBagCount * 30;
-            SetMonitorVariable(airlineList, i, &al);
+            SetMonitorVariable(airlineList, i, (int)&al);
         }
         SetMonitorVariable(airlineLockList, i, CreateLock("airlineLock", 11));
         SetMonitorVariable(boardingCVList, i, CreateCondition("boardingCV", 10));
@@ -221,7 +221,7 @@ void CreateVariables()
     {
         if (i%4 == 0) /* 0, 4, 8 */
         {
-            SetMonitorVariable(checkinLineLock, i/4, CreateLock("checkinLineLock", 15));
+            SetMonitorVariable(checkinLineLockList, i/4, CreateLock("checkinLineLock", 15));
             SetMonitorVariable(checkinStateList, i, CI_NONE);
         }
         SetMonitorVariable(checkinLineCVList, i, CreateCondition("checkinLineCV", 13));
@@ -255,6 +255,8 @@ void CreateVariables()
 /* Removes the first element from an array of 21 ints and moves all other elements down */
 void RemoveFromQueue(int array)
 {
+    int i;
+    
     for (i = 1; i < 21; i++)
     {
         SetMonitorVariable(array, i-1, GetMonitorVariable(array, i));
@@ -356,7 +358,7 @@ int CreateLiaison()
         if (! liaison)
         {
             l.id = i;
-            SetMonitorVariable(liaisonList, i, &l);
+            SetMonitorVariable(liaisonList, i, (int)&l);
             break;
         }
     }
