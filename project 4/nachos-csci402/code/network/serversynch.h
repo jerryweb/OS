@@ -26,10 +26,11 @@ public:
 	serverLock(char* dName, int owner, int mailbox);
 	~serverLock();
 
-	void Acquire(int outAddr, int outBox);
-	void Release(int outAddr, int outBox);
+	void Acquire(int outAddr, int outBox,int fromBox);
+	void Release(int outAddr, int outBox,int fromBox);
 
 	char* name;
+	int index;   //in lockTable
 	lockState state;
 	int ownerID;       //owner machine id
 	int mailboxID;      //owner mailbox number
@@ -42,22 +43,24 @@ public:
 	serverCV(char* dName);
 	~serverCV();
 
-	void Signal(serverLock *sLock, int outAddr, int outBox);
-	void Wait(serverLock *sLock, int outAddr, int outBox);
-	void Boardcast(serverLock *sLock, int outAddr, int outBox);
+	void Signal(serverLock *sLock, int outAddr, int outBox,int fromBox);
+	void Wait(serverLock *sLock, int outAddr, int outBox,int fromBox);
+	void Boardcast(serverLock *sLock, int outAddr, int outBox,int fromBox);
 
 	char* name;
 	serverLock* waitLock;
 	List* waitQue;
 };
 
-class MonitorVariable {
+class serverMV {
 public:
-	MonitorVariable(char* mName, int index, int MYvalue);
-	~MonitorVariable();
+	serverMV(char* mName, int initValue);
+	~serverMV();
+	void Read(int outAddr,int outBox,int fromBox);
+	void Set(int toSet,int outAddr,int outBox,int fromBox);
 
 	char* name;
-	int indexPosition;
+	int index;
 	int value;
 };
 

@@ -39,7 +39,6 @@ extern Table* lockTable;				// Tables for the CVs and Locks
 extern Table* CVTable;	
 extern Table* processTable;				// Table for keeping tracking of all of the address spaces 
 										// for the processes
-extern Table* MVTable;
 extern Table* LastTimeRecievedTable;
 extern BitMap* memMap;
 extern BitMap* swapFileMap;
@@ -82,6 +81,7 @@ extern int createCVRequests;
 extern int createMVRequests;
 extern Table* serverLockTable;
 extern Table* serverCVTable;
+extern Table* MVTable;
 #endif
 
 #endif // SYSTEM_H

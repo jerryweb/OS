@@ -82,16 +82,13 @@ Lock* boxCountIndexLock;
 
 #ifdef NETWORK
 void RunServer();
-void createLock(char* lName, Table* sTable, int outAddr,int outBox);
-void destroyLock(char* lName, Table* sTable, int outAddr,int outBox);
-void createCV(char* cName,Table* cTable,int outAddr,int outBox);
-void destroyCV(char* cName,Table* cTable,int outAddr,int outBox);
-void createMV(char* lname, Table* mTable, int outAddr, int outBox);
-void destroyMV(char* mName, Table* mTable, int outAddr,int outBox);
+void createLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox);
+void destroyLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox);
+void createCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox);
+void destroyCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox);
+void createMV(char* lname, Table* mTable, int outAddr, int outBox,int fromBox);
+void destroyMV(char* mName, Table* mTable, int outAddr,int outBox,int fromBox);
 #endif
-//bool tableItemExist(char* tName, Table* table, int tableType);
-//int getTableIndex(char* tName, Table* table, int tableType);
-//void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox);
 
 //----------------------------------------------------------------------
 // main
@@ -222,6 +219,7 @@ int main(int argc, char **argv) {
 		serverLockTable = new Table(2048);
 		//Table* serverCVTable;
 		serverCVTable = new Table(2048);
+		MVTable = new Table(2048);
 
 		if (!strcmp(*argv, "-o")) {
 			ASSERT(argc > 1);
@@ -275,9 +273,7 @@ int main(int argc, char **argv) {
 // 13 -> set MV
 //need to add Broadcast
 void RunServer() {
-	//TODO:build lock and CV table here
-	// Table* serverLockTable = new Table(2048);
-	//Table* serverCVTable = new Table(2048);
+	//TODO::change syscall.h for MV calls since they need less arguments
 
 	while (true)
 	{
@@ -294,7 +290,7 @@ void RunServer() {
 
 		//printf("waiting on in mail\n");
 		printf("\n************in mainc.cc before receive\n");
-		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);//TODO:change 0 to inbox
 		ss << buffer;
 		ss >> request;
 		printf("request type is %d\n",request);
@@ -302,126 +298,152 @@ void RunServer() {
 		//declare these used for switch block
 		serverLock* sLock;
 		serverCV* sCV;
+		serverMV* sMV;
 		char* cArg1;
 		char* cArg2;
 		char* cArg3;
-		int index2, index3;
+		char* eMsg;
+		int index2, index3,mValue;
 
 		//printf("before switch request\n");
 		switch (request)
 		{
 			case 1:   //create lock
-				ss >> arg1;
-				cArg1 = (char*) arg1.c_str();
-				createLock(cArg1, serverLockTable, inPktHdr.from,0);
-				break;
+			ss >> arg1;
+			cArg1 = (char*) arg1.c_str();
+			createLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			break;
 
 			case 2://destory lock
 			ss >> arg1;
 			cArg1 = (char*) arg1.c_str();
-			destroyLock(cArg1, serverLockTable, inPktHdr.from,0);
+			destroyLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
-
 			case 3://acquire lock
-				ss >> index;
-				//cArg2 = (char*)arg2.c_str();
+			ss >> index;
+			sLock = (serverLock*)serverLockTable->Get(index);
 
-				//index = getTableIndex(cArg2,serverLockTable,1);
-				sLock = (serverLock*)serverLockTable->Get(index);
-				sLock->Acquire(inPktHdr.from,0);
-				//printf("***********in main.cc fater acquire lock\n");
+			//check if the lock is valid
+			if (sLock == NULL) {
+				eMsg = "1";
+				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
+			}
+			sLock->Acquire(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			break;
 
-			case 4://release lock
-				ss >> index;
-				//index = getTableIndex(cArg1,serverLockTable,1);
-				sLock = (serverLock*)serverLockTable->Get(index);
-				sLock->Release(inPktHdr.from,0);
+			case 4:   //release lock
+			ss >> index;
+			//index = getTableIndex(cArg1,serverLockTable,1);
+			sLock = (serverLock*)serverLockTable->Get(index);
+			//check if the lock is valid
+			if (sLock == NULL) {
+				eMsg = "1";
+				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
+			}
+			sLock->Release(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			break;
 
-			case 5://create CV
+			case 5:   //create CV
 			ss >> arg1;
 			cArg1 = (char*) arg1.c_str();
-			createCV(cArg1,serverCVTable,inPktHdr.from,0);
+			createCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
 			case 6://destroy CV
 			ss >> arg1;
 			cArg1 = (char*) arg1.c_str();
-			destroyCV(cArg1,serverCVTable,inPktHdr.from,0);
+			destroyCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
 			case 7://CV Signal
-			ss >> arg1;
-			cArg1 = (char*) arg1.c_str();
-			ss >> arg2;
-			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverCVTable,2);
-			index2 = getTableIndex(cArg2,serverLockTable,1);
+			ss >> index;
+			ss>>index2;
 			sCV = (serverCV*)serverCVTable->Get(index);
 			sLock = (serverLock*)serverLockTable->Get(index2);
-			sCV->Signal(sLock,inPktHdr.from,0);
+			if (sCV == NULL || sLock == NULL) {
+				eMsg = "1";
+				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+			}
+			sCV->Signal(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
-			case 8://CV Wait
-			ss >> arg1;
-			cArg1 = (char*) arg1.c_str();
-			ss>>arg2;
-			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverCVTable,2);
-			index2 = getTableIndex(cArg2,serverLockTable,1);
+			case 8:   //CV Wait
+			ss >> index;
+			ss>>index2;
 			sCV = (serverCV*)serverCVTable->Get(index);
 			sLock = (serverLock*)serverLockTable->Get(index2);
-			sCV->Wait(sLock,inPktHdr.from,0);
+			if (sCV == NULL || sLock == NULL) {
+				eMsg = "1";
+				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+			}
+			sCV->Wait(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
-			case 9://CV Broadcast
-			ss >> arg1;
-			cArg1 = (char*) arg1.c_str();
-			ss>>arg2;
-			cArg2 = (char*) arg2.c_str();
-			index = getTableIndex(cArg1,serverCVTable,2);
-			index2 = getTableIndex(cArg2,serverLockTable,1);
+			case 9:   //CV Broadcast
+			ss >> index;
+			ss>>index2;
 			sCV = (serverCV*)serverCVTable->Get(index);
 			sLock = (serverLock*)serverLockTable->Get(index2);
-			sCV->Boardcast(sLock,inPktHdr.from,0);
+			if (sCV == NULL || sLock == NULL) {
+				eMsg = "1";
+				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+			}
+			sCV->Boardcast(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
-			case 10: //MV Create, NOT COMPLETE
-				ss>> arg2;
-				cArg2 = (char*) arg2.c_str();
-				createMV(cArg1, MVTable, inPktHdr.from,0);
-				break;
+			case 10:   //create mv
+			ss>> arg1;
+			cArg1 = (char*) arg1.c_str();
+			createMV(cArg1, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			break;
 
-			case 11:
-				destroyMV(cArg1, MVTable, inPktHdr.from,0);
+			case 11://destroy mv
+			ss >> arg1;
+			cArg1 = (char*)arg1.c_str();
+			destroyMV(cArg1, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			break;
+
+			case 12://read monitor variable
+			ss>> index;
+			sMV = (serverMV*)MVTable->Get(index);
+			if (sMV == NULL) {
+				eMsg = new char[MaxMailSize];
+				eMsg = "1";
+				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
-			/* THIS NEEDS TO BE FIXED
-			case 12:
-				ss >> arg2;
-				index = getTableIndex(cArg1, MVTable, 0);
-				break;
+			}
+			sMV->Read(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			break;
 
 			case 13: //set the monitor variable
-				ss >> arg2;
-				index = getTableIndex(cArg1, MVTable, 0);
-				MonitorVariable* MV = (MonitorVariable*) MVTable->Get(i);
-				MV->value = 
-				MV->index = 
+			ss>> index >> mValue;
+			sMV = (serverMV*)MVTable->Get(index);
+			if (sMV == NULL) {
+				eMsg = new char[MaxMailSize];
+				eMsg = "1";
+				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
-			*/
+			}
+			sMV->Set(mValue,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			break;
+
 			default:
 			printf("invalid request type\n");
-			char* eMsg = new char[MaxMailSize];
+			eMsg = new char[MaxMailSize];
 			eMsg = "1";
-			ServerReply(eMsg,1,0,0);
+			ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 		}
 	}
 }
 
 //perform creatLock syscall on server,update created lock count
-void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
+void createLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox) {
 	char* msg = new char[MaxMailSize];
 	int location = 0;
 
@@ -445,12 +467,12 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox) {
 		//msg = "1";
 	}
 
-	ServerReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,fromBox);
 }
 
 //perform destoryLock syscall on server
 //the actual destroy actions won't be perfromed until it's the last lock
-void destroyLock(char* lName, Table* sTable, int outAddr,int outBox) {
+void destroyLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox) {
 	char* msg = new char[MaxMailSize];
 
 	if(createLockRequests == 0) {
@@ -472,12 +494,12 @@ void destroyLock(char* lName, Table* sTable, int outAddr,int outBox) {
 		createLockRequests--;
 	}
 
-	ServerReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,fromBox);
 
 }
 
 //perform createCV syscall on server
-void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
+void createCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox) {
 	char* msg = new char[MaxMailSize];
 	int location = -1;
 
@@ -491,11 +513,11 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox) {
 		msg = "1";
 	}
 
-	ServerReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,fromBox);
 }
 
 //perform destroyCV syscall on server
-void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
+void destroyCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox) {
 	char* msg = new char[MaxMailSize];
 
 	if(createCVRequests == 0) {
@@ -517,16 +539,16 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox) {
 		createCVRequests--;
 	}
 
-	ServerReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,fromBox);
 }
 
-void createMV(char* lname, Table* mTable, int outAddr, int outBox){
+void createMV(char* lname, Table* mTable, int outAddr, int outBox,int fromBox) {
 	char* msg = new char[MaxMailSize];
 	int location = 0;
 
-	if(!tableItemExist(lname, mTable, 0)){
-		MonitorVariable* toPut = new MonitorVariable(lname, -1, -1);
-		location =  mTable->Put(toPut);
+	if(!tableItemExist(lname, mTable, 0)) {
+		serverMV* toPut = new serverMV(lname, -1);
+		location = mTable->Put(toPut);
 		createMVRequests++;
 		string toSend;
 		stringstream sss;
@@ -534,7 +556,7 @@ void createMV(char* lname, Table* mTable, int outAddr, int outBox){
 		toSend = sss.str();
 		msg = (char*) toSend.c_str();
 	}
-	else{
+	else {
 		location = getTableIndex(lname,mTable,0);
 		string toSend;
 		stringstream sss;
@@ -543,21 +565,21 @@ void createMV(char* lname, Table* mTable, int outAddr, int outBox){
 		msg = (char*) toSend.c_str();
 	}
 
-	//ServerReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,fromBox);
 }
 
-void destroyMV(char* mName, Table* mTable, int outAddr,int outBox) {
+void destroyMV(char* mName, Table* mTable, int outAddr,int outBox,int fromBox) {
 	char* msg = new char[MaxMailSize];
 
 	if(createMVRequests == 0) {
 		if (!tableItemExist(mName, mTable, 0)) {
 			msg = "1";
 		}
-		else {//Delete all the MVs from the. This should only run at the end of the program
+		else { //Delete all the MVs from the. This should only run at the end of the program
 			int toRemove = mTable->Size();
 			toRemove--;
 			while(mTable->getCount() != 0) {
-				MonitorVariable* tItem = (MonitorVariable*) (mTable->Remove(toRemove));
+				serverMV* tItem = (serverMV*) (mTable->Remove(toRemove));
 				toRemove--;
 				delete tItem;
 				msg = "0";
@@ -568,7 +590,7 @@ void destroyMV(char* mName, Table* mTable, int outAddr,int outBox) {
 		createMVRequests--;
 	}
 
-	ServerReply(msg,outAddr,outBox,0);
+	ServerReply(msg,outAddr,outBox,fromBox);
 
 }
 
