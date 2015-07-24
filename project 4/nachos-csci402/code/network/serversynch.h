@@ -54,10 +54,10 @@ public:
 
 class serverMV {
 public:
-	serverMV(char* mName, int initValue);
+	serverMV(char* mName, int size);
 	~serverMV();
-	void Read(int outAddr,int outBox,int fromBox);
-	void Set(int toSet,int outAddr,int outBox,int fromBox);
+	void Read(int pos,int outAddr,int outBox,int fromBox);
+	void Set(int toSet,int pos,int outAddr,int outBox,int fromBox);
 
 	char* name;
 	int index;

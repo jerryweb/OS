@@ -1090,10 +1090,11 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len, int size){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "10 " << buf;
+	ss << "10 " << buf << " " << len << " ";
     // add size to message
 	toSend = ss.str();
-	request = (char*)toSend.c_str();
+	//request = (char*)toSend.c_str();
+	strcpy(request,(char*)toSend.c_str());
 	printf("sending request %s\n",request);
 
 	clientRequest(request,0,0);
@@ -1139,10 +1140,11 @@ int GetMonitorVariable_Syscall(int id, int pos){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "12 " << id;
+	ss << "12 " << id << " " << pos << " ";
     // add pos to message
 	toSend == ss.str();
-	request = (char*)toSend.c_str();
+	//request = (char*)toSend.c_str();
+	strcpy(request,(char*)toSend.c_str());
 
 	clientRequest(request,0,0);
 	value = serverResponse();
@@ -1164,10 +1166,11 @@ void SetMonitorVariable_Syscall(int id, int pos, int value){
 	char* request;
 	string toSend;
 	stringstream ss;
-	ss << "13 " << id << value;
+	ss << "13 " << id << " "<< value << " " << pos << " ";
     // add pos to message
 	toSend == ss.str();
-	request = (char*)toSend.c_str();
+	//request = (char*)toSend.c_str();
+	strcpy(request,(char*)toSend.c_str());
 
 	clientRequest(request,0,0);
 	serverResponseValidation();

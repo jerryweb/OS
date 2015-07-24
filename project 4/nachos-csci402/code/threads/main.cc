@@ -86,7 +86,7 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox);
 void destroyLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox);
 void createCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox);
 void destroyCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox);
-void createMV(char* lname, Table* mTable, int outAddr, int outBox,int fromBox);
+void createMV(char* lname,int len, Table* mTable, int outAddr, int outBox,int fromBox);
 void destroyMV(char* mName, Table* mTable, int outAddr,int outBox,int fromBox);
 #endif
 
@@ -301,7 +301,7 @@ void RunServer() {
 		char* cArg2;
 		char* cArg3;
 		char* eMsg;
-		int index2, index3,mValue;
+		int index2, index3,mValue,mvPos;  //mvPos used as size for create, array index for other functions
 
 		//printf("waiting on in mail\n");
 		printf("\n************in mainc.cc before receive\n");
@@ -427,9 +427,10 @@ void RunServer() {
 			break;
 
 			case 10:   //create mv
-			ss>> arg1;
+            ss>> arg1;
+			ss>> mvPos;
 			cArg1 = (char*) arg1.c_str();
-			createMV(cArg1, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			createMV(cArg1,mvPos, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
 			case 11://destroy mv
@@ -447,7 +448,8 @@ void RunServer() {
 				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
 			}
-			sMV->Read(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			ss >> mvPos;
+			sMV->Read(mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
 			case 13: //set the monitor variable
@@ -459,7 +461,8 @@ void RunServer() {
 				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
 			}
-			sMV->Set(mValue,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+			ss >> mvPos;
+			sMV->Set(mValue,mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 			break;
 
 			default:
@@ -571,12 +574,12 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox) {
 	ServerReply(msg,outAddr,outBox,fromBox);
 }
 
-void createMV(char* lname, Table* mTable, int outAddr, int outBox,int fromBox) {
+void createMV(char* lname, int len, Table* mTable, int outAddr, int outBox,int fromBox) {
 	char* msg = new char[MaxMailSize];
 	int location = 0;
 
 	if(!tableItemExist(lname, mTable, 0)) {
-		serverMV* toPut = new serverMV(lname, -1);
+		serverMV* toPut = new serverMV(lname, len);
 		location = mTable->Put(toPut);
 		createMVRequests++;
 		string toSend;

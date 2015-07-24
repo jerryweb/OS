@@ -110,7 +110,7 @@ void serverLock::Acquire(int outAddr, int outBox, int fromBox) {
 		mailboxID = outBox;
 
 		//encode success msg and send reply
-		strcpy(msg,"0");
+		strcpy(msg, "0");
 		//msg = "0";
 		ServerReply(msg, outAddr, outBox, fromBox);
 	} else {
@@ -120,7 +120,7 @@ void serverLock::Acquire(int outAddr, int outBox, int fromBox) {
 		ss << outAddr << " " << outBox << " " << fromBox;
 		toAppend = ss.str();
 		//msg = (char*) toAppend.c_str();
-		strcpy(msg,(char*)toAppend.c_str());
+		strcpy(msg, (char*) toAppend.c_str());
 		waitQue->Append((void*) msg);
 	}
 }
@@ -130,18 +130,18 @@ void serverLock::Release(int outAddr, int outBox, int fromBox) {
 
 	char* msg = new char[MaxMailSize];
 	//msg = "0"; //default to success
-	strcpy(msg,"0");
+	strcpy(msg, "0");
 
 	//if sender not the owner
 	if (outAddr != ownerID || outBox != mailboxID) {
 		//msg = "1";
-		strcpy(msg,"1");
+		strcpy(msg, "1");
 		//wait queue not empty, remove the first one and send reply to it
 	} else if (!waitQue->IsEmpty()) {
 		//send reply to waiting userprog
 		char* waitMsg = new char[MaxMailSize];
 		//waitMsg = (char*) waitQue->Remove();
-		strcpy(waitMsg,(char*)waitQue->Remove());
+		strcpy(waitMsg, (char*) waitQue->Remove());
 
 		int waitAddr, waitOutBox, waitFromBox;
 		stringstream ss;
@@ -153,7 +153,7 @@ void serverLock::Release(int outAddr, int outBox, int fromBox) {
 		mailboxID = waitOutBox;
 
 		//waitMsg = "0";
-		strcpy(waitMsg,"0");
+		strcpy(waitMsg, "0");
 		ServerReply(waitMsg, waitAddr, waitOutBox, waitFromBox);
 
 		//wait queue empty, change state and clear owner&mailbox
@@ -181,7 +181,7 @@ void serverCV::Signal(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 
 	char* msg = new char[MaxMailSize];
 	//msg = "0";      //default to success
-	strcpy(msg,"0");
+	strcpy(msg, "0");
 	bool success = true;
 
 	//check if lock is valid
@@ -196,12 +196,12 @@ void serverCV::Signal(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 
 	if (!success) {
 		//msg = "1";
-		strcpy(msg,"1");
+		strcpy(msg, "1");
 	} else {
 		//remove one msg from waitQue
 		char* waitMsg = new char[MaxMailSize];
 		//waitMsg = (char*) waitQue->Remove();
-		strcpy(waitMsg,(char*)waitQue->Remove());
+		strcpy(waitMsg, (char*) waitQue->Remove());
 
 		int waitAddr, waitOutBox, waitFromBox;
 		stringstream ss;
@@ -237,17 +237,17 @@ void serverCV::Wait(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 
 	if (!success) {
 		//msg = "1";
-		strcpy(msg,"1");
+		strcpy(msg, "1");
 		ServerReply(msg, outAddr, outBox, fromBox);
 	} else {
-		waitLock->Release(outAddr, outBox,fromBox);
+		waitLock->Release(outAddr, outBox, fromBox);
 		//append msg to wait queue
 		string toAppend;
 		stringstream ss;
 		ss << outAddr << " " << outBox << " " << fromBox;
 		toAppend = ss.str();
 		//msg = (char*) toAppend.c_str();
-		strcpy(msg,(char*)toAppend.c_str());
+		strcpy(msg, (char*) toAppend.c_str());
 		waitQue->Append((void*) msg);
 	}
 }
@@ -256,7 +256,7 @@ void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox,
 		int fromBox) {
 	char* msg = new char[MaxMailSize];
 	//msg = "0";      //default to success
-	strcpy(msg,"0");
+	strcpy(msg, "0");
 
 	bool success = true;
 
@@ -275,7 +275,7 @@ void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox,
 
 	if (!success) {
 		//msg = "1";
-		strcpy(msg,"1");
+		strcpy(msg, "1");
 	} else {
 		while (!waitQue->IsEmpty()) {
 			//remove one msg from waitQue
@@ -296,29 +296,46 @@ void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox,
 	ServerReply(msg, outAddr, outBox, fromBox);
 }
 
-serverMV::serverMV(char* mName, int initSize) {
+serverMV::serverMV(char* mName, int size) {
 	name = mName;
-    len = initSize;
+	len = size;
 	array = new int[len]();
 }
 
 serverMV::~serverMV() {
-    delete array;
+	delete array;
 }
 
 // add location
-void serverMV::Read(int outAddr, int outBox, int fromBox) {
+void serverMV::Read(int pos, int outAddr, int outBox, int fromBox) {
 	char* msg = new char[MaxMailSize];
 	stringstream ss;
-	ss << "0 " << value;
-	ServerReply(msg, outAddr, outBox, fromBox);
+
+	//abort if out of bound
+	if (pos < 0 || pos >= len) {
+		strcpy(msg, "1");
+		ServerReply(msg, outAddr, outBox, fromBox);
+	} else {
+		string sReply;
+		int toSend = array[pos];
+		ss << "0 " << toSend;
+		sReply = ss.str();
+		strcpy(msg, (char*) sReply.c_str());
+		ServerReply(msg, outAddr, outBox, fromBox);
+	}
 }
 
 // add location
-void serverMV::Set(int toSet, int outAddr, int outBox, int fromBox) {
-	value = toSet;
+void serverMV::Set(int toSet, int pos, int outAddr, int outBox, int fromBox) {
 	char* msg = new char[MaxMailSize];
-	//msg = "0";
-	strcpy(msg,"0");
-	ServerReply(msg,outAddr,outBox,fromBox);
+
+	if (pos < 0 || pos >= len) {
+		strcpy(msg, "1");
+		ServerReply(msg, outAddr, outBox, fromBox);
+	} else {
+		array[pos] = toSet;
+		//msg = "0";
+		strcpy(msg, "0");
+		ServerReply(msg, outAddr, outBox, fromBox);
+	}
 }
