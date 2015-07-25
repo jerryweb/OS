@@ -75,6 +75,7 @@ extern SynchDisk   *synchDisk;
 
 #ifdef NETWORK
 #include "post.h"
+extern int netname;
 extern PostOffice* postOffice;
 extern int createLockRequests;
 extern int createCVRequests;

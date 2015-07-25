@@ -20,6 +20,7 @@ enum lockState {
 bool tableItemExist(char* tName, Table* table, int tableType);
 int getTableIndex(char* tName, Table* table, int tableType);
 void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox);
+unsigned int getTimeStamp();
 
 class serverLock {
 public:

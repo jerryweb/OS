@@ -59,6 +59,7 @@ struct KernelCondition {
 };
 
 #ifdef NETWORK
+int netname;
 Table* serverLockTable;
 Table* serverCVTable;
 Table* MVTable;
@@ -1294,7 +1295,7 @@ void ExceptionHandler(ExceptionType which) {
 		case SC_CreateMonitorVariable:
 			DEBUG('a', "CreateMonitorVariable syscall.\n");
 			rv = CreateMonitorVariable_Syscall(machine->ReadRegister(4), 
-				machine->ReadRegister(5));
+				machine->ReadRegister(5),machine->ReadRegister(6));
 			break;
 		case SC_DestroyMonitorVariable:
 			DEBUG('a', "DestroyMonitorVariable syscall.\n");
@@ -1303,11 +1304,11 @@ void ExceptionHandler(ExceptionType which) {
 		case SC_SetMonitorVariable:
 			DEBUG('a', "SetMonitorVariable syscall.\n");
 			SetMonitorVariable_Syscall(machine->ReadRegister(4), 
-				machine->ReadRegister(5));
+				machine->ReadRegister(5),machine->ReadRegister(6));
 			break;
 		case SC_GetMonitorVariable:
 			DEBUG('a', "GetMonitorVariable syscall.\n");
-			rv = GetMonitorVariable_Syscall(machine->ReadRegister(4));
+			rv = GetMonitorVariable_Syscall(machine->ReadRegister(4),machine->ReadRegister(5));
 			break;
 		}
 		// Put in the return value and increment the PC

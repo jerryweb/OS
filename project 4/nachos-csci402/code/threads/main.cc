@@ -221,6 +221,9 @@ int main(int argc, char **argv) {
 		serverCVTable = new Table(2048);
 		MVTable = new Table(2048);
 		LTRArray = new unsigned int[5];
+		for (int i=0;i<5;i++) {
+			LTRArray[i] = 0;
+		}
 		pendingMsg = new List();
 
 		if (!strcmp(*argv, "-o")) {
@@ -273,27 +276,34 @@ int main(int argc, char **argv) {
 // 11 -> destory Monitor Variable
 // 12 -> get MV
 // 13 -> set MV
+// 14 -> update
 //need to add Broadcast
 void RunServer() {
 	//TODO::change syscall.h for MV calls since they need less arguments
 	//TODO::get machine ID
 
-	int myId;
+	int myId = netname;
+	printf("my server id is %d/n",myId);
 
 	while (true)
 	{
-		//printf("in server while loop\n");
+		/************data declarition****************************/
 		PacketHeader outPktHdr, inPktHdr;
 		MailHeader outMailHdr, inMailHdr;
 		char buffer[MaxMailSize];
-		stringstream ss;
+		stringstream ss;	//used to parse input
+		stringstream css;//used to construct message
 		ss.str("");
 		ss.clear();
-		int request = -1;
+		css.str("");
+		css.clear();
+		int scIdentifier;//0 for client msg, 1 for server msg
+		int request = -1;//request type
 		int index = -1;
+		int original = myId;//to indentify the orignal server,default to myself
+		unsigned int tStamp;//timestamp from the buffer
+		unsigned int sTStamp = 0;//smallest time stamp in LTR array
 		string arg1,arg2,arg3;
-
-		//declare these used for switch block
 		serverLock* sLock;
 		serverCV* sCV;
 		serverMV* sMV;
@@ -301,176 +311,219 @@ void RunServer() {
 		char* cArg2;
 		char* cArg3;
 		char* eMsg;
-		int index2, index3,mValue,mvPos;  //mvPos used as size for create, array index for other functions
+		int index2, index3,mValue,mvPos,dummy;//mvPos used as size for create, array index for other functions
 
-		//printf("waiting on in mail\n");
-		printf("\n************in mainc.cc before receive\n");
-		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);//TODO:change 0 to inbox
+		/************Server Forwarding*****************************/
+		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer); //TODO:change 0 to inbox
 		ss << buffer;
-		ss >> request;
-		printf("request type is %d\n",request);
+		ss >> scIdentifier;
 
-		/*if it's a client message forward it to other servers
-		if (request != 0) {
-			for (int i =0;i<5;i++) {
-				if (i != myId) {
-					stringstream css;
-					string cs;
-					char* cMsg;
-					fMsg = new char[mailMaxSize];
-					css << "0 " <<buffer;
-					cs = fss.str();
-					cMsg = (char*)cs.c_str();
-					ServerReply(cMsg,i,inMailHdr.from,inMailHdr.to);
-				}
-			}
-		//TODO: always do the else //if it's server forwarded
+		//if it's a client message forward it to other servers
+		if (request == 0) {
+			arg1 = ss.str();
+			css << "1 " << myId << " "<<arg1 << " ";
+			arg1 = css.str();
+			//else forward timestamp(only) to other servers
 		} else {
-			unsigned int newTStamp;
-			int newTStampID;
-			ss >> newTStamp >> newTStampID;
-
+			unsigned int fwdTime = getTimeStamp();
+			css << "1 "<< myId << " " <<fwdTime << " 14 "; //request type 14 means it's only timestamp update
+			arg1 = css.str();
 		}
-
-		//always append it to the queue */
-
-		//printf("before switch request\n");
-		switch (request)
-		{
-			case 1:   //create lock
-			ss >> arg1;
-			cArg1 = (char*) arg1.c_str();
-			createLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
-
-			case 2://destory lock
-			ss >> arg1;
-			cArg1 = (char*) arg1.c_str();
-			destroyLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
-
-			case 3://acquire lock
-			ss >> index;
-			sLock = (serverLock*)serverLockTable->Get(index);
-
-			//check if the lock is valid
-			if (sLock == NULL) {
-				eMsg = "1";
-				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-				break;
+		//forward the above just constructed message/timestamp to other servers
+		for (int i = 0;i<5;i++) {
+			if (i != myId) {
+				cArg1 = new char[MaxMailSize];
+				strcpy(cArg1,(char*)arg1.c_str());
+				ServerReply(cArg1,i,0,0); //it'fine to use 0,0 for to, from mailbox
+										  //since server is single thread
 			}
-			sLock->Acquire(inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
+		}
+		ss.str("");
+		ss.clear();
+		css.str("");
+		css.clear();
+		/************server forwarding ends**************************/
 
-			case 4:   //release lock
-			ss >> index;
-			//index = getTableIndex(cArg1,serverLockTable,1);
-			sLock = (serverLock*)serverLockTable->Get(index);
-			//check if the lock is valid
-			if (sLock == NULL) {
-				eMsg = "1";
-				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-				break;
+		/************total ordering**********************************/
+		ss << buffer;
+		ss >> dummy;
+		// read in orgianl server if it's server fwd msg
+		if (scIdentifier == 0) {
+			ss >> original;
+		}
+		ss >> tStamp;
+		//update LTRArray (last time received)
+		if (LTRArray[original] < tStamp) {
+			LTRArray[original] = tStamp;
+		}
+		//update smallest time stamp from LTR
+		for (int i=0;i<5;i++) {
+			if (sTStamp == 0) {
+				sTStamp = LTRArray[i];
+				continue;
 			}
-			sLock->Release(inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
-
-			case 5:   //create CV
-			ss >> arg1;
-			cArg1 = (char*) arg1.c_str();
-			createCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
-
-			case 6://destroy CV
-			ss >> arg1;
-			cArg1 = (char*) arg1.c_str();
-			destroyCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
-
-			case 7://CV Signal
-			ss >> index;
-			ss>>index2;
-			sCV = (serverCV*)serverCVTable->Get(index);
-			sLock = (serverLock*)serverLockTable->Get(index2);
-			if (sCV == NULL || sLock == NULL) {
-				eMsg = "1";
-				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-				break;
+			if (sTStamp > LTRArray[i]) {
+				sTStamp = LTRArray[i];
 			}
-			sCV->Signal(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
+		}
+		//append the msg without scIdentifier to the pending message list(sorted)
+		ss.str("");
+		ss.clear();
+		ss >> dummy;
+		arg1 = ss.str();
+		char* nMsg;
+		nMsg = new char[MaxMailSize];
+		strcpy(nMsg,(char*)arg1.c_str());
+		pendingMsg->SortedInsert((void*)nMsg,tStamp);
+		ss.str("");
+		ss.clear();
+		/*****************total ordering ends******************/
 
-			case 8:   //CV Wait
-			ss >> index;
-			ss>>index2;
-			sCV = (serverCV*)serverCVTable->Get(index);
-			sLock = (serverLock*)serverLockTable->Get(index2);
-			if (sCV == NULL || sLock == NULL) {
-				eMsg = "1";
-				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+		/***************pending msg processing**************/
+		while (true) {
+			ss >> request;
+			printf("request type is %d\n",request);
+			switch (request)
+			{
+				case 1:   //create lock
+				ss >> arg1;
+				cArg1 = (char*) arg1.c_str();
+				createLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
-			}
-			sCV->Wait(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
 
-			case 9:   //CV Broadcast
-			ss >> index;
-			ss>>index2;
-			sCV = (serverCV*)serverCVTable->Get(index);
-			sLock = (serverLock*)serverLockTable->Get(index2);
-			if (sCV == NULL || sLock == NULL) {
-				eMsg = "1";
-				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				case 2://destory lock
+				ss >> arg1;
+				cArg1 = (char*) arg1.c_str();
+				destroyLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
 				break;
-			}
-			sCV->Boardcast(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
 
-			case 10:   //create mv
-            ss>> arg1;
-			ss>> mvPos;
-			cArg1 = (char*) arg1.c_str();
-			createMV(cArg1,mvPos, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
+				case 3://acquire lock
+				ss >> index;
+				sLock = (serverLock*)serverLockTable->Get(index);
 
-			case 11://destroy mv
-			ss >> arg1;
-			cArg1 = (char*)arg1.c_str();
-			destroyMV(cArg1, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
+				//check if the lock is valid
+				if (sLock == NULL) {
+					eMsg = "1";
+					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					break;
+				}
+				sLock->Acquire(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
 
-			case 12://read monitor variable
-			ss>> index;
-			sMV = (serverMV*)MVTable->Get(index);
-			if (sMV == NULL) {
+				case 4:   //release lock
+				ss >> index;
+				//index = getTableIndex(cArg1,serverLockTable,1);
+				sLock = (serverLock*)serverLockTable->Get(index);
+				//check if the lock is valid
+				if (sLock == NULL) {
+					eMsg = "1";
+					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					break;
+				}
+				sLock->Release(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 5:   //create CV
+				ss >> arg1;
+				cArg1 = (char*) arg1.c_str();
+				createCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 6://destroy CV
+				ss >> arg1;
+				cArg1 = (char*) arg1.c_str();
+				destroyCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 7://CV Signal
+				ss >> index;
+				ss>>index2;
+				sCV = (serverCV*)serverCVTable->Get(index);
+				sLock = (serverLock*)serverLockTable->Get(index2);
+				if (sCV == NULL || sLock == NULL) {
+					eMsg = "1";
+					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					break;
+				}
+				sCV->Signal(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 8:   //CV Wait
+				ss >> index;
+				ss>>index2;
+				sCV = (serverCV*)serverCVTable->Get(index);
+				sLock = (serverLock*)serverLockTable->Get(index2);
+				if (sCV == NULL || sLock == NULL) {
+					eMsg = "1";
+					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					break;
+				}
+				sCV->Wait(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 9:   //CV Broadcast
+				ss >> index;
+				ss>>index2;
+				sCV = (serverCV*)serverCVTable->Get(index);
+				sLock = (serverLock*)serverLockTable->Get(index2);
+				if (sCV == NULL || sLock == NULL) {
+					eMsg = "1";
+					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					break;
+				}
+				sCV->Boardcast(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 10:   //create mv
+				ss>> arg1;
+				ss>> mvPos;
+				cArg1 = (char*) arg1.c_str();
+				createMV(cArg1,mvPos, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 11://destroy mv
+				ss >> arg1;
+				cArg1 = (char*)arg1.c_str();
+				destroyMV(cArg1, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 12://read monitor variable
+				ss>> index;
+				sMV = (serverMV*)MVTable->Get(index);
+				if (sMV == NULL) {
+					eMsg = new char[MaxMailSize];
+					eMsg = "1";
+					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					break;
+				}
+				ss >> mvPos;
+				sMV->Read(mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 13: //set the monitor variable
+				ss>> index >> mValue;
+				sMV = (serverMV*)MVTable->Get(index);
+				if (sMV == NULL) {
+					eMsg = new char[MaxMailSize];
+					eMsg = "1";
+					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					break;
+				}
+				ss >> mvPos;
+				sMV->Set(mValue,mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				break;
+
+				case 14: //do nothing, since it's only a timestamp udpate from method 1
+				break;
+
+				default:
+				printf("invalid request type\n");
 				eMsg = new char[MaxMailSize];
 				eMsg = "1";
 				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-				break;
 			}
-			ss >> mvPos;
-			sMV->Read(mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
-
-			case 13: //set the monitor variable
-			ss>> index >> mValue;
-			sMV = (serverMV*)MVTable->Get(index);
-			if (sMV == NULL) {
-				eMsg = new char[MaxMailSize];
-				eMsg = "1";
-				ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-				break;
-			}
-			ss >> mvPos;
-			sMV->Set(mValue,mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
-			break;
-
-			default:
-			printf("invalid request type\n");
-			eMsg = new char[MaxMailSize];
-			eMsg = "1";
-			ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
 		}
+		/*****************pending msg processing ends***********************/
 	}
 }
 

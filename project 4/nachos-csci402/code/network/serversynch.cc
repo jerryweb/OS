@@ -1,6 +1,7 @@
 #include "serversynch.h"
 #include <sstream>
 #include <string>
+#include <time.h>
 
 using namespace std;
 
@@ -85,6 +86,16 @@ void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
 	postOffice->Send(outPktHdr, outMailHdr, sMsg);
 
 	delete[] sMsg;  //since all the msg used in this function is from "new"
+}
+
+unsigned int getTimeStamp() {
+	struct timeval tv;
+	struct timezone tz;
+	struct tm *tm;
+	gettimeofday(&tv,&tz);
+	tm = localtime(&tv.tv_sec);
+	unsigned int myTimestamp = ((unsigned int)(tv.tv_usec + tv.tv_sec*1000000));
+	return myTimestamp;
 }
 
 serverLock::serverLock(char* dName, int owner, int mailbox) {

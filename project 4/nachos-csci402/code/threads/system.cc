@@ -138,7 +138,7 @@ Initialize(int argc, char **argv)
     serverLockTable = new Table(maxNumLocks);
     serverCVTable = new Table(maxNumCV);
     double rely = 1;		// network reliability
-    int netname = 0;		// UNIX socket name
+    netname = 0;		// UNIX socket name
 
 #endif
     
