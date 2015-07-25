@@ -1170,8 +1170,6 @@ int GetMonitorVariable_Syscall(int id, int pos){
 	return value;	//this should be whatever value the server sends back
 }
 
-
-//TODO: modify the string to send the correct information
 void SetMonitorVariable_Syscall(int id, int pos, int value){
 	/*MonitorVariable* monVar = (MonitorVariable*) MVTable->Get(id);
 

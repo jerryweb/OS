@@ -91,60 +91,108 @@ IV. Implementation:
         
 	+ Data Structures added, and the file they were added to.
         (Test files not included)
+	[Fully Distributed Airport]
+	
+	[Fully Distributed Server]
+		code/network/serversynch.h
+			class serverMV {
+				public:
+					serverMV(char* mName, int size);
+					~serverMV();
+					void Read(int pos,int outAddr,int outBox,int fromBox);
+					void Set(int toSet,int pos,int outAddr,int outBox,int fromBox);
 
+				char* name;
+				int index;
+				int* array; // array of size len
+    			int len;
+			};
+		
+		code/threads/system.h
+			extern int netname;              //global machine id
+			extern unsigned int* LTRARray;   //Last Time Received Array
+			extern int createMVRequests;
+			
     
 	+ Data Structures modified, and the file they were added to.
         (Test files not included)
+    [Fully Distributed Airport]
+	
+	[Fully Distributed Server]
+		code/threads/thread.h
+			class Thread;
+	
+        code/network/serversynch.h
+        	class serverLock;
+        	class serverCV;
 
     
 	+ Functions added and in which file.
         (Test files not included)
-
+    [Fully Distributed Airport]
+	
+	[Fully Distributed Server]
+		code/threads/main.cc
+			void createMV(char* lname,int len, Table* mTable, int outAddr, int outBox,int fromBox);
+			void destroyMV(char* mName, Table* mTable, int outAddr,int outBox,int fromBox);
+			
+		code/network/serversynch.cc
+			void Read(int pos,int outAddr,int outBox,int fromBox);
+			void Set(int toSet,int pos,int outAddr,int outBox,int fromBox);
+			unsigned int getTimeStamp();
+		
+		code/userprog/exception.cc
+			int CreateMonitorVariable_Syscall(unsigned int vaddr, int len, int size);
+			void DestroyMonitorVariable_Syscall(int id);
+			int GetMonitorVariable_Syscall(int id, int pos);
+			void SetMonitorVariable_Syscall(int id, int pos, int value);
+			
     
 	+ Functions modified and in which file.
         (Test files not included)
-
-
+	[Fully Distributed Airport]
+	
+	[Fully Distributed Server]
+		code/threads/main.cc
+			void RunServer();  //most of the new server code goes to here
+			void createLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox);
+			void destroyLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox);
+			void createCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox);
+			void destroyCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox);
+			
+		code/network/serversynch.cc
+			void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox);
+			void Acquire(int outAddr, int outBox,int fromBox);
+			void Release(int outAddr, int outBox,int fromBox);
+			void Signal(serverLock *sLock, int outAddr, int outBox,int fromBox);
+			void Wait(serverLock *sLock, int outAddr, int outBox,int fromBox);
+			void Boardcast(serverLock *sLock, int outAddr, int outBox,int fromBox);
+			
+		code/userprog/exception.cc
+			void clientRequest(char* msg, int fromBox, int toBox);
+			void Acquire_Syscall(int lock);
+			void Release_Syscall(int lock);
+			void Wait_Syscall(int lock, int CV);
+			void Signal_Syscall(int lock, int CV);
+			int CreateLock_Syscall(unsigned int vaddr, int len);
+			int CreateCondition_Syscall(unsigned int vaddr, int len);
+			void DestroyLock_Syscall(int id);
+			void DestroyCondition_Syscall(int CV);
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
-        nachos -x ../test/<testfile>
-            test files:
-                matmult
-                    basic matmult test
-                matmultFork
-                    forks two matmult threads
-                matmultExec
-                    execs two processes which run 'matmult'
-                sort
-                    basic sort test
-            non-standard optional arguments:
-                -d <flag>
-                    'x' for vm debug statements
-                    'z' for syscall debug statements
-                    'p' for page initialization debug statements
-                -P <FIFO/RAND>
-                    chooses the given eviction policy. defaults to FIFO if not present or not valid.
-        [NETWORK]
+
 	+ Test Output
-        register 4 prints out at the end of every thread:
-            <thread name>   The contents of register 4 is <number>
-                0 for main thread
-                7220 for every matmult thread
-                1023 for every sort thread
-        [NETWORK]
+
 
 VI. Discussion:
 	+ Experiment expectation
-        every matmult returns 7220, every sort returns 1023.
-        [NETWORK]ServerLock and ServerCV works as required
+
 	+ Experiment result
-        works as intended.
-        [NETWORK]ServerLock works conditionly, ServerCV hasn't been tested
+
 	+ Explanation
 
 VIII. Miscellaneous:
 - Whatever else you want the grader know about your development.  You can create your own subsections headings here.
 
-	when testing network, please comment out line 71 and line 76-79 in machine.cc
-	otherwise the TLB will not be instatniated, the reason is not clear for now
+	We created monitor variables class for this project
