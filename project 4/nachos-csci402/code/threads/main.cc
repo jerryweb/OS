@@ -277,8 +277,8 @@ void RunServer() {
 	while (true)
 	{
 		/************data declarition****************************/
-		PacketHeader outPktHdr, inPktHdr;
-		MailHeader outMailHdr, inMailHdr;
+		PacketHeader inPktHdr;
+		MailHeader inMailHdr;
 		char buffer[MaxMailSize];
 		stringstream ss;	//used to parse input
 		stringstream css;//used to construct message
@@ -403,13 +403,13 @@ void RunServer() {
 				case 1:   //create lock
 				ss >> arg1;
 				cArg1 = (char*) arg1.c_str();
-				createLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				createLock(cArg1, serverLockTable,original,mailboxID,0);
 				break;
 
 				case 2://destory lock
 				ss >> arg1;
 				cArg1 = (char*) arg1.c_str();
-				destroyLock(cArg1, serverLockTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+				destroyLock(cArg1, serverLockTable,original,mailboxID,0);
 				break;
 
 				case 3://acquire lock
@@ -420,10 +420,10 @@ void RunServer() {
 				if (sLock == NULL) {
 					eMsg = "1";
 					if (original == myId) {
-						ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
-					sLock->Acquire(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					sLock->Acquire(original,mailboxID,0);
 					break;
 
 					case 4:   //release lock
@@ -433,22 +433,22 @@ void RunServer() {
 					//check if the lock is valid
 					if (sLock == NULL) {
 						eMsg = "1";
-						ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
-					sLock->Release(inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					sLock->Release(original,mailboxID,0);
 					break;
 
 					case 5:   //create CV
 					ss >> arg1;
 					cArg1 = (char*) arg1.c_str();
-					createCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					createCV(cArg1,serverCVTable,original,mailboxID,0);
 					break;
 
 					case 6://destroy CV
 					ss >> arg1;
 					cArg1 = (char*) arg1.c_str();
-					destroyCV(cArg1,serverCVTable,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					destroyCV(cArg1,serverCVTable,original,mailboxID,0);
 					break;
 
 					case 7://CV Signal
@@ -458,10 +458,10 @@ void RunServer() {
 					sLock = (serverLock*)serverLockTable->Get(index2);
 					if (sCV == NULL || sLock == NULL) {
 						eMsg = "1";
-						ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
-					sCV->Signal(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					sCV->Signal(sLock,original,mailboxID,0);
 					break;
 
 					case 8:   //CV Wait
@@ -471,10 +471,10 @@ void RunServer() {
 					sLock = (serverLock*)serverLockTable->Get(index2);
 					if (sCV == NULL || sLock == NULL) {
 						eMsg = "1";
-						ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
-					sCV->Wait(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					sCV->Wait(sLock,original,mailboxID,0);
 					break;
 
 					case 9:   //CV Broadcast
@@ -484,23 +484,23 @@ void RunServer() {
 					sLock = (serverLock*)serverLockTable->Get(index2);
 					if (sCV == NULL || sLock == NULL) {
 						eMsg = "1";
-						ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
-					sCV->Boardcast(sLock,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					sCV->Boardcast(sLock,original,mailboxID,0);
 					break;
 
 					case 10:   //create mv
 					ss>> arg1;
 					ss>> mvPos;
 					cArg1 = (char*) arg1.c_str();
-					createMV(cArg1,mvPos, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					createMV(cArg1,mvPos, MVTable,original,mailboxID,0);
 					break;
 
 					case 11://destroy mv
 					ss >> arg1;
 					cArg1 = (char*)arg1.c_str();
-					destroyMV(cArg1, MVTable, inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					destroyMV(cArg1, MVTable,original,mailboxID,0);
 					break;
 
 					case 12://read monitor variable
@@ -509,11 +509,11 @@ void RunServer() {
 					if (sMV == NULL) {
 						eMsg = new char[MaxMailSize];
 						eMsg = "1";
-						ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
 					ss >> mvPos;
-					sMV->Read(mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					sMV->Read(mvPos,original,mailboxID,0);
 					break;
 
 					case 13: //set the monitor variable
@@ -522,11 +522,11 @@ void RunServer() {
 					if (sMV == NULL) {
 						eMsg = new char[MaxMailSize];
 						eMsg = "1";
-						ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
 					ss >> mvPos;
-					sMV->Set(mValue,mvPos,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					sMV->Set(mValue,mvPos,original,mailboxID,0);
 					break;
 
 					case 14: //do nothing, since it's only a timestamp udpate from method 1
@@ -536,7 +536,7 @@ void RunServer() {
 					printf("invalid request type\n");
 					eMsg = new char[MaxMailSize];
 					eMsg = "1";
-					ServerReply(eMsg,inPktHdr.from,inMailHdr.from,inMailHdr.to);
+					ServerReply(eMsg,original,mailboxID,0);
 				}
 			}
 			/*****************pending msg processing ends***********************/
