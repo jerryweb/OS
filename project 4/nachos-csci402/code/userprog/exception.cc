@@ -33,6 +33,7 @@
 #ifdef NETWORK
 #include <sstream>
 #include "serversynch.h"
+#include <stdlib.h>
 #endif
 
 using namespace std;
@@ -149,16 +150,32 @@ int serverResponse() {
 //routine to send request to server
 //difference from server msg function, the msg it not dynamiclly declared
 void clientRequest(char* msg, int fromBox, int toBox) {
+	//reconstruct the msg to fit project 4 format
+	int serverID;
+	unsigned int timestamp;
+	char* toSend;
+	stringstream ss;
+	string build;
+
+	serverID = rand() % 5;
+	timestamp = getTimeStamp();
+
+	ss.str("");
+	ss.clear();
+	//0 as client message marker
+	ss << "0 " << timestamp << " " << msg;
+	build = ss.str();
+	strcpy(toSend,(char*)build.c_str());
+
 	PacketHeader outPktHdr;
 	MailHeader outMailHdr;
 
-	outPktHdr.to = 0;
-	outPktHdr.from = 1;
-	outMailHdr.to = toBox;
-	outMailHdr.from = fromBox;
-	outMailHdr.length = strlen(msg) + 1;
+	outPktHdr.to = serverID;
+	outMailHdr.to = 0;
+	outMailHdr.from = fromBox;   //TODO: get this from current thread
+	outMailHdr.length = strlen(toSend) + 1;
 
-	postOffice->Send(outPktHdr, outMailHdr, msg);
+	postOffice->Send(outPktHdr, outMailHdr, toSend);
 }
 #endif
 

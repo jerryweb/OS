@@ -215,9 +215,8 @@ int main(int argc, char **argv) {
 		}
 #endif // FILESYS
 #ifdef NETWORK
-		//Table* serverLockTable;
+		srand (time(NULL)); //for userprog calling random server
 		serverLockTable = new Table(2048);
-		//Table* serverCVTable;
 		serverCVTable = new Table(2048);
 		MVTable = new Table(2048);
 		LTRArray = new unsigned int[5];
@@ -538,6 +537,8 @@ void RunServer() {
 					eMsg = "1";
 					ServerReply(eMsg,original,mailboxID,0);
 				}
+
+				//TODO:delete msg
 			}
 			/*****************pending msg processing ends***********************/
 		}
