@@ -417,7 +417,7 @@ void RunServer() {
 
 				//check if the lock is valid
 				if (sLock == NULL) {
-					eMsg = "1";
+					strcpy(eMsg,"1 ");
 					if (original == myId) {
 						ServerReply(eMsg,original,mailboxID,0);
 						break;
@@ -431,7 +431,7 @@ void RunServer() {
 					sLock = (serverLock*)serverLockTable->Get(index);
 					//check if the lock is valid
 					if (sLock == NULL) {
-						eMsg = "1";
+						strcpy(eMsg,"1 ");
 						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
@@ -456,7 +456,7 @@ void RunServer() {
 					sCV = (serverCV*)serverCVTable->Get(index);
 					sLock = (serverLock*)serverLockTable->Get(index2);
 					if (sCV == NULL || sLock == NULL) {
-						eMsg = "1";
+						strcpy(eMsg,"1 ");
 						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
@@ -469,7 +469,7 @@ void RunServer() {
 					sCV = (serverCV*)serverCVTable->Get(index);
 					sLock = (serverLock*)serverLockTable->Get(index2);
 					if (sCV == NULL || sLock == NULL) {
-						eMsg = "1";
+						strcpy(eMsg,"1 ");
 						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
@@ -482,7 +482,7 @@ void RunServer() {
 					sCV = (serverCV*)serverCVTable->Get(index);
 					sLock = (serverLock*)serverLockTable->Get(index2);
 					if (sCV == NULL || sLock == NULL) {
-						eMsg = "1";
+						strcpy(eMsg,"1 ");
 						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
@@ -507,7 +507,7 @@ void RunServer() {
 					sMV = (serverMV*)MVTable->Get(index);
 					if (sMV == NULL) {
 						eMsg = new char[MaxMailSize];
-						eMsg = "1";
+						strcpy(eMsg,"1 ");
 						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
@@ -520,7 +520,7 @@ void RunServer() {
 					sMV = (serverMV*)MVTable->Get(index);
 					if (sMV == NULL) {
 						eMsg = new char[MaxMailSize];
-						eMsg = "1";
+						strcpy(eMsg,"1 ");
 						ServerReply(eMsg,original,mailboxID,0);
 						break;
 					}
@@ -534,7 +534,7 @@ void RunServer() {
 					default:
 					printf("invalid request type\n");
 					eMsg = new char[MaxMailSize];
-					eMsg = "1";
+					strcpy(eMsg,"1 ");
 					ServerReply(eMsg,original,mailboxID,0);
 				}
 
@@ -566,7 +566,7 @@ void createLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox) 
 		stringstream sss;
 		sss <<"0 "<<location;
 		toSend = sss.str();
-		msg = (char*) toSend.c_str();
+		strcpy(msg,(char*)toSend.c_str());
 		//msg = "1";
 	}
 
@@ -580,7 +580,7 @@ void destroyLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox)
 
 	if(createLockRequests == 0) {
 		if (!tableItemExist(lName, sTable, 1)) {
-			msg = "1";
+			strcpy(msg,"1");
 		}
 		else {//Delete all the locks from the. This should only run at the end of the program
 			int toRemove = sTable->Size();
@@ -589,7 +589,7 @@ void destroyLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox)
 				serverLock* tItem = (serverLock*) (sTable->Remove(toRemove));
 				toRemove--;
 				delete tItem;
-				msg = "0";
+				strcpy(msg,"0");
 			}
 		}
 	}
@@ -610,10 +610,10 @@ void createCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox) {
 		serverCV* toPut = new serverCV(cName);
 		location = cTable->Put(toPut);
 		createCVRequests++;
-		msg = "0";
+		strcpy(msg,"0 ");
 	} else {
 		location = getTableIndex(cName,cTable,2);
-		msg = "1";
+		strcpy(msg,"1 ");
 	}
 
 	ServerReply(msg,outAddr,outBox,fromBox);
@@ -625,7 +625,7 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox) {
 
 	if(createCVRequests == 0) {
 		if (!tableItemExist(cName, cTable, 2)) {
-			msg = "1";
+			strcpy(msg,"1 ");
 		}
 		else { //Delete all the CVs from the. This should only run at the end of the program
 			int toRemove = cTable->Size();
@@ -634,7 +634,7 @@ void destroyCV(char* cName,Table* cTable,int outAddr,int outBox,int fromBox) {
 				serverCV* cItem = (serverCV*) (cTable->Remove(toRemove));
 				toRemove--;
 				delete cItem;
-				msg = "0";
+				strcpy(msg,"0 ");
 			}
 		}
 	}
@@ -665,7 +665,7 @@ void createMV(char* lname, int len, Table* mTable, int outAddr, int outBox,int f
 		stringstream sss;
 		sss <<"10 "<< location;
 		toSend = sss.str();
-		msg = (char*) toSend.c_str();
+		strcpy(msg,(char*) toSend.c_str());
 	}
 
 	ServerReply(msg,outAddr,outBox,fromBox);
@@ -676,7 +676,7 @@ void destroyMV(char* mName, Table* mTable, int outAddr,int outBox,int fromBox) {
 
 	if(createMVRequests == 0) {
 		if (!tableItemExist(mName, mTable, 0)) {
-			msg = "1";
+			strcpy(msg,"1 ");
 		}
 		else { //Delete all the MVs from the. This should only run at the end of the program
 			int toRemove = mTable->Size();
@@ -685,7 +685,7 @@ void destroyMV(char* mName, Table* mTable, int outAddr,int outBox,int fromBox) {
 				serverMV* tItem = (serverMV*) (mTable->Remove(toRemove));
 				toRemove--;
 				delete tItem;
-				msg = "0";
+				strcpy(msg,"0 ");
 			}
 		}
 	}

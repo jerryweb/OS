@@ -120,16 +120,14 @@ void serverLock::Acquire(int outAddr, int outBox, int fromBox) {
 		mailboxID = outBox;
 
 		//encode success msg and send reply
-		strcpy(msg, "0");
-		//msg = "0";
+		strcpy(msg, "0 ");
 		ServerReply(msg, outAddr, outBox, fromBox);
 	} else {
 		//produce and append msg to wait queue
 		string toAppend;
 		stringstream ss;
-		ss << outAddr << " " << outBox << " " << fromBox;
+		ss << outAddr << " " << outBox << " " << fromBox << " ";
 		toAppend = ss.str();
-		//msg = (char*) toAppend.c_str();
 		strcpy(msg, (char*) toAppend.c_str());
 		waitQue->Append((void*) msg);
 	}
@@ -139,13 +137,12 @@ void serverLock::Release(int outAddr, int outBox, int fromBox) {
 	printf("*********in serverLock::Release\n");
 
 	char* msg = new char[MaxMailSize];
-	//msg = "0"; //default to success
-	strcpy(msg, "0");
+	//default to success
+	strcpy(msg, "0 ");
 
 	//if sender not the owner
 	if (outAddr != ownerID || outBox != mailboxID) {
-		//msg = "1";
-		strcpy(msg, "1");
+		strcpy(msg, "1 ");
 		//wait queue not empty, remove the first one and send reply to it
 	} else if (!waitQue->IsEmpty()) {
 		//send reply to waiting userprog
@@ -162,8 +159,7 @@ void serverLock::Release(int outAddr, int outBox, int fromBox) {
 		ownerID = waitAddr;
 		mailboxID = waitOutBox;
 
-		//waitMsg = "0";
-		strcpy(waitMsg, "0");
+		strcpy(waitMsg, "0 ");
 		ServerReply(waitMsg, waitAddr, waitOutBox, waitFromBox);
 
 		//wait queue empty, change state and clear owner&mailbox
@@ -190,8 +186,7 @@ serverCV::~serverCV() {
 void serverCV::Signal(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 
 	char* msg = new char[MaxMailSize];
-	//msg = "0";      //default to success
-	strcpy(msg, "0");
+	strcpy(msg, "0 ");
 	bool success = true;
 
 	//check if lock is valid
@@ -205,8 +200,7 @@ void serverCV::Signal(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 	}
 
 	if (!success) {
-		//msg = "1";
-		strcpy(msg, "1");
+		strcpy(msg, "1 ");
 	} else {
 		//remove one msg from waitQue
 		char* waitMsg = new char[MaxMailSize];
@@ -246,17 +240,15 @@ void serverCV::Wait(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 	}
 
 	if (!success) {
-		//msg = "1";
-		strcpy(msg, "1");
+		strcpy(msg, "1 ");
 		ServerReply(msg, outAddr, outBox, fromBox);
 	} else {
 		waitLock->Release(outAddr, outBox, fromBox);
 		//append msg to wait queue
 		string toAppend;
 		stringstream ss;
-		ss << outAddr << " " << outBox << " " << fromBox;
+		ss << outAddr << " " << outBox << " " << fromBox << " ";
 		toAppend = ss.str();
-		//msg = (char*) toAppend.c_str();
 		strcpy(msg, (char*) toAppend.c_str());
 		waitQue->Append((void*) msg);
 	}
@@ -265,8 +257,8 @@ void serverCV::Wait(serverLock *sLock, int outAddr, int outBox, int fromBox) {
 void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox,
 		int fromBox) {
 	char* msg = new char[MaxMailSize];
-	//msg = "0";      //default to success
-	strcpy(msg, "0");
+//default to success
+	strcpy(msg, "0 ");
 
 	bool success = true;
 
@@ -284,8 +276,7 @@ void serverCV::Boardcast(serverLock *sLock, int outAddr, int outBox,
 	}
 
 	if (!success) {
-		//msg = "1";
-		strcpy(msg, "1");
+		strcpy(msg, "1 ");
 	} else {
 		while (!waitQue->IsEmpty()) {
 			//remove one msg from waitQue
@@ -323,12 +314,12 @@ void serverMV::Read(int pos, int outAddr, int outBox, int fromBox) {
 
 	//abort if out of bound
 	if (pos < 0 || pos >= len) {
-		strcpy(msg, "1");
+		strcpy(msg, "1 ");
 		ServerReply(msg, outAddr, outBox, fromBox);
 	} else {
 		string sReply;
 		int toSend = array[pos];
-		ss << "0 " << toSend;
+		ss << "0 " << toSend << " ";
 		sReply = ss.str();
 		strcpy(msg, (char*) sReply.c_str());
 		ServerReply(msg, outAddr, outBox, fromBox);
