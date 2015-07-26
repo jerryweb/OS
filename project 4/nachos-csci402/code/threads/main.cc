@@ -304,28 +304,39 @@ void RunServer() {
 
 		/************Server Forwarding*****************************/
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer); //TODO:change 0 to inbox
+		//debug
+		printf("\nreceive buffer : %s\n",buffer);
+
 		ss << buffer;
 		ss >> scIdentifier;
 
 		//if it's a client message forward it to other servers
-		if (request == 0) {
+		if (scIdentifier == 0) {
 			mailboxID = inMailHdr.from;  //update mailbox here
 			fwd = ss.str();
 			css << "1 " << myId << " " << mailboxID << " "<<fwd << " ";
 			fwd = css.str();
-			//else forward timestamp(only) to other servers
-		} else {
+			//else if it's server msg forward timestamp(only) to other servers
+		} else if (scIdentifier == 1) {
 			unsigned int fwdTime = getTimeStamp();
-			css << "1 "<< myId << " 0 " <<fwdTime << " 14 "; //request type 14 means it's only timestamp update
+			css << "2 "<< myId << " 0 " <<fwdTime << " 14 "; //request type 14 means it's only timestamp update
 			fwd = css.str();
+
+		//it it's timestamp only msg, do nothing
+		} else {
+
 		}
-		//forward the above just constructed message/timestamp to other servers
-		for (int i = 0;i<2;i++) {
-			if (i != myId) {
-				cArg1 = new char[MaxMailSize];
-				strcpy(cArg1,(char*)fwd.c_str());
-				ServerReply(cArg1,i,0,0); //it'fine to use 0,0 for to, from mailbox
-										  //since server is single thread
+
+		//as long as it's not update timestamp msg
+		if (scIdentifier != 2) {
+			//forward the above just constructed message/timestamp to other servers
+			for (int i = 0;i<2;i++) {
+				if (i != myId) {
+					cArg1 = new char[MaxMailSize];
+					strcpy(cArg1,(char*)fwd.c_str());
+					ServerReply(cArg1,i,0,0); //it'fine to use 0,0 for to, from mailbox
+											  //since server is single thread
+				}
 			}
 		}
 		ss.str("");
@@ -338,7 +349,7 @@ void RunServer() {
 		ss << buffer;
 		ss >> dummy;
 		// read in  original machine id and mailbox if it's server fwd msg
-		if (scIdentifier == 0) {
+		if (scIdentifier != 0) {
 			ss >> original;
 			ss >> mailboxID;
 		}
@@ -364,12 +375,22 @@ void RunServer() {
 		//TODO:maybe skip the timestamp renew msg for my own, good for now
 		char* nMsg;
 		nMsg = new char[MaxMailSize];
-		construct = ss.str();
-		cArg1 = (char*)construct.c_str();
+		ss.getline(cArg1,MaxMailSize,' ');
+		ss.getline(cArg1,MaxMailSize,' ');
+		//cArg1 = (char*)construct.c_str();
 		css << scIdentifier << " " << original << " " << mailboxID << " " << tStamp << " " << cArg1;
 		construct = css.str();
 		strcpy(nMsg,(char*)construct.c_str());
 		pendingMsg->SortedInsert((void*)nMsg,tStamp);
+
+		//debug
+		printf("\nappending pending msg to list\n");
+		printf("\n msg type: %d\n",scIdentifier);
+		printf("msg sender: %d\n",original);
+		printf("msg mailbox id:  %d\n",mailboxID);
+		printf("msg tstamp: %d\n",tStamp);
+		printf("msg info: %s\n\n",cArg1);
+
 		ss.str("");
 		ss.clear();
 		css.str("");
@@ -388,10 +409,19 @@ void RunServer() {
 			ss << reqMsg;
 			ss >> scIdentifier >> original >> mailboxID >> tStamp;
 
+			//debug
+			printf("\nhandling pending msg\n ");
+			printf("msg type: %d\n",scIdentifier);
+			printf("msg sender: %d\n",original);
+			printf("msg mailbox id:  %d\n",mailboxID);
+			printf("msg tstamp: %d\n",tStamp);
+			printf("msg info: %s\n\n",cArg1);
+
 			//if time stamp larger than the smallest time stamp from LTR, abort
 			//also re-append the message
 			if (tStamp > sTStamp) {
 				pendingMsg->SortedInsert((void*)reqMsg,tStamp);
+				printf("finished one loop since I'm on time\n");
 				break;
 			}
 

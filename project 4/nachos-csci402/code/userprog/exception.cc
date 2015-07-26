@@ -176,6 +176,7 @@ void clientRequest(char* msg, int fromBox, int toBox) {
 	outMailHdr.length = strlen(toSend) + 1;
 
 	postOffice->Send(outPktHdr, outMailHdr, toSend);
+	delete [] msg;
 }
 #endif
 
@@ -691,6 +692,7 @@ void Acquire_Syscall(int lock)
 	}*/
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -729,6 +731,7 @@ void Release_Syscall(int lock)
 	}*/
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -773,6 +776,7 @@ void Wait_Syscall(int lock, int CV)
 	}
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -816,6 +820,7 @@ void Signal_Syscall(int lock, int CV) {
 	}
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -860,6 +865,7 @@ void Broadcast_Syscall(int lock, int CV)
 	char buffer[MaxMailSize];
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -901,6 +907,7 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 	buf[len]='\0';
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -948,6 +955,7 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 	buf[len]='\0';
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -983,6 +991,7 @@ void DestroyLock_Syscall(int id)
 	}*/
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -1009,6 +1018,7 @@ void DestroyCondition_Syscall(int CV)
 	}
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -1114,10 +1124,11 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len, int size){
 	buf[len]='\0';
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
-	ss << "10 " << buf << " " << len << " ";
+	ss << "10 " << buf << " " << len;
     // add size to message
 	toSend = ss.str();
 	strcpy(request,(char*)toSend.c_str());
@@ -1141,6 +1152,7 @@ void DestroyMonitorVariable_Syscall(int id){
 	} */
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -1165,6 +1177,7 @@ int GetMonitorVariable_Syscall(int id, int pos){
 	int value;
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
@@ -1189,6 +1202,7 @@ void SetMonitorVariable_Syscall(int id, int pos, int value){
 	}*/
 
 	char* request;
+	request = new char[MaxMailSize];
 	string toSend;
 	stringstream ss;
 	int boxNum = currentThread->getMailBoxNum();
