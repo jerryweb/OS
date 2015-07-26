@@ -471,7 +471,9 @@ void Fork_Syscall(unsigned int vaddr1, unsigned int vaddr2, int len)
 
 	DEBUG('z', "Fork: Thread table size %d\n",
 			t->space->threadTable->getCount());
-
+    
+    t->SetMailBoxNum();
+    
 	forkLock->Release();
 
 	t->Fork(kernel_function, (int) vaddr1); // Fork the new thread to run the kernel program.
