@@ -82,8 +82,6 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
-    currentBoxCountPointer = 1;
-    boxCountIndexLock = new Lock("boxCountIndexLock");
 
 /*TODO: add the Process tables here*/
 #ifdef USER_PROGRAM
@@ -218,7 +216,9 @@ Initialize(int argc, char **argv)
 #endif
 
 #ifdef NETWORK
-    postOffice = new PostOffice(netname, rely, 30);
+    postOffice = new PostOffice(netname, rely, 50);
+    currentBoxCountPointer = 1;
+    boxCountIndexLock = new Lock("boxCountIndexLock");
 #endif
 }
 
