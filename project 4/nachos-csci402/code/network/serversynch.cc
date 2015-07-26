@@ -78,7 +78,6 @@ void ServerReply(char* sMsg, int outMachine, int outMailbox, int fromMailbox) {
 	MailHeader outMailHdr;
 
 	outPktHdr.to = outMachine;
-	outPktHdr.from = netname;
 	outMailHdr.to = outMailbox;
 	outMailHdr.from = fromMailbox;
 	outMailHdr.length = strlen(sMsg) + 1;
