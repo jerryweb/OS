@@ -157,7 +157,7 @@ void clientRequest(char* msg, int fromBox, int toBox) {
 	stringstream ss;
 	string build;
 
-	serverID = rand() % 5;
+	serverID = rand() % 2;
 	timestamp = getTimeStamp();
 
 	ss.str("");

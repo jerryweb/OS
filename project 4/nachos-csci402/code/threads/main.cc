@@ -219,8 +219,8 @@ int main(int argc, char **argv) {
 		serverLockTable = new Table(2048);
 		serverCVTable = new Table(2048);
 		MVTable = new Table(2048);
-		LTRArray = new unsigned int[5];
-		for (int i=0;i<5;i++) {
+		LTRArray = new unsigned int[2];
+		for (int i=0;i<2;i++) {
 			LTRArray[i] = 0;
 		}
 		pendingMsg = new List();
@@ -320,7 +320,7 @@ void RunServer() {
 			fwd = css.str();
 		}
 		//forward the above just constructed message/timestamp to other servers
-		for (int i = 0;i<5;i++) {
+		for (int i = 0;i<2;i++) {
 			if (i != myId) {
 				cArg1 = new char[MaxMailSize];
 				strcpy(cArg1,(char*)fwd.c_str());
@@ -352,7 +352,7 @@ void RunServer() {
 		}
 		//update smallest time stamp from LTR
 		sTStamp = LTRArray[0];
-		for (int i=1;i<5;i++) {
+		for (int i=1;i<2;i++) {
 			if (sTStamp > LTRArray[i]) {
 				sTStamp = LTRArray[i];
 			}
