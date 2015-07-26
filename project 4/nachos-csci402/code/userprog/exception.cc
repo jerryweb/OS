@@ -171,6 +171,7 @@ void clientRequest(char* msg, int fromBox, int toBox) {
 	MailHeader outMailHdr;
 
 	outPktHdr.to = serverID;
+	outPktHdr.from = netname;
 	outMailHdr.to = 0;
 	outMailHdr.from = fromBox;
 	outMailHdr.length = strlen(toSend) + 1;
