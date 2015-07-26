@@ -84,14 +84,14 @@ int GetMyBoxNumber_Syscall();
 
 #ifdef NETWORK
 //this integrated the receive message part of messaging
-void serverResponseValidation() {
+void serverResponseValidation(int mailBox) {
 
 	PacketHeader inPktHdr;
 	MailHeader inMailHdr;
 	char buffer[MaxMailSize];
 
 	// Wait for the first message from the other machine
-	postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+	postOffice->Receive(mailBox, &inPktHdr, &inMailHdr, buffer);
 
 	printf("Got \"%s\" from %d, box %d\n", buffer, inPktHdr.from,
 			inMailHdr.from);
@@ -115,14 +115,14 @@ void serverResponseValidation() {
 
 //this return the second argument
 //used for returning just created lock/cv/mv, also for getting mv value
-int serverResponse() {
+int serverResponse(int mailBox) {
 
 	PacketHeader inPktHdr;
 	MailHeader inMailHdr;
 	char buffer[MaxMailSize];
 
 	// Wait for the first message from the other machine
-	postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+	postOffice->Receive(mailBox, &inPktHdr, &inMailHdr, buffer);
 
 	printf("Got \"%s\" from %d, box %d\n", buffer, inPktHdr.from,
 			inMailHdr.from);
@@ -172,7 +172,7 @@ void clientRequest(char* msg, int fromBox, int toBox) {
 
 	outPktHdr.to = serverID;
 	outMailHdr.to = 0;
-	outMailHdr.from = fromBox;   //TODO: get this from current thread
+	outMailHdr.from = fromBox;
 	outMailHdr.length = strlen(toSend) + 1;
 
 	postOffice->Send(outPktHdr, outMailHdr, toSend);
@@ -693,14 +693,15 @@ void Acquire_Syscall(int lock)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "3 " << lock << " ";
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
 	printf("Acquire_Syscall:sending %s to server\n",request);
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 #endif // NETWORK
 }
 
@@ -731,12 +732,13 @@ void Release_Syscall(int lock)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "4 " << lock;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 
 #endif // NETWORK
 }
@@ -774,12 +776,13 @@ void Wait_Syscall(int lock, int CV)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "8 " << sCond->name << " " <<sLock->name;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 
 #endif // NETWORK
 }
@@ -816,12 +819,13 @@ void Signal_Syscall(int lock, int CV) {
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "7 " << sCond->name << " " << sLock->name;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 #endif // NETWORK
 }
 
@@ -859,12 +863,13 @@ void Broadcast_Syscall(int lock, int CV)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "9 " << sCond->name << " "<<sLock->name;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 
 #endif // NETWORK
 }
@@ -899,14 +904,15 @@ int CreateLock_Syscall(unsigned int vaddr, int len)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "1 " << buf;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 	printf("sending request %s\n",request);
 
-	clientRequest(request,0,0);
+	clientRequest(request,boxNum,0);
 	int lockLocation;
-	lockLocation = serverResponse();
+	lockLocation = serverResponse(boxNum);
 	DEBUG('n',"Successfully created server Lock index %d \n",lockLocation);
 
 	delete[] buf;
@@ -945,13 +951,14 @@ int CreateCondition_Syscall(unsigned int vaddr, int len)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "5 " << buf;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
+	clientRequest(request,boxNum,0);
 	int CVLocation;
-	CVLocation = serverResponse();
+	CVLocation = serverResponse(boxNum);
 	delete[] buf;
 	return CVLocation;
 
@@ -979,12 +986,13 @@ void DestroyLock_Syscall(int id)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "2 " << id;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 #endif // NETWORK
 }
 void DestroyCondition_Syscall(int CV)
@@ -1004,12 +1012,13 @@ void DestroyCondition_Syscall(int CV)
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "6 " << sCond->name;
 	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 #endif // NETWORK
 }
 
@@ -1108,6 +1117,7 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len, int size){
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "10 " << buf << " " << len << " ";
     // add size to message
 	toSend = ss.str();
@@ -1115,9 +1125,9 @@ int CreateMonitorVariable_Syscall(unsigned int vaddr, int len, int size){
 	strcpy(request,(char*)toSend.c_str());
 	printf("sending request %s\n",request);
 
-	clientRequest(request,0,0);
+	clientRequest(request,boxNum,0);
 	int MVLocation;
-	MVLocation = serverResponse();
+	MVLocation = serverResponse(boxNum);
 
 	delete[] buf;
 	return MVLocation;
@@ -1135,12 +1145,13 @@ void DestroyMonitorVariable_Syscall(int id){
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "11 " << id;
-	toSend == ss.str();
+	toSend = ss.str();
 	request = (char*)toSend.c_str();
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 }
 
 int GetMonitorVariable_Syscall(int id, int pos){
@@ -1158,14 +1169,15 @@ int GetMonitorVariable_Syscall(int id, int pos){
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "12 " << id << " " << pos << " ";
     // add pos to message
-	toSend == ss.str();
+	toSend = ss.str();
 	//request = (char*)toSend.c_str();
 	strcpy(request,(char*)toSend.c_str());
 
-	clientRequest(request,0,0);
-	value = serverResponse();
+	clientRequest(request,boxNum,0);
+	value = serverResponse(boxNum);
 
 	return value;	//this should be whatever value the server sends back
 }
@@ -1182,14 +1194,15 @@ void SetMonitorVariable_Syscall(int id, int pos, int value){
 	char* request;
 	string toSend;
 	stringstream ss;
+	int boxNum = currentThread->getMailBoxNum();
 	ss << "13 " << id << " "<< value << " " << pos << " ";
     // add pos to message
-	toSend == ss.str();
+	toSend = ss.str();
 	//request = (char*)toSend.c_str();
 	strcpy(request,(char*)toSend.c_str());
 
-	clientRequest(request,0,0);
-	serverResponseValidation();
+	clientRequest(request,boxNum,0);
+	serverResponseValidation(boxNum);
 }
 
 
