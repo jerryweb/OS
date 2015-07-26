@@ -6,15 +6,21 @@ Title:  Writeup for Project 4, Summer 2015
 		Hao Cui		hcui@usc.edu		1454367516
 
 I. Requirements:
-    Part 1: 
+    Part 1: Implement the airport simulation using remote procedure calls. Each entity is a process; they do not communicate with each other, instead sharing data using monitor variables only.
     Part 2: Implement fully distributed servers with total ordering algorithm
 
 II. Assumptions:
+    Security inspector and screening officer still not implemented for airport; passenger goes directly to boarding after checking in.
 	No packet lost in network communication. No concern for swap file and TLB error.
 
 III. Design:
     Fully Distributed Airport:
-
+        Basically the same as project 2 airport, except all shared data (variables, arrays, lists, etc.) are converted to be created and accessed using the monitor variable syscalls.
+        Runs using 3 different tests, each in its own client console:
+            First test execs 21 passengers.
+            Second test execs 5 liaisons and 5 cargo handlers.
+            Third test execs manager and 9 check-in staff.
+        
     Fully Distributed Server:
     	Purpose:
 		Since single server will have single point of failure and also problem of scalability, a fully distributed server desgin will allow servers to function
@@ -73,9 +79,8 @@ III. Design:
 		 	
 IV. Implementation:
 	+ Files Modified
-	[Fully Distributed Airport]
-	
-	[Fully Distributed Server]
+        code/test/airportStructs.h
+        code/test/Makefile
 		code/threads/main.cc
 		code/threads/system.h
 		code/threads/system.cc
@@ -84,16 +89,17 @@ IV. Implementation:
 		code/network/serversynch.h
 		        
 	+ Files added
-	[Fully Distributed Airport]
-	
-	[Fully Distributed Server]
-	None
+        code/test/airportCargo.c
+        code/test/airportCheckin.c
+        code/test/airportLCargoInit.c
+        code/test/airportLiaison.c
+        code/test/airportManager.c
+        code/test/airportMCheckinInit.c
+        code/test/airportPass
+        code/test/airportPassInit.c
         
 	+ Data Structures added, and the file they were added to.
         (Test files not included)
-	[Fully Distributed Airport]
-	
-	[Fully Distributed Server]
 		code/network/serversynch.h
 			class serverMV {
 				public:
@@ -116,9 +122,6 @@ IV. Implementation:
     
 	+ Data Structures modified, and the file they were added to.
         (Test files not included)
-    [Fully Distributed Airport]
-	
-	[Fully Distributed Server]
 		code/threads/thread.h
 			class Thread;
 	
@@ -129,9 +132,6 @@ IV. Implementation:
     
 	+ Functions added and in which file.
         (Test files not included)
-    [Fully Distributed Airport]
-	
-	[Fully Distributed Server]
 		code/threads/main.cc
 			void createMV(char* lname,int len, Table* mTable, int outAddr, int outBox,int fromBox);
 			void destroyMV(char* mName, Table* mTable, int outAddr,int outBox,int fromBox);
@@ -150,9 +150,6 @@ IV. Implementation:
     
 	+ Functions modified and in which file.
         (Test files not included)
-	[Fully Distributed Airport]
-	
-	[Fully Distributed Server]
 		code/threads/main.cc
 			void RunServer();  //most of the new server code goes to here
 			void createLock(char* lName, Table* sTable, int outAddr,int outBox,int fromBox);
