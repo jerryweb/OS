@@ -1209,8 +1209,6 @@ void SetMonitorVariable_Syscall(int id, int pos, int value){
 void ExceptionHandler(ExceptionType which) {
 	int type = machine->ReadRegister(2); // Which syscall?
 	int rv = 0; 	// the return value from a syscall
-
-    printf("%p", currentThread->space);
     
 	if (which == SyscallException) {
 		switch (type) {
