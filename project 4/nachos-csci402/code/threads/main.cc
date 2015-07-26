@@ -593,6 +593,10 @@ void RunServer() {
 			}
 			/*****************pending msg processing ends***********************/
 		}
+		ss.str("");
+		ss.clear();
+		css.str("");
+		css.clear();
 	}
 	delete [] cArg1;
 	delete [] cArg2;
