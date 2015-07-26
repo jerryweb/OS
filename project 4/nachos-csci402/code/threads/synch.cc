@@ -276,7 +276,8 @@ void Condition::Broadcast(Lock* conditionLock)
         }
     }
 }
-
+/*
 MonitorVariable::MonitorVariable(char* mName, int pos, int MYvalue) {
 	name = mName;
 }
+*/
