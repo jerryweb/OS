@@ -352,7 +352,7 @@ void RunServer() {
 
 		/************total ordering**********************************/
 		ss << buffer;
-		ss >> dummy;
+		ss >> scIdentifier;
 		// read in  original machine id and mailbox if it's server fwd msg
 		if (scIdentifier != 0) {
 			ss >> original;
@@ -386,7 +386,7 @@ void RunServer() {
 		ss.str("");
 		ss.clear();
 		ss << buffer;
-		ss >> dummy;
+		ss >> dummy >> dummy >> dummy;
 		//ss.getline(cArg1,MaxMailSize,' ');
 		//ss.getline(cArg1,MaxMailSize,' ');
 		ss.getline(cArg1,MaxMailSize);

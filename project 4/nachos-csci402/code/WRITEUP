@@ -178,7 +178,13 @@ IV. Implementation:
 
 V. Testing:  (For each test case, you must show)
 	+ How to test
-
+		open 2 consoles first as server
+		commandline argument "nachos -m machineid -server -d n" "nachos -m 1 -server -d n"
+		open multiple consoles as client nachos
+		commandline argument "nachos -m machineid -x ../test/airportExecutables -d n"
+		
+		machine id can't be the same for both servers and clients
+		
 	+ Test Output
 
 
